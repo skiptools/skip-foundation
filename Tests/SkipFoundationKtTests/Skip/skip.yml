@@ -1,0 +1,17 @@
+# skip.tools per-configuration file
+
+# the blocks to add to the build.gradle.kts
+#build:
+#  contents:
+#    - block: 'dependencies'
+#      contents:
+#        - '// no new dependencies in SkipFoundationKtTests'
+# skip.tools per-configuration file
+
+#build:
+#  contents:
+#    - block: 'dependencies'
+#      export: false
+#      contents:
+#       #  SkipFoundation does not include the actual JSC implementation itself; that needs to be included by the host environment
+#       # - 'implementation("org.webkit:android-jsc:r174650")'
