@@ -4,8 +4,10 @@
 #  package: 'skip.foundation'
 
 # the blocks to add to the build.gradle.kts
-#build:
-#  contents:
-#    - block: 'dependencies'
-#      contents:
-#        - 'implementation("…")
+build:
+  contents:
+    - block: 'plugins'
+      export: false
+      contents:
+        - 'kotlin("android") version "1.9.0"'
+        - 'id("com.android.library") version "8.1.0"'
