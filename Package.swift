@@ -15,25 +15,17 @@ let package = Package(
         .package(url: "https://source.skip.tools/skip-unit.git", from: "0.0.0"),
     ],
     targets: [
-        // Foundation types: URL, Data, Date, DateFormatter, Bundle, FileManager, etc.
         .target(name: "SkipFoundation", plugins: [.plugin(name: "preflight", package: "skip")]),
         .target(name: "SkipFoundationKt", dependencies: [
             "SkipFoundation",
-            .product(name: "SkipUnit", package: "skip-unit"),
-            .product(name: "SkipUnitKt", package: "skip-unit"),
-            .product(name: "SkipLib", package: "skip-lib"),
-            .product(name: "SkipLibKt", package: "skip-lib")
+            .product(name: "SkipLibKt", package: "skip-lib"),
         ], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
         .testTarget(name: "SkipFoundationTests", dependencies: [
-            "SkipFoundation",
-            .product(name: "SkipLib", package: "skip-lib"),
+            "SkipFoundation"
         ], resources: [.process("Resources")], plugins: [.plugin(name: "preflight", package: "skip")]),
         .testTarget(name: "SkipFoundationKtTests", dependencies: [
             "SkipFoundationKt",
-            .product(name: "SkipUnit", package: "skip-unit"),
             .product(name: "SkipUnitKt", package: "skip-unit"),
-            .product(name: "SkipLib", package: "skip-lib"),
-            .product(name: "SkipLibKt", package: "skip-lib")
         ], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
     ]
 )
