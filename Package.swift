@@ -11,14 +11,15 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://source.skip.tools/skip.git", from: "0.5.83"),
-        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.0.0"),
         .package(url: "https://source.skip.tools/skip-unit.git", from: "0.0.0"),
+        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.0.0"),
     ],
     targets: [
         .target(name: "SkipFoundation", plugins: [.plugin(name: "preflight", package: "skip")]),
         .target(name: "SkipFoundationKt", dependencies: [
             "SkipFoundation",
             .product(name: "SkipLibKt", package: "skip-lib"),
+            .product(name: "SkipUnitKt", package: "skip-unit"),
         ], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
         .testTarget(name: "SkipFoundationTests", dependencies: [
             "SkipFoundation"
