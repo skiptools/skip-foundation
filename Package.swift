@@ -16,7 +16,7 @@ let package = Package(
     ],
     targets: [
         // Foundation types: URL, Data, Date, DateFormatter, Bundle, FileManager, etc.
-        .target(name: "SkipFoundation", plugins: [.plugin(name: "preflight", package: "skip")]),
+        .target(name: "SkipFoundation", dependencies: [.product(name: "SkipLib", package: "skip-lib")], plugins: [.plugin(name: "preflight", package: "skip")]),
         .target(name: "SkipFoundationKt", dependencies: ["SkipFoundation", .product(name: "SkipLibKt", package: "skip-lib")], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
         .testTarget(name: "SkipFoundationTests", dependencies: ["SkipFoundation"], resources: [.process("Resources")], plugins: [.plugin(name: "preflight", package: "skip")]),
         .testTarget(name: "SkipFoundationKtTests", dependencies: ["SkipFoundationKt", .product(name: "SkipUnitKt", package: "skip-unit")], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
