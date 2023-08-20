@@ -18,6 +18,7 @@ let package = Package(
         .target(name: "SkipFoundation", plugins: [.plugin(name: "preflight", package: "skip")]),
         .target(name: "SkipFoundationKt", dependencies: [
             "SkipFoundation",
+            .product(name: "SkipUnitKt", package: "skip-unit"),
             .product(name: "SkipLibKt", package: "skip-lib"),
         ], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
         .testTarget(name: "SkipFoundationTests", dependencies: [
@@ -26,6 +27,8 @@ let package = Package(
         .testTarget(name: "SkipFoundationKtTests", dependencies: [
             "SkipFoundationKt",
             .product(name: "SkipUnitKt", package: "skip-unit"),
+            .product(name: "SkipLibKt", package: "skip-lib"),
+            .product(name: "SkipUnit", package: "skip-unit"),
         ], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
     ]
 )
