@@ -340,10 +340,11 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
     }
 
     /// Returns a URL by appending the specified path extension to self.
-    @available(*, unavailable)
     public func appendingPathExtension(_ pathExtension: String) -> URL {
         #if SKIP
-        fatalError("TODO: implement appendingPathExtension")
+        var url = self.platformValue.toExternalForm()
+        url = url + "." + pathExtension
+        return URL(platformValue: PlatformURL(url))
         #else
         return Self(foundationURL.appendingPathExtension(pathExtension) as PlatformURL)
         #endif
