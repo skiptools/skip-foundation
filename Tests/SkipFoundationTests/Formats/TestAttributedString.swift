@@ -1844,7 +1844,8 @@ E {
         #endif // !SKIP
     }
     
-    #if os(macOS)
+    #if !os(macOS)
+    #else
     func testConversionWithoutScope() throws {
         #if SKIP
         throw XCTSkip("TODO")

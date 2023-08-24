@@ -256,8 +256,12 @@ class TestURL : XCTestCase {
             return (true, [])
         }
     }
+    #endif
 
     func test_URLStrings() {
+        #if SKIP
+        throw XCTSkip("TODO: port test")
+        #else
         for obj in getTestData()! {
             let testDict = obj as! [String: Any]
             let title = testDict[kURLTestTitleKey] as! String
@@ -317,8 +321,8 @@ class TestURL : XCTestCase {
                 XCTAssertEqual(expectedNSResult as? String, kNullURLString)
             }
         }
+        #endif
     }
-    #endif
 
     static let gBaseTemporaryDirectoryPath: String = (NSTemporaryDirectory() as NSString).appendingPathComponent("org.swift.foundation.TestFoundation.TestURL.\(ProcessInfo.processInfo.processIdentifier)")
     static var gBaseCurrentWorkingDirectoryPath : String {

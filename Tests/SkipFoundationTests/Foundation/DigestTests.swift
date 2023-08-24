@@ -51,15 +51,17 @@ final class DigestTests: XCTestCase {
         XCTAssertEqual("SHA1 digest: 962f927d8fb5f84a01d2c7c7a2bdefff151dff09", Insecure.SHA1.hash(data: Data("ZZ Top".utf8)).description)
     }
 
-    #if !SKIP
-    // this currently isn't possible in Skip since Kotlin can't access the generic type from a static context (to get the algorithm name)
     func testHMACSignSHA256() {
+        #if SKIP
+        // this currently isn't possible in Skip since Kotlin can't access the generic type from a static context (to get the algorithm name)
+        throw XCTSkip("need static generic access")
+        #else
         let message = "Your message to sign"
         let secret = "your-secret-key"
         let signature = HMAC<SHA256>.authenticationCode(for: Data(message.utf8), using: SymmetricKey(data: Data(secret.utf8)))
         XCTAssertEqual("mUohryR4fJJFBXxnYup30d7IcYsG+o9Oyke/Nz87bfs=", Data(signature).base64EncodedString())
+        #endif
     }
-    #endif
 
     func testHMACSigning() {
         XCTAssertEqual("U1V0aL+omPKt3L1+Fso3cA==", Data(HMACMD5.authenticationCode(for: Data("Your message to sign".utf8), using: SymmetricKey(data: Data("your-secret-key".utf8)))).base64EncodedString())

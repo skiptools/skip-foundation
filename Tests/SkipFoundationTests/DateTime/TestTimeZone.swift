@@ -184,7 +184,8 @@ class TestTimeZone: XCTestCase {
         XCTAssertEqual(actualIdentifier, expectedIdentifier, "expected identifier \"\(expectedIdentifier)\" is not equal to \"\(actualIdentifier?.description ?? "")\"")
     }
 
-#if !os(Windows)
+#if os(Windows)
+#else
     func test_systemTimeZoneUsesSystemTime() {
         #if SKIP
         throw XCTSkip("TODO")

@@ -8,7 +8,10 @@ import XCTest
 
 // These tests are adapted from https://github.com/apple/swift-corelibs-foundation/blob/main/Tests/Foundation/Tests which have the following license:
 
-#if !os(iOS)
+#if os(iOS)
+// not working on iOS now
+// leave this as a "#if" rather than #endif" so Skip doesn't remove it
+#else
 
 // This source file is part of the Swift.org open source project
 //
@@ -20,6 +23,11 @@ import XCTest
 //
 
 // MARK: - Vector
+
+#if SKIP
+// stub for CGFloat
+public typealias CGFloat = Double
+#endif
 
 // CGVector is only available on Darwin.
 public struct Vector {

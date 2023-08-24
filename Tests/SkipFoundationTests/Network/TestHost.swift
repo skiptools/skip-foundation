@@ -20,62 +20,62 @@ import XCTest
 
 class TestHost: XCTestCase {
     
-#if !os(iOS)
-    
-    // SR-6391
-    func test_addressesDoNotGrow() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let local = Host.current()
-        let localAddressesFirst = local.addresses
-        let localAddressesSecond = local.addresses
-        XCTAssertEqual(localAddressesSecond.count, localAddressesFirst.count)
-        
-        let dns = Host(address: "8.8.8.8")
-        let dnsAddressesFirst = dns.addresses
-        let dnsAddressesSecond = dns.addresses
-        XCTAssertEqual(dnsAddressesSecond.count, dnsAddressesFirst.count)
-        
-        let swift = Host(name: "localhost")
-        let swiftAddressesFirst = swift.addresses
-        let swiftAddressesSecond = swift.addresses
-        XCTAssertEqual(swiftAddressesSecond.count, swiftAddressesFirst.count)
-        #endif // !SKIP
-    }
+#if os(iOS)
+#else
+// SR-6391
+func test_addressesDoNotGrow() {
+    #if SKIP
+    throw XCTSkip("TODO")
+    #else
+    let local = Host.current()
+    let localAddressesFirst = local.addresses
+    let localAddressesSecond = local.addresses
+    XCTAssertEqual(localAddressesSecond.count, localAddressesFirst.count)
 
-    func test_isEqual() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let host0 = Host(address: "8.8.8.8")
-        let host1 = Host(address: "8.8.8.8")
-        XCTAssertTrue(host0.isEqual(to: host1))
+    let dns = Host(address: "8.8.8.8")
+    let dnsAddressesFirst = dns.addresses
+    let dnsAddressesSecond = dns.addresses
+    XCTAssertEqual(dnsAddressesSecond.count, dnsAddressesFirst.count)
 
-        let host2 = Host(address: "8.8.8.9")
-        XCTAssertFalse(host0.isEqual(to: host2))
+    let swift = Host(name: "localhost")
+    let swiftAddressesFirst = swift.addresses
+    let swiftAddressesSecond = swift.addresses
+    XCTAssertEqual(swiftAddressesSecond.count, swiftAddressesFirst.count)
+    #endif // !SKIP
+}
 
-        let swift0 = Host(name: "localhost")
-        let swift1 = Host(name: "localhost")
-        XCTAssertTrue(swift0.isEqual(to: swift1))
+func test_isEqual() {
+    #if SKIP
+    throw XCTSkip("TODO")
+    #else
+    let host0 = Host(address: "8.8.8.8")
+    let host1 = Host(address: "8.8.8.8")
+    XCTAssertTrue(host0.isEqual(to: host1))
 
-        let google = Host(name: "google.com")
-        XCTAssertFalse(swift0.isEqual(to: google))
-        #endif // !SKIP
-    }
+    let host2 = Host(address: "8.8.8.9")
+    XCTAssertFalse(host0.isEqual(to: host2))
 
-    // SR-14197
-    func test_localNamesNonEmpty() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let local = Host.current()
-        XCTAssertTrue(local.names.count > 0)
+    let swift0 = Host(name: "localhost")
+    let swift1 = Host(name: "localhost")
+    XCTAssertTrue(swift0.isEqual(to: swift1))
 
-        let swift = Host(name: "localhost")
-        XCTAssertTrue(swift.names.count > 0)
-        #endif // !SKIP
-    }
+    let google = Host(name: "google.com")
+    XCTAssertFalse(swift0.isEqual(to: google))
+    #endif // !SKIP
+}
+
+// SR-14197
+func test_localNamesNonEmpty() {
+    #if SKIP
+    throw XCTSkip("TODO")
+    #else
+    let local = Host.current()
+    XCTAssertTrue(local.names.count > 0)
+
+    let swift = Host(name: "localhost")
+    XCTAssertTrue(swift.names.count > 0)
+    #endif // !SKIP
+}
 #endif
 }
 

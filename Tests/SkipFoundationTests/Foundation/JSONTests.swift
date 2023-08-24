@@ -652,7 +652,6 @@ class TestJSON : XCTestCase {
 
     }
 
-    #if !SKIP
     func testJSONDeserialization() throws {
 //        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data("""
 //            {
@@ -692,5 +691,4 @@ class TestJSON : XCTestCase {
 //
 //        XCTAssertEqual(1, (e[4] as? [Any])?.count)
     }
-    #endif
 }
