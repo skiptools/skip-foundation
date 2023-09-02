@@ -27,7 +27,7 @@ public struct Locale : Hashable {
         #if SKIP
         //self.platformValue = PlatformLocale(identifier)
         //self.platformValue = PlatformLocale.forLanguageTag(identifier)
-        let parts = Array(identifier.split("_"))
+        let parts = Array(identifier.split(separator: "_"))
         if parts.count >= 2 {
             // turn fr_FR into the language/country form
             self.platformValue = PlatformLocale(parts.first, parts.last)

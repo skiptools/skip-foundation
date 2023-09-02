@@ -36,11 +36,11 @@ public class HTTPURLResponse : URLResponse {
 
         if let contentType = value(forHTTPHeaderField: "Content-Type") {
             // handle "text/HTML; charset=ISO-8859-4"
-            let parts = contentType.split(";") // TODO: need to not split on semicolons within quoted strings, like a filename
+            let parts = contentType.split(separator: ";") // TODO: need to not split on semicolons within quoted strings, like a filename
             if parts.count > 1 {
                 self.mimeType = parts.firstOrNull()?.lowercased()
                 for part in parts.dropFirst() {
-                    let keyValue = part.split("=")
+                    let keyValue = part.split(separator: "=")
                     if keyValue.firstOrNull()?.trim() == "charset",
                         let charset = keyValue.lastOrNull()?.trim() {
                         self.textEncodingName = charset.lowercased()
@@ -64,11 +64,11 @@ public class HTTPURLResponse : URLResponse {
         if var contentDisposition = value(forHTTPHeaderField: "Content-Disposition"),
            contentDisposition.hasPrefix("attachment;") {
             //let parts = splitStringWithQuotes(input: contentDisposition, separator: ";")
-            let parts = contentDisposition.split(";").map({ $0.trim() })
+            let parts = contentDisposition.split(separator: ";").map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) })
 
             if parts.firstOrNull() == "attachment" {
                 for part in parts.dropFirst() {
-                    let keyValue = part.split("=")
+                    let keyValue = part.split(separator: "=")
                     if keyValue.firstOrNull()?.trim() == "filename" {
                         guard var filename: String = keyValue.lastOrNull()?.trim(*"\"".toCharArray()) else {
                             continue

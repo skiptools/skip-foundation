@@ -22,18 +22,6 @@ extension String {
     public var unicodeScalars: [UInt8] {
         return Array(toByteArray(StringEncoding.utf8.rawValue).map { it.toUByte() })
     }
-
-    public func replacingOccurrences(of search: String, with replacement: String) -> String {
-        return replace(search, replacement)
-    }
-
-    public func split(separator: StringProtocol) -> [String] {
-        return Array(split(separator.description, ignoreCase: false))
-    }
-
-    public func components(separatedBy separator: String) -> [String] {
-        return Array(split(separator, ignoreCase: false))
-    }
 }
 
 #endif

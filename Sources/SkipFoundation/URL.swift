@@ -223,7 +223,7 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
     /// The path extension of the URL, or an empty string if the path is an empty string.
     public var pathExtension: String {
         #if SKIP
-        let parts = Array((lastPathComponent ?? "").split("."))
+        let parts = Array((lastPathComponent ?? "").split(separator: "."))
         if parts.count >= 2 {
             return parts.last!
         } else {
@@ -246,7 +246,8 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
     /// The path components of the URL, or an empty array if the path is an empty string.
     public var pathComponents: [String] {
         #if SKIP
-        return Array(platformValue.path.split("/")).filter({ !$0.isEmpty })
+        let path: String = platformValue.path
+        return Array(path.split(separator: "/")).filter { !$0.isEmpty }
         #else
         return foundationURL.pathComponents
         #endif

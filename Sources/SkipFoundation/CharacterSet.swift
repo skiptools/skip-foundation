@@ -10,7 +10,7 @@
 @_implementationOnly import struct Foundation.CharacterSet
 internal typealias PlatformCharacterSet = Foundation.CharacterSet
 #else
-internal typealias PlatformCharacterSet = skip.lib.Set<Character>
+internal typealias PlatformCharacterSet = Set<Character>
 #endif
 
 public struct CharacterSet : Hashable {
@@ -81,22 +81,22 @@ public struct CharacterSet : Hashable {
     }
 
     /// Returns a character set containing the characters in Unicode General Category Zs and `CHARACTER TABULATION (U+0009)`.
-    @available(*, unavailable)
     public static var whitespaces: CharacterSet {
         #if !SKIP
         return CharacterSet(platformValue: PlatformCharacterSet.whitespaces)
         #else
-        fatalError("SKIP TODO: CharacterSet")
+        // TODO: Actual values
+        return CharacterSet(platformValue: [" ", "\t"])
         #endif
     }
 
     /// Returns a character set containing characters in Unicode General Category Z*, `U+000A ~ U+000D`, and `U+0085`.
-    @available(*, unavailable)
     public static var whitespacesAndNewlines: CharacterSet {
         #if !SKIP
         return CharacterSet(platformValue: PlatformCharacterSet.whitespacesAndNewlines)
         #else
-        fatalError("SKIP TODO: CharacterSet")
+        // TODO: Actual values
+        return CharacterSet(platformValue: [" ", "\t", "\n", "\r"])
         #endif
     }
 
