@@ -10,4 +10,4 @@ build:
 #      export: false
 #      contents:
 #        - 'kotlin("android") version "1.9.0"'
-#        - 'id("com.android.library") version "8.1.1"'
+#        - 'id("com.android.library") version "8.1.0"'
