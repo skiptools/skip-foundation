@@ -7,28 +7,13 @@ let package = Package(
     platforms: [.iOS(.v16), .macOS(.v13), .tvOS(.v16), .watchOS(.v9), .macCatalyst(.v16)],
     products: [
         .library(name: "SkipFoundation", targets: ["SkipFoundation"]),
-        .library(name: "SkipFoundationKt", targets: ["SkipFoundationKt"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.tools/skip.git", from: "0.6.28"),
-        .package(url: "https://source.skip.tools/skip-unit.git", from: "0.2.4"),
-        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.3.4"),
+        .package(url: "https://source.skip.tools/skip.git", from: "0.6.35"),
+        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.3.6"),
     ],
     targets: [
-        .target(name: "SkipFoundation", plugins: [.plugin(name: "skippy", package: "skip")]),
-        .target(name: "SkipFoundationKt", dependencies: [
-            "SkipFoundation",
-            .product(name: "SkipUnitKt", package: "skip-unit"),
-            .product(name: "SkipLibKt", package: "skip-lib"),
-        ], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
-        .testTarget(name: "SkipFoundationTests", dependencies: [
-            "SkipFoundation"
-        ], resources: [.process("Resources")], plugins: [.plugin(name: "skippy", package: "skip")]),
-        .testTarget(name: "SkipFoundationKtTests", dependencies: [
-            "SkipFoundationKt",
-            .product(name: "SkipUnitKt", package: "skip-unit"),
-            .product(name: "SkipLibKt", package: "skip-lib"),
-            .product(name: "SkipUnit", package: "skip-unit"),
-        ], resources: [.process("Skip")], plugins: [.plugin(name: "transpile", package: "skip")]),
+        .target(name: "SkipFoundation", dependencies: [.product(name: "SkipLib", package: "skip-lib", condition: .when(platforms: [.macOS]))], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        .testTarget(name: "SkipFoundationTests", dependencies: ["SkipFoundation"], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
     ]
 )

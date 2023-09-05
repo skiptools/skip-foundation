@@ -64,7 +64,7 @@ public class HTTPURLResponse : URLResponse {
         if var contentDisposition = value(forHTTPHeaderField: "Content-Disposition"),
            contentDisposition.hasPrefix("attachment;") {
             //let parts = splitStringWithQuotes(input: contentDisposition, separator: ";")
-            let parts = contentDisposition.split(separator: ";").map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+            let parts = contentDisposition.split(separator: ";").map({ $0.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) })
 
             if parts.firstOrNull() == "attachment" {
                 for part in parts.dropFirst() {
