@@ -588,20 +588,18 @@ public struct FileAttributeKey : RawRepresentable, Hashable {
 }
 
 #if SKIP
+
 /// The system temporary folder
-public func NSTemporaryDirectory() -> String {
-    return java.lang.System.getProperty("java.io.tmpdir")
-}
+public func NSTemporaryDirectory() -> String { _NSTemporaryDirectory }
+private let _NSTemporaryDirectory = java.lang.System.getProperty("java.io.tmpdir")
 
 /// The user's home directory.
-public func NSHomeDirectory() -> String {
-    return java.lang.System.getProperty("user.home")
-}
+public func NSHomeDirectory() -> String { _NSHomeDirectory }
+private let _NSHomeDirectory = java.lang.System.getProperty("user.home")
 
 /// The current user name.
-public func NSUserName() -> String {
-    return java.lang.System.getProperty("user.name")
-}
+public func NSUserName() -> String { _NSUserName }
+private let _NSUserName = java.lang.System.getProperty("user.name")
 
 public struct FileProtectionType : RawRepresentable, Hashable {
     public let rawValue: String
