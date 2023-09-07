@@ -6,6 +6,8 @@
 
 #if SKIP
 extension String {
+    public typealias Encoding = StringEncoding
+    
     public func data(using: StringEncoding, allowLossyConversion: Bool = true) -> Data? {
         return try? Data(platformValue: toByteArray(using.rawValue))
     }
