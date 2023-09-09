@@ -413,7 +413,7 @@ class TestDateFormatter: XCTestCase {
         XCTAssertEqual(f.timeZone, losAngeles)
     }
 
-    func test_expectedTimeZone() {
+    func test_expectedTimeZone() throws {
         let newYork = TimeZone(identifier: "America/New_York")!
         let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
 
