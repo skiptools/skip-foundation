@@ -750,11 +750,20 @@ public func withTemporaryDirectory<R>(functionName: String = #function, block: (
 #endif
 
 extension XCTestCase {
+    /// Returns `true` if running in the Android emulator, as opposed to the "robolectric" environment.
+    var isAndroidEmulator: Bool {
+        #if !SKIP
+        return false
+        #else
+        return android.os.Build.FINGERPRINT != nil && "robolectric" != android.os.Build.FINGERPRINT
+        #endif
+    }
+
     /// Fail the test on the Android emulator/device, but let it run for Robolectric
     func failOnAndroid() throws {
         // disabled for emulator androidTest until we can add android.permission.INTERNET
         #if SKIP
-        if android.os.Build.FINGERPRINT?.lowercase() != "robolectric" {
+        if isAndroidEmulator {
             throw XCTSkip("Disabled for emulator until android.permission.INTERNET")
         }
         #endif
