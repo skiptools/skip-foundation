@@ -30,15 +30,6 @@ class TestNumberFormatter: XCTestCase {
 //        XCTAssertEqual(numberFormatter.localizesFormat, true)
         XCTAssertEqual(numberFormatter.locale, Locale.current)
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
-        #if SKIP
-        if isAndroidEmulator {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2000000000)
-        } else {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2147483647)
-        }
-        #else
-        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 42)
-        #endif
         XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
         XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
         #if !SKIP // Skip unsupported NumberFormatter properties
@@ -60,15 +51,6 @@ class TestNumberFormatter: XCTestCase {
 //        XCTAssertEqual(numberFormatter.localizesFormat, true)
         XCTAssertEqual(numberFormatter.locale, Locale.current)
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
-        #if SKIP
-        if isAndroidEmulator {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2000000000)
-        } else {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2147483647)
-        }
-        #else
-        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
-        #endif
         XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
         XCTAssertEqual(numberFormatter.maximumFractionDigits, 3)
         #if !SKIP // Skip unsupported NumberFormatter properties
@@ -94,15 +76,6 @@ class TestNumberFormatter: XCTestCase {
 //        XCTAssertEqual(numberFormatter.localizesFormat, true)
         XCTAssertEqual(numberFormatter.locale, Locale.current)
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
-        #if SKIP
-        if isAndroidEmulator {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2000000000)
-        } else {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2147483647)
-        }
-        #else
-        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
-        #endif
         XCTAssertEqual(numberFormatter.minimumFractionDigits, 2)
         XCTAssertEqual(numberFormatter.maximumFractionDigits, 2)
         #if !SKIP // Skip unsupported NumberFormatter properties
@@ -127,15 +100,6 @@ class TestNumberFormatter: XCTestCase {
 //        XCTAssertEqual(numberFormatter.localizesFormat, true)
         XCTAssertEqual(numberFormatter.locale, Locale.current)
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
-        #if SKIP
-        if isAndroidEmulator {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2000000000)
-        } else {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2147483647)
-        }
-        #else
-        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
-        #endif
         XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
         XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
         #if !SKIP // Skip unsupported NumberFormatter properties
@@ -435,15 +399,6 @@ class TestNumberFormatter: XCTestCase {
 //        XCTAssertEqual(numberFormatter.localizesFormat, true)
         XCTAssertEqual(numberFormatter.locale, Locale.current)
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
-        #if SKIP
-        if isAndroidEmulator {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2000000000)
-        } else {
-            XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2147483647)
-        }
-        #else
-        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 42)
-        #endif
         XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
         XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
         #if SKIP

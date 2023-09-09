@@ -7,7 +7,6 @@ import Foundation
 import XCTest
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
-// SKIP INSERT: @org.robolectric.annotation.Config(manifest=org.robolectric.annotation.Config.NONE, sdk = [33])
 @available(macOS 13, macCatalyst 16, iOS 16, tvOS 16, watchOS 8, *)
 final class URLTests: XCTestCase {
     func testURLs() throws {
