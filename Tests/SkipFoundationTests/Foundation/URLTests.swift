@@ -63,6 +63,7 @@ final class URLTests: XCTestCase {
     let testURL = URL(string: "https://raw.githubusercontent.com/w3c/activitypub/1a6e82e77da5f36a17e3ebd4be3f7b42a33f82da/w3c.json")!
 
     func testFetchURLAsync() async throws {
+        try failOnAndroid()
         let (data, response) = try await URLSession.shared.data(from: testURL)
 
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
@@ -84,6 +85,7 @@ final class URLTests: XCTestCase {
     }
 
     func testDownloadURLAsync() async throws {
+        try failOnAndroid()
         let (localURL, response) = try await URLSession.shared.download(from: testURL)
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
         XCTAssertEqual("text/plain", HTTPResponse.mimeType)
@@ -105,6 +107,7 @@ final class URLTests: XCTestCase {
     }
 
     func testAsyncBytes() async throws {
+        try failOnAndroid()
         let (bytes, response) = try await URLSession.shared.bytes(from: testURL)
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
         XCTAssertEqual("text/plain", HTTPResponse.mimeType)

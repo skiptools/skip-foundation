@@ -749,6 +749,18 @@ public func withTemporaryDirectory<R>(functionName: String = #function, block: (
 
 #endif
 
+extension XCTestCase {
+    /// Fail the test on the Android emulator/device, but let it run for Robolectric
+    func failOnAndroid() throws {
+        // disabled for emulator androidTest until we can add android.permission.INTERNET
+        #if SKIP
+        if android.os.Build.FINGERPRINT?.lowercase() != "robolectric" {
+            throw XCTSkip("Disabled for emulator until android.permission.INTERNET")
+        }
+        #endif
+    }
+}
+
 #if SKIP
 // withTemporaryDirectory variant without #function support; the directory will not be deterministic
 public func withTemporaryDirectory<R>(block: (URL, String) throws -> R) throws -> R {
@@ -763,6 +775,7 @@ public func withTemporaryDirectory<R>(block: (URL, String) throws -> R) throws -
 
 
 extension XCTestCase {
+
     /// Simplified version of checkHashable without the un-skippable generics
     ///
     /// This is needed to work around Kotlin misinterpreting the signature

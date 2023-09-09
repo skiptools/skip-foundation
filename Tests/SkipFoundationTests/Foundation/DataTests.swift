@@ -9,6 +9,7 @@ import XCTest
 @available(macOS 11, iOS 14, watchOS 7, tvOS 14, *)
 final class DataTests: XCTestCase {
     func testData() throws {
+        try failOnAndroid() // no android.permission.INTERNET
         let hostsFile: URL = URL(fileURLWithPath: "/etc/hosts", isDirectory: false)
 
         let hostsData: Data = try Data(contentsOf: hostsFile)

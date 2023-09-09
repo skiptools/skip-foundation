@@ -350,14 +350,14 @@ XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
         let formattedString = numberFormatter.string(from: 42.42)
         XCTAssertEqual(formattedString, "42-42")
     }
-    
+
     func test_currencyDecimalSeparator() {
         let numberFormatter = NumberFormatter()
+        #if !SKIP
         numberFormatter.locale = Locale(identifier: "fr_FR")
         numberFormatter.numberStyle = NumberFormatter.Style.currency
         numberFormatter.currencyDecimalSeparator = "-"
         numberFormatter.currencyCode = "T"
-        #if !SKIP
 //        XCTAssertEqual(numberFormatter.format, "#,##0.00 ¤;0-00\(currencySpacing)€;#,##0.00 ¤")
         let formattedString = numberFormatter.string(from: 42.42)
         XCTAssertEqual(formattedString, "42-42\(currencySpacing)€")

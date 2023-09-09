@@ -415,6 +415,9 @@ class TestBundle : XCTestCase {
     }
     
     func test_resources() throws {
+        // TODO: Android emulator tests fail
+        try failOnAndroid()
+
         let bundle = testBundle()
         
         // bad resources

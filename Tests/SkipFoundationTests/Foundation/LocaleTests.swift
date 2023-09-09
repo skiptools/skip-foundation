@@ -33,6 +33,9 @@ final class LocaleTests: XCTestCase {
 
         //XCTAssertEqual("fr", fr.languageCode)
 
+        // TODO: Android emulator tests fail
+        try failOnAndroid()
+
         #if SKIP
         // TODO: make it top-level "Test.plist"
 

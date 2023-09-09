@@ -591,7 +591,8 @@ public struct FileAttributeKey : RawRepresentable, Hashable {
 
 /// The system temporary folder
 public func NSTemporaryDirectory() -> String { _NSTemporaryDirectory }
-private let _NSTemporaryDirectory: String = java.lang.System.getProperty("java.io.tmpdir")
+private let _NSTemporaryDirectoryBase: String = java.lang.System.getProperty("java.io.tmpdir")
+private let _NSTemporaryDirectory: String = _NSTemporaryDirectoryBase.hasSuffix("/") ? _NSTemporaryDirectoryBase : (_NSTemporaryDirectoryBase + "/") // Android doesn't always end with "/", which is expected by foundation
 
 /// The user's home directory.
 public func NSHomeDirectory() -> String { _NSHomeDirectory }
