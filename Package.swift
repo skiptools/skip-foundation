@@ -6,14 +6,14 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [.iOS(.v16), .macOS(.v13), .tvOS(.v16), .watchOS(.v9), .macCatalyst(.v16)],
     products: [
-        .library(name: "SkipFoundation", targets: ["SkipFoundation"]),
+        .library(name: "SkipFoundation", type: .dynamic, targets: ["SkipFoundation"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.tools/skip.git", from: "0.6.60"),
-        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.3.23"),
+        .package(url: "https://source.skip.tools/skip.git", from: "0.6.67"),
+        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.3.25"),
     ],
     targets: [
-        .target(name: "SkipFoundation", dependencies: [.product(name: "SkipLib", package: "skip-lib", condition: .when(platforms: [.macOS]))], plugins: [.plugin(name: "skipstone", package: "skip")]),
-        .testTarget(name: "SkipFoundationTests", dependencies: ["SkipFoundation", .product(name: "SkipTest", package: "skip", condition: .when(platforms: [.macOS]))], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        .target(name: "SkipFoundation", dependencies: [.product(name: "SkipLib", package: "skip-lib")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        .testTarget(name: "SkipFoundationTests", dependencies: ["SkipFoundation", .product(name: "SkipTest", package: "skip")], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
     ]
 )
