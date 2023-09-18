@@ -347,9 +347,8 @@ class TestURLCache : XCTestCase {
     }
     
     override func tearDown() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
+        super.tearDown()
+        #if !SKIP
         if let directoryURL = writableTestDirectoryURL,
             (try? FileManager.default.attributesOfItem(atPath: directoryURL.path)) != nil {
             do {
@@ -359,7 +358,6 @@ class TestURLCache : XCTestCase {
             }
         }
         
-        super.tearDown()
         #endif // !SKIP
     }
     

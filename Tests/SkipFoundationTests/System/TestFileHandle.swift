@@ -190,9 +190,8 @@ class TestFileHandle : XCTestCase {
 #endif
 
     override func tearDown() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
+        super.tearDown()
+        #if !SKIP
         for handle in allHandles {
             print("Closing \(handle)…")
             try? handle.close()

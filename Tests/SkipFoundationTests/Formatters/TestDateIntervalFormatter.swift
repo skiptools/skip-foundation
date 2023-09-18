@@ -75,13 +75,10 @@ class TestDateIntervalFormatter: XCTestCase {
     }
     
     override func tearDown() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        formatter = nil
-        
         super.tearDown()
-        #endif // !SKIP
+        #if !SKIP
+        formatter = nil
+        #endif
     }
     
     func testStringFromDateToDateAcrossThreeBillionSeconds() {
