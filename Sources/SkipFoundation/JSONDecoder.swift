@@ -4,7 +4,9 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// SKIP INSERT: import kotlin.reflect.full.*
+#if SKIP
+import kotlin.reflect.full.__
+#endif
 
 /// `JSONDecoder` facilitates the decoding of JSON into semantic `Decodable` types.
 open class JSONDecoder {
