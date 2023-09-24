@@ -65,12 +65,72 @@ public class ProcessInfo {
 
     private static func buildSystemProperties() -> Dictionary<String, String> {
         var dict: [String: String] = [:]
+        // The system properties contains the System environment (which, on Android, doesn't contain much of interest),
         for (key, value) in System.getenv() {
             dict[key] = value
         }
+
+        // as well as the Java System.getProperties()
+        // there are only a few system properties on the Android emulator: java.io.tmpdir, user.home, and http.agent "Dalvik/2.1.0 (Linux; U; Android 13; sdk_gphone64_arm64 Build/ TE1A.220922.021)"
         for (key, value) in System.getProperties() {
             dict[key.toString()] = value.toString()
         }
+
+        // there are more system properties than are listed in the getProperties() keys, so also fetch sepcific individual known property keys
+        for key in [
+            "os.version", // version of the Android operating system e.g.: "5.1.1"
+            "java.vendor", // vendor of the Java runtime used on Android e.g.: "The Android Project"
+            "java.version", // version of the Java runtime used on Android e.g.: "1.8.0_292"
+            "user.home", // user's home directory e.g.: "/data/data/com.example.myapp"
+            "user.name", // username associated with the Android user e.g.: "android"
+            "file.separator", // file separator used on the device e.g.: "/"
+            "line.separator", // line separator used in text files e.g.: "\n"
+            "java.class.path", // classpath for Java classes e.g.: ""
+            "java.library.path", // library path for native libraries e.g.: "/system/lib:/vendor/lib"
+            "java.class.version", // Java class file version e.g.: "52.0"
+            "java.vm.name", // name of the Java Virtual Machine (JVM) on Android e.g.: "Dalvik"
+            "java.vm.version", // version of the JVM on Android e.g.: "2.1.0"
+            "java.vm.vendor", // vendor of the JVM on Android e.g.: "The Android Project"
+            "java.ext.dirs", // extension directory for Java classes e.g.: "/system/framework"
+            "java.io.tmpdir", // directory for temporary files e.g.: "/data/data/com.example.myapp/cache"
+            "java.specification.version", // Java specification version e.g.: "1.8"
+            "java.specification.vendor", // vendor of the Java specification e.g.: "The Android Project"
+            "java.specification.name", // name of the Java specification e.g.: "Java Platform API Specification"
+            "java.home", // directory where the Java runtime is installed e.g.: "/system"
+            "user.dir", // current working directory of the application e.g.: "/data/data/com.example.myapp"
+        ] {
+            dict[key] = System.getProperty(key)
+        }
+
+        // and finally add in some android build constants so clients have a Foundation-compatible way of testing for the Android build number, ec.
+
+        dict["android.os.Build.BOARD"] = android.os.Build.BOARD // The name of the underlying board, like "goldfish".
+        dict["android.os.Build.BOOTLOADER"] = android.os.Build.BOOTLOADER // The system bootloader version number.
+        dict["android.os.Build.BRAND"] = android.os.Build.BRAND // The consumer-visible brand with which the product/hardware will be associated, if any.
+        dict["android.os.Build.DEVICE"] = android.os.Build.DEVICE // The name of the industrial design.
+        dict["android.os.Build.DISPLAY"] = android.os.Build.DISPLAY // A build ID string meant for displaying to the user
+        dict["android.os.Build.FINGERPRINT"] = android.os.Build.FINGERPRINT // A string that uniquely identifies this build.
+        dict["android.os.Build.HARDWARE"] = android.os.Build.HARDWARE // The name of the hardware (from the kernel command line or /proc).
+        dict["android.os.Build.HOST"] = android.os.Build.HOST // A string that uniquely identifies this build.
+        dict["android.os.Build.ID"] = android.os.Build.ID // Either a changelist number, or a label like "M4-rc20".
+        dict["android.os.Build.MANUFACTURER"] = android.os.Build.MANUFACTURER // The manufacturer of the product/hardware.
+        dict["android.os.Build.MODEL"] = android.os.Build.MODEL // The end-user-visible name for the end product.
+        //dict["android.os.Build.ODM_SKU"] = android.os.Build.ODM_SKU // The SKU of the device as set by the original design manufacturer (ODM). // API 31: java.lang.NoSuchFieldError: ODM_SKU
+        dict["android.os.Build.PRODUCT"] = android.os.Build.PRODUCT // The name of the overall product.
+        //dict["android.os.Build.SKU"] = android.os.Build.SKU // The SKU of the hardware (from the kernel command line). // API 31: java.lang.NoSuchFieldError: SKU
+        //dict["android.os.Build.SOC_MANUFACTURER"] = android.os.Build.SOC_MANUFACTURER // The manufacturer of the device's primary system-on-chip. // API 31: java.lang.NoSuchFieldError: SOC_MANUFACTURER
+        //dict["android.os.Build.SOC_MODEL"] = android.os.Build.SOC_MODEL // The model name of the device's primary system-on-chip. // API 31
+        dict["android.os.Build.TAGS"] = android.os.Build.TAGS // Comma-separated tags describing the build, like "unsigned,debug".
+        dict["android.os.Build.TYPE"] = android.os.Build.TYPE // The type of build, like "user" or "eng".
+        dict["android.os.Build.USER"] = android.os.Build.USER // The user
+
+
+        dict["android.os.Build.TIME"] = android.os.Build.TIME.toString() //  The time at which the build was produced, given in milliseconds since the UNIX epoch.
+
+//        dict["android.os.Build.SUPPORTED_32_BIT_ABIS"] = android.os.Build.SUPPORTED_32_BIT_ABIS.joinToString(",") // An ordered list of 32 bit ABIs supported by this device.
+//        dict["android.os.Build.SUPPORTED_64_BIT_ABIS"] = android.os.Build.SUPPORTED_64_BIT_ABIS.joinToString(",") // An ordered list of 64 bit ABIs supported by this device.
+//        dict["android.os.Build.SUPPORTED_ABIS"] = android.os.Build.SUPPORTED_ABIS.joinToString(",") // An ordered list of ABIs supported by this device.
+
         return dict
     }
     #endif

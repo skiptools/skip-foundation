@@ -1,4 +1,4 @@
 # skip-foundation
 
-Swift Foundation for [Skip](https://skip.tools") apps.
+Swift Foundation for [Skip](https://skip.tools) apps.
 

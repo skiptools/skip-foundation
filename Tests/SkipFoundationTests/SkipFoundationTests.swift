@@ -4,19 +4,57 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 import Foundation
+import OSLog
 import XCTest
 #if !SKIP
 @testable import func SkipFoundation.SkipFoundationInternalModuleName
 @testable import func SkipFoundation.SkipFoundationPublicModuleName
 #endif
 
+// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class SkipFoundationTests: XCTestCase {
+    let logger: Logger = Logger(subsystem: "test", category: "SkipFoundationTests")
+
     func testSkipFoundation() throws {
         XCTAssertEqual(3, 1 + 2)
         XCTAssertEqual("SkipFoundation", SkipFoundationInternalModuleName())
         XCTAssertEqual("SkipFoundation", SkipFoundationPublicModuleName())
+    }
 
-        // there are only a few system properties on the Android emulator: java.io.tmpdir, user.home, and http.agent "Dalvik/2.1.0 (Linux; U; Android 13; sdk_gphone64_arm64 Build/ TE1A.220922.021)"
-        let isJVM = ProcessInfo.processInfo.environment["java.io.tmpdir"] != nil
+    func testSystemProperties() throws {
+        let env = ProcessInfo.processInfo.environment
+
+        // returns the value of the given key iff we are on Robolectric
+        func check(_ key: String, value: String) {
+            if isRobolectric {
+                XCTAssertEqual(value, env[key], "Unexpected value for Robolectric system property \(key)")
+            } else if isAndroidEmulator {
+                logger.log("### ANDROID VALUE: \(key): \(env[key] ?? "")")
+                XCTAssertNotNil(env[key], "Android system property should not been nil for key \(key)")
+            } else {
+                XCTAssertNil(env[key], "Swift system property should have been nil for key \(key) value=\(env[key] ?? "")")
+            }
+        }
+
+        check("android.os.Build.BOARD", value: "unknown")
+        check("android.os.Build.BOOTLOADER", value: "unknown")
+        check("android.os.Build.BRAND", value: "unknown")
+        check("android.os.Build.DEVICE", value: "robolectric")
+        check("android.os.Build.DISPLAY", value: "sdk_phone_x86-userdebug 10 QPP6.190730.006 5803371 test-keys")
+        check("android.os.Build.FINGERPRINT", value: "robolectric")
+        check("android.os.Build.HARDWARE", value: "robolectric")
+        check("android.os.Build.HOST", value: "wphn1.hot.corp.google.com")
+        check("android.os.Build.ID", value: "QPP6.190730.006")
+        check("android.os.Build.MANUFACTURER", value: "unknown")
+        check("android.os.Build.MODEL", value: "robolectric")
+        check("android.os.Build.PRODUCT", value: "robolectric")
+        check("android.os.Build.TAGS", value: "test-keys")
+        check("android.os.Build.TYPE", value: "userdebug")
+        check("android.os.Build.USER", value: "android-build")
+
+        //XCTAssertEqual("", env["android.os.Build.SUPPORTED_32_BIT_ABIS"])
+        //XCTAssertEqual("", env["android.os.Build.SUPPORTED_64_BIT_ABIS"])
+        //XCTAssertEqual("", env["android.os.Build.SUPPORTED_ABIS"])
     }
 }
+

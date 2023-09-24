@@ -24,3 +24,5 @@ let isJava = ProcessInfo.processInfo.environment["java.io.tmpdir"] != nil
 let isAndroid = isJava && ProcessInfo.processInfo.environment["ANDROID_ROOT"] != nil
 /// True is the transpiled code is currently running in the local Robolectric test environment
 let isRobolectric = isJava && !isAndroid
+/// True is the system's `Int` type is 32-bit.
+let is32BitInteger = Int64(Int.max) == Int64(Int32.max)
