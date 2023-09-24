@@ -18,6 +18,8 @@ import XCTest
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !SKIP // disabled for to reduce test count and avoid io.grpc.StatusRuntimeException: RESOURCE_EXHAUSTED: gRPC message exceeds maximum size
+
 
 @available(macOS 10.15, iOS 13.4, watchOS 6.0, tvOS 13.0, *)
 class TestPipe: XCTestCase {
@@ -82,4 +84,6 @@ class TestPipe: XCTestCase {
     }
 }
 
+
+#endif
 

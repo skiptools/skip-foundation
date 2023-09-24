@@ -8,6 +8,7 @@ import XCTest
 
 // These tests are adapted from https://github.com/apple/swift-corelibs-foundation/blob/main/Tests/Foundation/Tests which have the following license:
 
+#if !SKIP // disabled for to reduce test count and avoid io.grpc.StatusRuntimeException: RESOURCE_EXHAUSTED: gRPC message exceeds maximum size
 
 // This source file is part of the Swift.org open source project
 //
@@ -231,4 +232,6 @@ class TestURLProtectionSpace : XCTestCase {
     #endif
 }
 
+
+#endif
 

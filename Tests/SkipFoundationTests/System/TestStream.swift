@@ -39,6 +39,8 @@ private extension Data {
     #endif
 }
 
+#if !SKIP // disabled for to reduce test count and avoid io.grpc.StatusRuntimeException: RESOURCE_EXHAUSTED: gRPC message exceeds maximum size
+
 class TestStream : XCTestCase {
     func test_InputStreamWithData(){
         #if SKIP
@@ -348,4 +350,4 @@ class TestStream : XCTestCase {
 }
 
 
-
+#endif
