@@ -48,6 +48,18 @@ extension UserDefaults {
         self.registrationDictionary = registrationDictionary
     }
 
+    /// Call `registerOnSharedPreferenceChangeListener` with a new listener
+    public func registerOnSharedPreferenceChangeListener(key: String, onChange: () -> ()) -> AnyObject {
+        let listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { (_, changedKey: String?) in
+            if let changedKey = changedKey, key == changedKey {
+                onChange()
+            }
+        }
+
+        platformValue.registerOnSharedPreferenceChangeListener(listener)
+        return listener
+    }
+
     public func `set`(_ value: Int, forKey defaultName: String) {
         let prefs = platformValue.edit()
         prefs.putInt(defaultName, value)
@@ -108,13 +120,14 @@ extension UserDefaults {
         prefs.apply()
     }
 
-    /// Returns the value from the
-    private func pref(forKey keyName: String) -> Any? {
-        platformValue.getAll()[keyName] ?? registrationDictionary[keyName] ?? nil
+    /// Returns the value from the current defaults.
+    /// Called `object_` since `object` is an unescapable keyword in Kotin.
+    public func object_(forKey defaultName: String) -> Any? {
+        platformValue.getAll()[defaultName] ?? registrationDictionary[defaultName] ?? nil
     }
 
-    public func string(forKey keyName: String) -> String? {
-        guard let value = pref(forKey: keyName) else {
+    public func string(forKey defaultName: String) -> String? {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let number = value as? Number {
@@ -128,8 +141,8 @@ extension UserDefaults {
         }
     }
 
-    public func double(forKey keyName: String) -> Double? {
-        guard let value = pref(forKey: keyName) else {
+    public func double(forKey defaultName: String) -> Double? {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let number = value as? Number {
@@ -143,8 +156,8 @@ extension UserDefaults {
         }
     }
 
-    public func integer(forKey keyName: String) -> Int? {
-        guard let value = pref(forKey: keyName) else {
+    public func integer(forKey defaultName: String) -> Int? {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let number = value as? Number {
@@ -158,8 +171,8 @@ extension UserDefaults {
         }
     }
 
-    public func bool(forKey keyName: String) -> Bool? {
-        guard let value = pref(forKey: keyName) else {
+    public func bool(forKey defaultName: String) -> Bool? {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let number = value as? Number {
@@ -174,8 +187,8 @@ extension UserDefaults {
         }
     }
 
-    public func url(forKey keyName: String) -> URL? {
-        guard let value = pref(forKey: keyName) else {
+    public func url(forKey defaultName: String) -> URL? {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let url = value as? URL {
@@ -187,8 +200,8 @@ extension UserDefaults {
         }
     }
 
-    public func data(forKey keyName: String) -> Data? {
-        guard let value = pref(forKey: keyName) else {
+    public func data(forKey defaultName: String) -> Data? {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let url = value as? Data {
