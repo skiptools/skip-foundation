@@ -17,22 +17,16 @@ import XCTest
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 class TestUserDefaults : XCTestCase {
 
 	func test_createUserDefaults() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		defaults.set(4, forKey: "ourKey")
-        #endif
 	}
 	
 	func test_getRegisteredDefaultItem() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		defaults.register(defaults: ["test_getRegisteredDefaultItem": NSNumber(value: Int(5))])
@@ -41,13 +35,9 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem")
 
 		XCTAssertEqual(defaults.integer(forKey: "test_getRegisteredDefaultItem"), 5)
-        #endif
 	}
 	
 	func test_getRegisteredDefaultItem_NSString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register a NSString value. UserDefaults.string(forKey:) is supposed to return the NSString as a String
@@ -57,13 +47,9 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_NSString")
 
 		XCTAssertEqual(defaults.string(forKey: "test_getRegisteredDefaultItem_NSString"), "hello")
-        #endif
 	}
 
 	func test_getRegisteredDefaultItem_String() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register a String value. UserDefaults.string(forKey:) is supposed to return the String
@@ -73,13 +59,9 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_String")
 
 		XCTAssertEqual(defaults.string(forKey: "test_getRegisteredDefaultItem_String"), "hello")
-        #endif
 	}
 
 	func test_getRegisteredDefaultItem_NSURL() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register an NSURL value. UserDefaults.url(forKey:) is supposed to return the URL
@@ -89,13 +71,9 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_NSURL")
 
 		XCTAssertEqual(defaults.url(forKey: "test_getRegisteredDefaultItem_NSURL"), URL(fileURLWithPath: "/hello/world"))
-        #endif
 	}
 
 	func test_getRegisteredDefaultItem_URL() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register an URL value. UserDefaults.url(forKey:) is supposed to return the URL
@@ -105,15 +83,11 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_URL")
 
 		XCTAssertEqual(defaults.url(forKey: "test_getRegisteredDefaultItem_URL"), URL(fileURLWithPath: "/hello/world"))
-        #endif
 	}
 
 	func test_getRegisteredDefaultItem_NSData() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
-		let bytes = [0, 1, 2, 3, 4] as [UInt8]
+		let bytes = [UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)] as [UInt8]
 		
 		// Register an NSData value. UserDefaults.data(forKey:) is supposed to return the Data
 		defaults.register(defaults: ["test_getRegisteredDefaultItem_NSData": NSData(bytes: bytes, length: bytes.count)])
@@ -122,16 +96,12 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_NSData")
 
 		XCTAssertEqual(defaults.data(forKey: "test_getRegisteredDefaultItem_NSData"), Data(bytes))
-        #endif
 	}
 	
 	func test_getRegisteredDefaultItem_Data() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
-		let bytes = [0, 1, 2, 3, 4] as [UInt8]
-		
+        let bytes: [UInt8] = [UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)] // as [UInt8]
+
 		// Register a Data value. UserDefaults.data(forKey:) is supposed to return the Data
 		defaults.register(defaults: ["test_getRegisteredDefaultItem_Data": Data(bytes)])
 
@@ -139,13 +109,9 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_Data")
 
 		XCTAssertEqual(defaults.data(forKey: "test_getRegisteredDefaultItem_Data"), Data(bytes))
-        #endif
 	}
 
 	func test_getRegisteredDefaultItem_BoolFromString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register a boolean default value as a string. UserDefaults.bool(forKey:) is supposed to return the parsed Bool value
@@ -155,13 +121,9 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_BoolFromString")
 
 		XCTAssertEqual(defaults.bool(forKey: "test_getRegisteredDefaultItem_BoolFromString"), true)
-        #endif
 	}
 	
 	func test_getRegisteredDefaultItem_IntFromString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register an int default value as a string. UserDefaults.integer(forKey:) is supposed to return the parsed Int value
@@ -171,13 +133,9 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_IntFromString")
 
 		XCTAssertEqual(defaults.integer(forKey: "test_getRegisteredDefaultItem_IntFromString"), 1234)
-        #endif
 	}
 	
 	func test_getRegisteredDefaultItem_DoubleFromString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register a double default value as a string. UserDefaults.double(forKey:) is supposed to return the parsed Double value
@@ -187,126 +145,94 @@ class TestUserDefaults : XCTestCase {
 		defaults.removeObject(forKey: "test_getRegisteredDefaultItem_DoubleFromString")
 
 		XCTAssertEqual(defaults.double(forKey: "test_getRegisteredDefaultItem_DoubleFromString"), 12.34)
-        #endif
 	}
 	
 	func test_setValue_NSString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Set a NSString value. UserDefaults.string(forKey:) is supposed to return the NSString as a String
 		defaults.set("hello" as NSString, forKey: "test_setValue_NSString")
 
 		XCTAssertEqual(defaults.string(forKey: "test_setValue_NSString"), "hello")
-        #endif
 	}
 	
 	func test_setValue_String() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register a String value. UserDefaults.string(forKey:) is supposed to return the String
 		defaults.set("hello", forKey: "test_setValue_String")
 
 		XCTAssertEqual(defaults.string(forKey: "test_setValue_String"), "hello")
-        #endif
 	}
 
-	func test_setValue_NSURL() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
+	func test_setValue_NSURL() throws {
 		let defaults = UserDefaults.standard
-		
-		// Set a NSURL value. UserDefaults.url(forKey:) is supposed to return the NSURL as a URL
-//		defaults.set(NSURL(fileURLWithPath: "/hello/world"), forKey: "test_setValue_NSURL")
 
-//		XCTAssertEqual(defaults.url(forKey: "test_setValue_NSURL"), URL(fileURLWithPath: "/hello/world"))
+        #if !SKIP
+            // Test Case '-[SkipFoundationTests.TestUserDefaults test_setValue_NSURL]' started./opt/src/github/skiptools/skip-foundation/Tests/SkipFoundationTests/CoreLibs/TestUserDefaults.swift:172: error: -[SkipFoundationTests.TestUserDefaults test_setValue_NSURL] : Attempt to insert non-property list object file:///hello/world for key test_setValue_NSURL (NSInvalidArgumentException)Test Case '-[SkipFoundationTests.TestUserDefaults test_setValue_NSURL]' failed (0.175 seconds).
+            throw XCTSkip("Fails when running from swift test")
         #endif
+
+		// Set a NSURL value. UserDefaults.url(forKey:) is supposed to return the NSURL as a URL
+		defaults.set(NSURL(fileURLWithPath: "/hello/world"), forKey: "test_setValue_NSURL")
+
+		XCTAssertEqual(defaults.url(forKey: "test_setValue_NSURL"), URL(fileURLWithPath: "/hello/world"))
 	}
 
 	func test_setValue_URL() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Set a URL value. UserDefaults.url(forKey:) is supposed to return the URL
 		defaults.set(URL(fileURLWithPath: "/hello/world"), forKey: "test_setValue_URL")
 
 		XCTAssertEqual(defaults.url(forKey: "test_setValue_URL"), URL(fileURLWithPath: "/hello/world"))
-        #endif
 	}
 
 	func test_setValue_NSData() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
-		let bytes = [0, 1, 2, 3, 4] as [UInt8]
-		
+        let bytes: [UInt8] = [UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)] // as [UInt8]
+
 		// Set a NSData value. UserDefaults.data(forKey:) is supposed to return the Data
 		defaults.set(NSData(bytes: bytes, length: bytes.count), forKey: "test_setValue_NSData")
 
 		XCTAssertEqual(defaults.data(forKey: "test_setValue_NSData"), Data(bytes))
-        #endif
 	}
 	
 	func test_setValue_Data() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
-		let bytes = [0, 1, 2, 3, 4] as [UInt8]
-		
+        let bytes: [UInt8] = [UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)] // as [UInt8]
+
 		// Set a Data value. UserDefaults.data(forKey:) is supposed to return the Data
 		defaults.set(Data(bytes), forKey: "test_setValue_Data")
 
 		XCTAssertEqual(defaults.data(forKey: "test_setValue_Data"), Data(bytes))
-        #endif
 	}
 
 	func test_setValue_BoolFromString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register a boolean default value as a string. UserDefaults.bool(forKey:) is supposed to return the parsed Bool value
 		defaults.set("YES", forKey: "test_setValue_BoolFromString")
 
 		XCTAssertEqual(defaults.bool(forKey: "test_setValue_BoolFromString"), true)
-        #endif
 	}
 	
 	func test_setValue_IntFromString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register an int default value as a string. UserDefaults.integer(forKey:) is supposed to return the parsed Int value
 		defaults.set("1234", forKey: "test_setValue_IntFromString")
 
 		XCTAssertEqual(defaults.integer(forKey: "test_setValue_IntFromString"), 1234)
-        #endif
 	}
 	
 	func test_setValue_DoubleFromString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
 		let defaults = UserDefaults.standard
 		
 		// Register a double default value as a string. UserDefaults.double(forKey:) is supposed to return the parsed Double value
 		defaults.set("12.34", forKey: "test_setValue_DoubleFromString")
 
 		XCTAssertEqual(defaults.double(forKey: "test_setValue_DoubleFromString"), 12.34)
-        #endif
 	}
 	
 	func test_volatileDomains() {

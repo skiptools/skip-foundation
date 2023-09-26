@@ -24,6 +24,7 @@ public class ProcessInfo {
 
     /// The Android context for the process, which should have been set on app launch, and will fall back on using an Android test context.
     public var androidContext: android.content.Context! {
+        // androidx.compose.ui.platform.LocalContext.current could be used, but it is @Composable and so can't be called from a static context
         launchContext ?? testContext
     }
 

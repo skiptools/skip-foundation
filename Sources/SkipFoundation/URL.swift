@@ -485,7 +485,9 @@ public struct URLResourceValues {
 public func URL(string: String, relativeTo baseURL: URL? = nil) -> URL? {
     do {
         let url = PlatformURL(relativeTo?.platformValue, string) // throws on malformed
-        return URL(url, isDirectory: nil, baseURL: baseURL)
+        // use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
+        let isDirectory = url.`protocol` == "file" && string.hasSuffix("/")
+        return URL(url, isDirectory: isDirectory, baseURL: baseURL)
     } catch {
         // e.g., malformed URL
         return nil

@@ -8,14 +8,17 @@
 // Not used in applications. See contribution guide for details.
 #if !SKIP
 @_implementationOnly import struct Foundation.Data
+@_implementationOnly import class Foundation.NSData
 @_implementationOnly import protocol Foundation.DataProtocol
 internal typealias PlatformData = Foundation.Data
 internal typealias PlatformDataProtocol = Foundation.DataProtocol
 public typealias StringProtocol = Swift.StringProtocol
+internal typealias NSData = Foundation.NSData
 #else
 public typealias PlatformData = kotlin.ByteArray
 public typealias StringProtocol = kotlin.CharSequence
 internal typealias PlatformDataProtocol = kotlin.ByteArray
+public typealias NSData = Data
 #endif
 
 public protocol DataProtocol {
@@ -46,11 +49,11 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Encodable 
         self.platformValue = data.platformValue
     }
 
-    public init(_ bytes: [UInt8]) {
+    public init(_ bytes: [UInt8], length: Int? = nil) {
         #if !SKIP
-        self.platformValue = PlatformData(bytes)
+        self.platformValue = PlatformData(bytes.prefix(length ?? .max))
         #else
-        self.platformValue = PlatformData(size: bytes.count, init: {
+        self.platformValue = PlatformData(size: length ?? bytes.count, init: {
             bytes[$0].toByte()
         })
         #endif
