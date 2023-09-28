@@ -132,6 +132,14 @@ public class ProcessInfo {
 //        dict["android.os.Build.SUPPORTED_64_BIT_ABIS"] = android.os.Build.SUPPORTED_64_BIT_ABIS.joinToString(",") // An ordered list of 64 bit ABIs supported by this device.
 //        dict["android.os.Build.SUPPORTED_ABIS"] = android.os.Build.SUPPORTED_ABIS.joinToString(",") // An ordered list of ABIs supported by this device.
 
+        dict["android.os.Build.VERSION.BASE_OS"] = android.os.Build.VERSION.BASE_OS // The base OS build the product is based on.
+        dict["android.os.Build.VERSION.CODENAME"] = android.os.Build.VERSION.CODENAME // The current development codename, or the string "REL" if this is a release build.
+        dict["android.os.Build.VERSION.INCREMENTAL"] = android.os.Build.VERSION.INCREMENTAL // The internal value used by the underlying source control to represent this build. E.g., a perforce changelist number or a git hash.
+        dict["android.os.Build.VERSION.PREVIEW_SDK_INT"] = android.os.Build.VERSION.PREVIEW_SDK_INT.description // The developer preview revision of a prerelease SDK. This value will always be 0 on production platform builds/devices.
+        dict["android.os.Build.VERSION.RELEASE"] = android.os.Build.VERSION.RELEASE // The user-visible version string. E.g., "1.0" or "3.4b5" or "bananas". This field is an opaque string. Do not assume that its value has any particular structure or that values of RELEASE from different releases can be somehow ordered.
+        dict["android.os.Build.VERSION.SDK_INT"] = android.os.Build.VERSION.SDK_INT.description // The SDK version of the software currently running on this hardware device. This value never changes while a device is booted, but it may increase when the hardware manufacturer provides an OTA update.
+        dict["android.os.Build.VERSION.SECURITY_PATCH"] = android.os.Build.VERSION.SECURITY_PATCH // The user-visible security patch level. This value represents the date when the device most recently applied a security patch.
+
         return dict
     }
     #endif

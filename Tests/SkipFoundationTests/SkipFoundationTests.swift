@@ -27,7 +27,7 @@ final class SkipFoundationTests: XCTestCase {
         // returns the value of the given key iff we are on Robolectric
         func check(_ key: String, value: String) {
             if isRobolectric {
-                XCTAssertEqual(value, env[key], "Unexpected value for Robolectric system property \(key)")
+                XCTAssertEqual(value, env[key], "Unexpected value for Robolectric system property \(key): \(env[key] ?? "")")
             } else if isAndroidEmulator {
                 logger.log("### ANDROID VALUE: \(key): \(env[key] ?? "")")
                 XCTAssertNotNil(env[key], "Android system property should not been nil for key \(key)")
@@ -55,6 +55,14 @@ final class SkipFoundationTests: XCTestCase {
         //XCTAssertEqual("", env["android.os.Build.SUPPORTED_32_BIT_ABIS"])
         //XCTAssertEqual("", env["android.os.Build.SUPPORTED_64_BIT_ABIS"])
         //XCTAssertEqual("", env["android.os.Build.SUPPORTED_ABIS"])
+
+        check("android.os.Build.VERSION.BASE_OS", value: "")
+        check("android.os.Build.VERSION.CODENAME", value: "REL")
+        check("android.os.Build.VERSION.INCREMENTAL", value: "5803371")
+        check("android.os.Build.VERSION.PREVIEW_SDK_INT", value: "0")
+        check("android.os.Build.VERSION.RELEASE", value: "10")
+        check("android.os.Build.VERSION.SDK_INT", value: "29")
+        check("android.os.Build.VERSION.SECURITY_PATCH", value: "2019-08-01")
     }
 }
 
