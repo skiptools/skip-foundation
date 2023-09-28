@@ -112,5 +112,9 @@ extension java.util.Calendar {
 
 ## Tests
 
+SkipFoundation's `Tests/` folder contains the entire set of official Foundation framework test cases. Through the magic of [SkipUnit](https://github.com/skiptools/skip-unit), this allows us to validate our SkipFoundation API implementations on Android against the same test suite used by the Foundation team on iOS.
+
+The table below details the current test run status. Many tests are skipped, which typically means that the corresponding API has not yet been ported to Skip. It is SkipFoundation's goal to include - and pass - as much of the official test suite as possible.
+
 Documentation in progress
 
