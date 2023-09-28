@@ -35,7 +35,7 @@ Other forms of contributions such as test cases, comments, and documentation are
 
 ## Implementation Strategy
 
-Documentation in progress
+The goal of SkipFoundation is to mirror the Foundation framework for Android. iOS developers will never use SkipFoundation directly, because they already have access to Foundation. Nevertheless, SkipFoundation's API ports include both an Android implementation **and** an iOS implementation
 
 ## Tests
 
