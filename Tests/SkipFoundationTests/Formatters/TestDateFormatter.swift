@@ -19,7 +19,6 @@ import XCTest
 
 #if os(iOS)
 // iOS uses a special time separator character
-let ts = modernTimeSeparator
 let useModernFoundationFormatting = true
 #else
 let useModernFoundationFormatting: Bool = {
@@ -33,9 +32,8 @@ let useModernFoundationFormatting: Bool = {
 }()
 #endif
 
-
 // not a space!
-let modernTimeSeparator = " " // 0x202F, like: 1/1/38, 12:00 AM
+let modernTimeSeparator = " " // 0x202F NARROW NO-BREAK SPACE, like: 1/1/38, 12:00 AM
 let ts = useModernFoundationFormatting ? modernTimeSeparator : " " // use the character or a plain space
 
 class TestDateFormatter: XCTestCase {
