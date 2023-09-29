@@ -154,6 +154,7 @@ class TestXMLParser : XCTestCase {
         let stream = XMLParserDelegateEventStream()
         parser.delegate = stream
         let res = parser.parse()
+        _ = res
 //        XCTAssertEqual(stream.events, TestXMLParser.xmlUnderTestExpectedEvents())
 //        XCTAssertTrue(res)
         #endif // !SKIP

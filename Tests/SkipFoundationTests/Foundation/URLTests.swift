@@ -108,6 +108,7 @@ final class URLTests: XCTestCase {
     func testAsyncBytes() async throws {
         try failOnAndroid()
         let (bytes, response) = try await URLSession.shared.bytes(from: testURL)
+        _ = bytes
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
         XCTAssertEqual("text/plain", HTTPResponse.mimeType)
         XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)

@@ -2172,11 +2172,11 @@ E {
         attrStr += AttributedString("e", attributes: AttributeContainer().testString("b"))
         attrStr += AttributedString("\u{301}", attributes: AttributeContainer().testString("c"))
         let strs = attrStr.runs.map { String(attrStr.characters[$0.range]) }
-        #if os(iOS)
-        XCTAssertEqual(strs, ["Caf", "", "é"])
-        #else
-        XCTAssertEqual(strs, ["Caf", "e", "\u{301}"])
-        #endif
+        if useModernFoundationFormatting {
+            XCTAssertEqual(strs, ["Caf", "", "é"])
+        } else {
+            XCTAssertEqual(strs, ["Caf", "e", "\u{301}"])
+        }
         #endif // !SKIP
     }
 

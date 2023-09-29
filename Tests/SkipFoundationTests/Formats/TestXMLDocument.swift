@@ -683,7 +683,9 @@ class TestXMLDocument : XCTestCase { // : LoopbackServerTest {
             XCTFail("XMLDocument with options .nodePreserveAll")
             return
         }
+        _ = document
         let expected = xmlString.lowercased() + "\n"
+        _ = expected
 //        XCTAssertEqual(expected, String(describing: document))
         #endif // !SKIP
     }

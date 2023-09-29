@@ -992,7 +992,11 @@ class TestJSONEncoder : XCTestCase {
                 XCTFail("Decode of \(value) to \(type) should not succeed")
             } catch DecodingError.dataCorrupted(let context) {
                 #if os(macOS) // iOS messages are different
-                XCTAssertEqual(context.debugDescription, errorMessage)
+                if #available(macOS 14, *) {
+                    // macOS 14 Sonoma changes error messages, probably to closer align with iOS
+                } else {
+                    XCTAssertEqual(context.debugDescription, errorMessage)
+                }
                 #endif
             } catch {
                 XCTAssertEqual(String(describing: error), errorMessage)

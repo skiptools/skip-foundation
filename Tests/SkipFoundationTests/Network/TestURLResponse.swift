@@ -99,6 +99,7 @@ class TestURLResponse : XCTestCase {
         let url = URL(fileURLWithPath: "bar")!
         #endif
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
+        _ = res
 //        XCTAssertEqual(res.suggestedFilename, "Unknown")
     }
 
@@ -134,6 +135,7 @@ class TestURLResponse : XCTestCase {
         let response2 = URLResponse(url: url2, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
 
         let response3 = URLResponse(url: url1, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
+        _ = response3
 
         XCTAssertFalse(response1.isEqual(response2))
         XCTAssertFalse(response2.isEqual(response1))
@@ -148,6 +150,7 @@ class TestURLResponse : XCTestCase {
         let response2 = URLResponse(url: url, mimeType: "mimeType2", expectedContentLength: -1, textEncodingName: nil)
 
         let response3 = URLResponse(url: url, mimeType: "mimeType1", expectedContentLength: -1, textEncodingName: nil)
+        _ = response3
 
         XCTAssertFalse(response1.isEqual(response2))
         XCTAssertFalse(response2.isEqual(response1))
@@ -162,6 +165,7 @@ class TestURLResponse : XCTestCase {
         let response2 = URLResponse(url: url, mimeType: nil, expectedContentLength: 200, textEncodingName: nil)
 
         let response3 = URLResponse(url: url, mimeType: nil, expectedContentLength: 100, textEncodingName: nil)
+        _ = response3
 
         XCTAssertFalse(response1.isEqual(response2))
         XCTAssertFalse(response2.isEqual(response1))
@@ -176,6 +180,7 @@ class TestURLResponse : XCTestCase {
         let response2 = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: "textEncodingName2")
 
         let response3 = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: "textEncodingName1")
+        _ = response3
 
         XCTAssertFalse(response1.isEqual(response2))
         XCTAssertFalse(response2.isEqual(response1))

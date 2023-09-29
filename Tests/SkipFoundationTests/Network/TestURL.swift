@@ -282,19 +282,24 @@ class TestURL : XCTestCase {
                 XCTFail()
             }
 
+            func passesRecentDarwinVersions() -> Bool {
+                // special-cases URLs that are permitted on iOS and recent macOS versions that aren't allowed on other platforms
+                if url?.absoluteString == "http://test.com/unescaped%20space" { return true }
+                if url?.absoluteString == "http://test.com/unescaped%7Cpipe" { return true }
+                if url?.absoluteString == "http://test.com/" { return true }
+                if url?.absoluteString == "http://www.cnn.com/%20/interactive/world/0207/gallery.pope.tour/frameset.exclude.html" { return true }
+                return false
+            }
+
             #if os(iOS)
-            // some URLs that are permitted on iOS that aren't allowed on other platforms
-            if url?.absoluteString == "http://test.com/unescaped%20space" {
+            if passesRecentDarwinVersions() {
                 continue
             }
-            if url?.absoluteString == "http://test.com/unescaped%7Cpipe" {
-                continue
-            }
-            if url?.absoluteString == "http://test.com/" {
-                continue
-            }
-            if url?.absoluteString == "http://www.cnn.com/%20/interactive/world/0207/gallery.pope.tour/frameset.exclude.html" {
-                continue
+            #elseif os(macOS)
+            if #available(macOS 14, *) {
+                if passesRecentDarwinVersions() {
+                    continue
+                }
             }
             #endif
 

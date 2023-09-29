@@ -19,10 +19,24 @@ import XCTest
 
 #if os(iOS)
 // iOS uses a special time separator character
-let ts = " " // 1/1/38, 12:00 AM
+let ts = modernTimeSeparator
+let useModernFoundationFormatting = true
 #else
-let ts = " " // 1/1/38, 12:00 AM
+let useModernFoundationFormatting: Bool = {
+    if #available(macOS 14, *) {
+        // macOS 14 (Sonoma) changes their time sepator character to align with the iOS separator
+        return true
+    } else {
+        // older macOS use a plain space
+        return false
+    }
+}()
 #endif
+
+
+// not a space!
+let modernTimeSeparator = " " // 0x202F, like: 1/1/38, 12:00 AM
+let ts = useModernFoundationFormatting ? modernTimeSeparator : " " // use the character or a plain space
 
 class TestDateFormatter: XCTestCase {
     
@@ -215,15 +229,15 @@ class TestDateFormatter: XCTestCase {
 #if os(macOS) // timestyle .full is currently broken on Linux, the timezone should be 'Greenwich Mean Time' not 'GMT'
         let timestamps: [TimeInterval:String] = [
             // Negative time offsets are still buggy on macOS
-            -31536000 : "Wednesday, January 1, 1969 at 12:00:00 AM GMT", 0.0 : "Thursday, January 1, 1970 at 12:00:00 AM Greenwich Mean Time",
-            31536000 : "Friday, January 1, 1971 at 12:00:00 AM Greenwich Mean Time", 2145916800 : "Friday, January 1, 2038 at 12:00:00 AM Greenwich Mean Time",
-            1456272000 : "Wednesday, February 24, 2016 at 12:00:00 AM Greenwich Mean Time", 1456358399 : "Wednesday, February 24, 2016 at 11:59:59 PM Greenwich Mean Time",
-            1452574638 : "Tuesday, January 12, 2016 at 4:57:18 AM Greenwich Mean Time", 1455685038 : "Wednesday, February 17, 2016 at 4:57:18 AM Greenwich Mean Time",
-            1458622638 : "Tuesday, March 22, 2016 at 4:57:18 AM Greenwich Mean Time", 1459745838 : "Monday, April 4, 2016 at 4:57:18 AM Greenwich Mean Time",
-            1462597038 : "Saturday, May 7, 2016 at 4:57:18 AM Greenwich Mean Time", 1465534638 : "Friday, June 10, 2016 at 4:57:18 AM Greenwich Mean Time",
-            1469854638 : "Saturday, July 30, 2016 at 4:57:18 AM Greenwich Mean Time", 1470718638 : "Tuesday, August 9, 2016 at 4:57:18 AM Greenwich Mean Time",
-            1473915438 : "Thursday, September 15, 2016 at 4:57:18 AM Greenwich Mean Time", 1477285038 : "Monday, October 24, 2016 at 4:57:18 AM Greenwich Mean Time",
-            1478062638 : "Wednesday, November 2, 2016 at 4:57:18 AM Greenwich Mean Time", 1482641838 : "Sunday, December 25, 2016 at 4:57:18 AM Greenwich Mean Time"
+            -31536000 : "Wednesday, January 1, 1969 at 12:00:00\(ts)AM GMT", 0.0 : "Thursday, January 1, 1970 at 12:00:00\(ts)AM Greenwich Mean Time",
+            31536000 : "Friday, January 1, 1971 at 12:00:00\(ts)AM Greenwich Mean Time", 2145916800 : "Friday, January 1, 2038 at 12:00:00\(ts)AM Greenwich Mean Time",
+            1456272000 : "Wednesday, February 24, 2016 at 12:00:00\(ts)AM Greenwich Mean Time", 1456358399 : "Wednesday, February 24, 2016 at 11:59:59\(ts)PM Greenwich Mean Time",
+            1452574638 : "Tuesday, January 12, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1455685038 : "Wednesday, February 17, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
+            1458622638 : "Tuesday, March 22, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1459745838 : "Monday, April 4, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
+            1462597038 : "Saturday, May 7, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1465534638 : "Friday, June 10, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
+            1469854638 : "Saturday, July 30, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1470718638 : "Tuesday, August 9, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
+            1473915438 : "Thursday, September 15, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1477285038 : "Monday, October 24, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
+            1478062638 : "Wednesday, November 2, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1482641838 : "Sunday, December 25, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"
         ]
         
         let f = DateFormatter()

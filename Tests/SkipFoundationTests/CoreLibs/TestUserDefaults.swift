@@ -87,8 +87,8 @@ class TestUserDefaults : XCTestCase {
 
 	func test_getRegisteredDefaultItem_NSData() {
 		let defaults = UserDefaults.standard
-		let bytes = [UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)] as [UInt8]
-		
+		let bytes = [UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)] // as [UInt8]
+
 		// Register an NSData value. UserDefaults.data(forKey:) is supposed to return the Data
 		defaults.register(defaults: ["test_getRegisteredDefaultItem_NSData": NSData(bytes: bytes, length: bytes.count)])
 
