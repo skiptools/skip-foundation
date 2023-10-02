@@ -177,12 +177,6 @@ public func NSNumber(_ v: UInt64, unusedp: ()? = nil) -> NSNumber { v as NSNumbe
 public func NSNumber(_ v: Float, unusedp: ()? = nil) -> NSNumber { v as NSNumber }
 public func NSNumber(_ v: Double, unusedp: ()? = nil) -> NSNumber { v as NSNumber }
 
-public func abs(_ number: Double) -> Double { Math.abs(number) }
-public func sqrt(_ number: Double) -> Double { Math.sqrt(number) }
-public func sin(_ number: Double) -> Double { Math.sin(number) }
-public func cos(_ number: Double) -> Double { Math.cos(number) }
-public func atan(_ number: Double) -> Double { Math.atan(number) }
-
 // MARK: Foundation Stubs
 
 internal protocol SocketPort {
