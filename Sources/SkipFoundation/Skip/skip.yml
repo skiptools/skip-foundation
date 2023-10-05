@@ -6,8 +6,6 @@
 # the blocks to add to the build.gradle.kts
 build:
   contents:
-#    - block: 'plugins'
-#      export: false
-#      contents:
-#        - 'kotlin("android") version "1.9.0"'
-#        - 'id("com.android.library") version "8.1.0"'
+    - block: 'dependencies'
+      contents:
+        - 'testImplementation("org.json:json:20180813")'
