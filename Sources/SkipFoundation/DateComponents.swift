@@ -9,6 +9,8 @@
 #if !SKIP
 @_implementationOnly import struct Foundation.DateComponents
 internal typealias PlatformDateComponents = Foundation.DateComponents
+#else
+public typealias NSDateComponents = DateComponents
 #endif
 
 /// A date or time specified in terms of units (such as year, month, day, hour, and minute) to be evaluated in a calendar system and time zone.

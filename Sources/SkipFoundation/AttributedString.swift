@@ -4,6 +4,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+@available(*, unavailable)
+public struct AttributedString {
+}
+#endif
+
 // Note: !SKIP code paths used to validate implementation only.
 // Not used in applications. See contribution guide for details.
 // #if !SKIP

@@ -18,6 +18,7 @@ import XCTest
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !SKIP
 enum XMLParserDelegateEvent {
     case startDocument
     case endDocument
@@ -29,9 +30,6 @@ enum XMLParserDelegateEvent {
 extension XMLParserDelegateEvent: Equatable {
 
     public static func ==(lhs: XMLParserDelegateEvent, rhs: XMLParserDelegateEvent) -> Bool {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         switch (lhs, rhs) {
         case (.startDocument, startDocument):
             return true
@@ -48,65 +46,35 @@ extension XMLParserDelegateEvent: Equatable {
         default:
             return false
         }
-        #endif // !SKIP
     }
-
 }
 
 class XMLParserDelegateEventStream: NSObject, XMLParserDelegate {
     var events: [XMLParserDelegateEvent] = []
 
-    #if SKIP
-    init() {
-
-    }
-    #endif
-    
     func parserDidStartDocument(_ parser: XMLParser) {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         events.append(.startDocument)
-        #endif // !SKIP
     }
     func parserDidEndDocument(_ parser: XMLParser) {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         events.append(.endDocument)
-        #endif // !SKIP
     }
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String]) {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         events.append(.didStartElement(elementName, namespaceURI, qName, attributeDict))
-        #endif // !SKIP
     }
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         events.append(.didEndElement(elementName, namespaceURI, qName))
-        #endif // !SKIP
     }
     func parser(_ parser: XMLParser, foundCharacters string: String) {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         events.append(.foundCharacters(string))
-        #endif // !SKIP
     }
 }
+#endif
 
 class TestXMLParser : XCTestCase {
 
-
+    #if !SKIP
     // Helper method to embed the correct encoding in the XML header
     static func xmlUnderTest(encoding: String.Encoding? = nil) -> String {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let xmlUnderTest = "<test attribute='value'><foo>bar</foo></test>"
         guard var encoding = encoding?.description else {
             return xmlUnderTest
@@ -119,13 +87,9 @@ class TestXMLParser : XCTestCase {
             encoding = String(encoding[..<close.lowerBound])
         }
         return "<?xml version='1.0' encoding='\(encoding.uppercased())' standalone='no'?>\n\(xmlUnderTest)\n"
-        #endif // !SKIP
     }
 
     static func xmlUnderTestExpectedEvents(namespaces: Bool = false) -> [XMLParserDelegateEvent] {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let uri: String? = namespaces ? "" : nil
         return [
             .startDocument,
@@ -136,8 +100,8 @@ class TestXMLParser : XCTestCase {
             .didEndElement("test", uri, namespaces ? "test" : nil),
             .endDocument,
         ]
-        #endif // !SKIP
     }
+    #endif // !SKIP
 
 
     func test_withData() {

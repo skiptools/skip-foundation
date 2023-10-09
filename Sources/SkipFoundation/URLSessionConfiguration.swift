@@ -80,3 +80,19 @@ open class URLSessionConfiguration {
     }
     #endif
 }
+
+#if SKIP
+internal protocol HTTPCookieStorage {
+}
+
+internal class URLCache {
+    public enum StoragePolicy {
+        case allowed
+        case allowedInMemoryOnly
+        case notAllowed
+    }
+}
+
+internal protocol CachedURLResponse {
+}
+#endif

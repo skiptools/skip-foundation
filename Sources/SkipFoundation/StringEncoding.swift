@@ -4,6 +4,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+public typealias PlatformStringEncoding = StringEncoding
+#else
+internal typealias PlatformStringEncoding = String.Encoding
+#endif
+
 #if SKIP
 extension String {
     public typealias Encoding = StringEncoding

@@ -5,6 +5,17 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+public typealias NSString = kotlin.String
+public func NSString(string: String) -> NSString { string }
+
+public func strlen(_ string: String) -> Int {
+    return string.count
+}
+
+public func strncmp(_ str1: String, _ str2: String) -> Int {
+    return str1.toLowerCase() == str2.toLowerCase() ? 0 : 1
+}
+
 extension String {
     public var capitalized: String {
         return split(separator: " ", omittingEmptySubsequences: false)

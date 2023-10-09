@@ -30,18 +30,16 @@ class TestNotificationCenter : XCTestCase {
         #endif // !SKIP
     }
     
+    #if !SKIP
     func removeObserver(_ observer: NSObjectProtocol, notificationCenter: NotificationCenter) {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         guard let observer = observer as? NSObject else {
             return
         }
         
         notificationCenter.removeObserver(observer)
-        #endif // !SKIP
     }
-    
+    #endif // !SKIP
+
     func test_postNotification() {
         #if SKIP
         throw XCTSkip("TODO")

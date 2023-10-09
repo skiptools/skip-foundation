@@ -101,7 +101,6 @@ extension Data {
         #endif
     }
 
-    /// Convert the bytes into a hex string.
     @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
     public func sha256() -> Data {
         #if !SKIP

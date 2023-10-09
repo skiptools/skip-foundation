@@ -6,6 +6,10 @@
 
 #if SKIP
 @available(*, unavailable)
-public struct DateIntervalFormatter {
+public class OperationQueue {
+}
+
+@available(*, unavailable)
+public class Operation {
 }
 #endif
