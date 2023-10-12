@@ -9,8 +9,8 @@ let package = Package(
         .library(name: "SkipFoundation", type: .dynamic, targets: ["SkipFoundation"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.tools/skip.git", from: "0.6.122"),
-        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.4.13"),
+        .package(url: "https://source.skip.tools/skip.git", from: "0.6.127"),
+        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.4.14"),
     ],
     targets: [
         .target(name: "SkipFoundation", dependencies: [.product(name: "SkipLib", package: "skip-lib")], plugins: [.plugin(name: "skipstone", package: "skip")]),
