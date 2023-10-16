@@ -8,9 +8,9 @@ SkipFoundation vends the `skip.foundation` Kotlin package. It is a reimplementat
 
 ## Dependencies
 
-SkipFoundation depends on the [skip](https://source.skip.tools/skip) transpiler plugin as well as the [SkipLib](https://github.com/skiptools/skip-lib) library.
+SkipFoundation depends on the [skip](https://source.skip.tools/skip) transpiler plugin as well as the [SkipLib](https://github.com/skiptools/skip-lib) package.
 
-SkipFoundation is part of the core Skip stack and is not intended to be imported directly.
+SkipFoundation is part of the core *skipstack* and is not intended to be imported directly.
 The module is transparently adopted through the translation of `import Foundation` into `import skip.foundation.*` by the Skip transpiler.
 
 ## Status
