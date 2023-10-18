@@ -16,10 +16,8 @@ internal typealias PlatformFileManager = Foundation.FileManager
 #else
 #endif
 
-/// An interface to the file system compatible with ``Foundation.FileManager``.
 public class FileManager {
     #if SKIP
-    /// Returns the shared single file manager
     public static var `default` = FileManager()
     #else
     static var `default` = FileManager(platformValue: PlatformFileManager.default)
@@ -589,7 +587,6 @@ public struct FileAttributeKey : RawRepresentable, Hashable {
 
 #if SKIP
 
-/// The system temporary folder
 public func NSTemporaryDirectory() -> String { _NSTemporaryDirectory }
 private let _NSTemporaryDirectoryBase: String = java.lang.System.getProperty("java.io.tmpdir")
 private let _NSTemporaryDirectory: String = _NSTemporaryDirectoryBase.hasSuffix("/") ? _NSTemporaryDirectoryBase : (_NSTemporaryDirectoryBase + "/") // Android doesn't always end with "/", which is expected by foundation

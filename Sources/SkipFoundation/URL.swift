@@ -18,9 +18,7 @@ public typealias PlatformURL = java.net.URL
 public typealias NSURL = URL
 #endif
 
-/// A value that identifies the location of a resource, such as an item on a remote server or the path to a local file.
 public struct URL : Hashable, CustomStringConvertible, Encodable {
-    /// `URL` wraps either a `Foundation.URL` in Swift or `java.net.URL` in Kotlin.
     internal var platformValue: PlatformURL
     #if SKIP
     private let isDirectoryFlag: Bool?
@@ -47,7 +45,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
     }
     #endif
 
-    /// This is an overloaded form of three separate `URL.fileURLWithPath` constructors. We defer to those on nil, because they have subtle behavior differences.
     public init(fileURLWithPath path: String, isDirectory: Bool? = nil, relativeTo base: URL? = nil) {
         #if SKIP
         self.platformValue = PlatformURL("file://" + path) // TODO: escaping
@@ -100,13 +97,12 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
     #endif
 
     #if !SKIP
-    /// The base URL. It is provided as a member in SKIP but a calculated property in Swift
+    // The base URL. It is provided as a member in SKIP but a calculated property in Swift
     public var baseURL: URL? {
         return foundationURL.baseURL.flatMap({ .init(platformValue: $0 as PlatformURL) })
     }
     #endif
 
-    /// The host component of a URL if the URL conforms to RFC 1808 (the most common form of URL), otherwise nil.
     public var host: String? {
         #if SKIP
         return platformValue.host
@@ -115,7 +111,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// A Boolean that is true if the URL path represents a directory.
     public var hasDirectoryPath: Bool {
         #if SKIP
         return self.isDirectoryFlag == true
@@ -124,7 +119,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The path component of the URL if the URL conforms to RFC 1808 (the most common form of URL), otherwise an empty string.
     public var path: String {
         #if SKIP
         return platformValue.path
@@ -133,7 +127,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The port component of the URL if the URL conforms to RFC 1808 (the most common form of URL), otherwise nil.
     @available(*, unavailable)
     public var port: Int? {
         #if SKIP
@@ -143,7 +136,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The scheme of the URL.
     @available(*, unavailable)
     public var scheme: String? {
         #if SKIP
@@ -153,7 +145,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The query of the URL if the URL conforms to RFC 1808 (the most common form of URL), otherwise nil.
     @available(*, unavailable)
     public var query: String? {
         #if SKIP
@@ -163,7 +154,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The user component of the URL if the URL conforms to RFC 1808 (the most common form of URL), otherwise nil.
     @available(*, unavailable)
     public var user: String? {
         #if SKIP
@@ -173,7 +163,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The password component of the URL if the URL conforms to RFC 1808 (the most common form of URL), otherwise nil.
     @available(*, unavailable)
     public var password: String? {
         #if SKIP
@@ -183,7 +172,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The fragment component of the URL if the URL conforms to RFC 1808 (the most common form of URL), otherwise nil.
     @available(*, unavailable)
     public var fragment: String? {
         #if SKIP
@@ -193,7 +181,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// A version of the URL with any instances of “..” or “.” removed from its path.
     public var standardized: URL {
         #if SKIP
         return URL(platformValue: toPath().normalize().toUri().toURL())
@@ -202,7 +189,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The absolute string for the URL.
     public var absoluteString: String {
         #if SKIP
         return platformValue.toExternalForm()
@@ -211,7 +197,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The last path component of the URL, or an empty string if the path is an empty string.
     public var lastPathComponent: String {
         #if SKIP
         return pathComponents.lastOrNull() ?? ""
@@ -220,7 +205,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The path extension of the URL, or an empty string if the path is an empty string.
     public var pathExtension: String {
         #if SKIP
         let parts = Array((lastPathComponent ?? "").split(separator: "."))
@@ -234,7 +218,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// A Boolean that is true if the scheme is file:.
     public var isFileURL: Bool {
         #if SKIP
         return platformValue.`protocol` == "file"
@@ -243,7 +226,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The path components of the URL, or an empty array if the path is an empty string.
     public var pathComponents: [String] {
         #if SKIP
         let path: String = platformValue.path
@@ -253,7 +235,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The relative path of the URL if the URL conforms to RFC 1808 (the most common form of URL), otherwise nil.
     @available(*, unavailable)
     public var relativePath: String {
         #if SKIP
@@ -263,7 +244,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The relative portion of a URL.
     @available(*, unavailable)
     public var relativeString: String {
         #if SKIP
@@ -273,7 +253,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// A standardized version of the path of a file URL.
     @available(*, unavailable)
     public var standardizedFileURL: URL {
         #if SKIP
@@ -291,7 +270,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// The absolute URL.
     public var absoluteURL: URL {
         #if SKIP
         return self
@@ -300,7 +278,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Returns a URL by appending the specified path component to self.
     public func appendingPathComponent(_ pathComponent: String) -> URL {
         #if SKIP
         var url = self.platformValue.toExternalForm()
@@ -312,7 +289,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Returns a URL by appending the specified path component to self.
     public func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL {
         #if SKIP
         var url = self.platformValue.toExternalForm()
@@ -324,7 +300,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Returns a URL constructed by removing the last path component of self.
     public func deletingLastPathComponent() -> URL {
         #if SKIP
         var url = self.platformValue.toExternalForm()
@@ -340,7 +315,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Returns a URL by appending the specified path extension to self.
     public func appendingPathExtension(_ pathExtension: String) -> URL {
         #if SKIP
         var url = self.platformValue.toExternalForm()
@@ -351,7 +325,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Returns a URL constructed by removing any path extension.
     public func deletingPathExtension() -> URL {
         #if SKIP
         let ext = pathExtension
@@ -368,7 +341,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Resolves any symlinks in the path of a file URL.
     public func resolvingSymlinksInPath() -> URL {
         #if SKIP
         if isFileURL == false {
@@ -400,7 +372,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Returns whether the URL’s resource exists and is reachable.
     public func checkResourceIsReachable() throws -> Bool {
         #if SKIP
         if !isFileURL {
@@ -415,9 +386,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Removes all cached resource values and all temporary resource values from the URL object.
-    ///
-    /// This method is currently applicable only to URLs for file system resources.
     @available(*, unavailable)
     public mutating func removeAllCachedResourceValues() {
         #if SKIP
@@ -428,7 +396,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
     }
 
     #if !SKIP
-    /// Return a collection of resource values identified by the given resource keys.
     @available(*, unavailable)
     public func resourceValues(forKeys keys: Set<URLResourceKey>) throws -> URLResourceValues {
         #if SKIP
@@ -440,7 +407,6 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #endif
     }
 
-    /// Sets the resource value identified by a given resource key.
     @available(*, unavailable)
     public mutating func setResourceValues(_ values: URLResourceValues) throws -> Void {
         #if SKIP
@@ -467,7 +433,6 @@ public struct URLResourceKey : Hashable, Equatable, RawRepresentable {
     }
 }
 
-/// The properties that the file system resources support.
 public struct URLResourceValues {
     #if !SKIP
     internal var platformValue: Foundation.URLResourceValues
@@ -481,7 +446,6 @@ public struct URLResourceValues {
 }
 
 #if SKIP
-
 public func URL(string: String, relativeTo baseURL: URL? = nil) -> URL? {
     do {
         let url = PlatformURL(relativeTo?.platformValue, string) // throws on malformed
@@ -528,8 +492,6 @@ extension String {
 // MARK: Foundation.URL compatibility
 
 extension URL {
-
-    /// The underlying Foundation.URL for the Swift target
     internal var foundationURL: Foundation.URL {
         get { platformValue as Foundation.URL }
         set { platformValue = newValue as PlatformURL }

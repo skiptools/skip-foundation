@@ -43,14 +43,11 @@ public typealias SHA512 = CryptoKit.SHA512
 @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public typealias SHA512Digest = CryptoKit.SHA512Digest
 
-/// A sequence that both `Data` and `String.UTF8View` conform to.
 extension Sequence where Element == UInt8 {
-    /// Returns this data as a base-64 encoded string
     public func base64() -> String {
         Foundation.Data(self).base64EncodedString()
     }
 
-    /// Returns the contents of the Data as a hex string
     public func hex() -> String {
         map { String(format: "%02x", $0) }.joined()
     }
@@ -71,19 +68,19 @@ extension Sequence where Element == UInt8 {
     }
 }
 
-/// An alias for `HMAC<Insecure.MD5>` since Kotlin does not support static access to generics
+// An alias for `HMAC<Insecure.MD5>` since Kotlin does not support static access to generics
 @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public typealias HMACMD5 = HMAC<Insecure.MD5>
-/// An alias for `HMAC<Insecure.SHA1>` since Kotlin does not support static access to generics
+// An alias for `HMAC<Insecure.SHA1>` since Kotlin does not support static access to generics
 @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public typealias HMACSHA1 = HMAC<Insecure.SHA1>
-/// An alias for `HMAC<SHA256>` since Kotlin does not support static access to generics
+// An alias for `HMAC<SHA256>` since Kotlin does not support static access to generics
 @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public typealias HMACSHA256 = HMAC<SHA256>
-/// An alias for `HMAC<SHA384>` since Kotlin does not support static access to generics
+// An alias for `HMAC<SHA384>` since Kotlin does not support static access to generics
 @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public typealias HMACSHA384 = HMAC<SHA384>
-/// An alias for `HMAC<SHA512>` since Kotlin does not support static access to generics
+// An alias for `HMAC<SHA512>` since Kotlin does not support static access to generics
 @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public typealias HMACSHA512 = HMAC<SHA512>
 
@@ -92,7 +89,6 @@ public typealias MessageDigest = java.security.MessageDigest
 #endif
 
 extension Data {
-    /// Convert the bytes into a base64 string.
     public func base64EncodedString() -> String {
         #if !SKIP
         return platformValue.base64EncodedString()
@@ -110,7 +106,6 @@ extension Data {
         #endif
     }
 
-    /// Convert the bytes into a hex string.
     public func hex() -> String {
         return platformValue.hex()
     }
@@ -123,7 +118,6 @@ extension Data {
     }
 }
 
-/// A holder for a digest.
 public protocol Digest {
     var bytes: PlatformData { get }
 }
@@ -272,7 +266,7 @@ public struct Insecure {
     }
 }
 
-/// Implemented as a simple Data wrapper.
+// Implemented as a simple Data wrapper.
 public struct SymmetricKey {
     let data: Data
 }
@@ -308,7 +302,6 @@ open class HMACSHA512 : DigestFunction {
 }
 
 public extension kotlin.ByteArray {
-    /// Convert the bytes of this data into a hex string.
     public func hex() -> String {
         joinToString("") {
             java.lang.Byte.toUnsignedInt($0).toString(radix: 16).padStart(2, "0".get(0))

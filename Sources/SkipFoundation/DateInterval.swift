@@ -13,7 +13,6 @@ internal typealias PlatformDateInterval = Foundation.DateInterval
 public typealias PlatformDateInterval = java.time.Duration
 #endif
 
-/// The span of time between a specific start date and end date.
 public struct DateInterval : Hashable, Comparable, CustomStringConvertible {
     internal var platformValue: PlatformDateInterval
 
@@ -52,7 +51,6 @@ public struct DateInterval : Hashable, Comparable, CustomStringConvertible {
         #endif
     }
 
-    /// Initializes a `DateInterval` with start and end dates set to the current date and the duration set to `0`.
     @available(*, unavailable)
     public init() {
         #if !SKIP

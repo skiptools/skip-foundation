@@ -13,7 +13,6 @@ internal typealias PlatformDateComponents = Foundation.DateComponents
 public typealias NSDateComponents = DateComponents
 #endif
 
-/// A date or time specified in terms of units (such as year, month, day, hour, and minute) to be evaluated in a calendar system and time zone.
 public struct DateComponents : Hashable, CustomStringConvertible {
     #if !SKIP
     internal var components: PlatformDateComponents
@@ -255,10 +254,6 @@ public struct DateComponents : Hashable, CustomStringConvertible {
     }
     #endif
 
-
-    /// Set the value of one of the properties, using an enumeration value instead of a property name.
-    ///
-    /// The calendar and timeZone and isLeapMonth properties cannot be set by this method.
     public mutating func setValue(_ value: Int?, for component: Calendar.Component) {
         switch component {
         case .era: self.era = value
@@ -281,7 +276,6 @@ public struct DateComponents : Hashable, CustomStringConvertible {
         }
     }
 
-    /// Adds one set of components to this date.
     public mutating func add(components: DateComponents) {
         #if !SKIP
         fatalError("Skip DateComponents: add not implemented for Swift")
@@ -339,9 +333,6 @@ public struct DateComponents : Hashable, CustomStringConvertible {
         #endif
     }
 
-    /// Adds a value for a given components.
-    ///
-    /// The calendar and timeZone and isLeapMonth properties cannot be set by this method.
     public mutating func addValue(_ value: Int, for component: Calendar.Component) {
         #if !SKIP
         fatalError("Skip DateComponents: addValue not implemented for Swift")
@@ -392,7 +383,6 @@ public struct DateComponents : Hashable, CustomStringConvertible {
         #endif
     }
 
-    /// Returns the value of one of the properties, using an enumeration value instead of a property name.
     public func value(for component: Calendar.Component) -> Int? {
         switch component {
         case .era: return self.era
@@ -413,7 +403,6 @@ public struct DateComponents : Hashable, CustomStringConvertible {
             return nil
         }
     }
-
 
     public var description: String {
         #if !SKIP
@@ -468,8 +457,6 @@ public struct DateComponents : Hashable, CustomStringConvertible {
         if let yearForWeekOfYear = self.yearForWeekOfYear {
             strs.append("yearForWeekOfYear \(yearForWeekOfYear)")
         }
-
-        // SKIP REPLACE: return strs.joinToString(separator = " ")
         return strs.joined(separator: " ")
         #endif
     }

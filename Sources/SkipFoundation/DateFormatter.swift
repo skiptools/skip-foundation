@@ -13,7 +13,6 @@ internal typealias PlatformDateFormatter = Foundation.DateFormatter
 public typealias PlatformDateFormatter = java.text.SimpleDateFormat
 #endif
 
-/// A formatter that converts between dates and their textual representations.
 public class DateFormatter {
     internal var platformValue: PlatformDateFormatter
 
@@ -110,7 +109,7 @@ public class DateFormatter {
     }
 
     #if SKIP
-    /// SimpleDateFormat holds a locale, but it is not readable
+    // SimpleDateFormat holds a locale, but it is not readable
     private var _locale: Locale? = nil
     #endif
 

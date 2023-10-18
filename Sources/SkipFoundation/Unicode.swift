@@ -24,47 +24,33 @@ public func String(_ scalar: Unicode.Scalar) -> String {
 //
 //===----------------------------------------------------------------------===//
 
-
-/// A namespace for Unicode utilities.
-@frozen public struct Unicode {
-
-    @frozen public struct ASCII {
+public struct Unicode {
+    public struct ASCII {
     }
 
-    @frozen public struct UTF16 : Sendable {
+    public struct UTF16 : Sendable {
         //case _swift3Buffer(Unicode.UTF16.ForwardParser)
     }
 
-    @frozen public struct UTF32 : Sendable {
+    public struct UTF32 : Sendable {
         //case _swift3Codec
     }
 
-    @frozen public struct UTF8 : Sendable {
+    public struct UTF8 : Sendable {
         //case struct(Unicode.UTF8.ForwardParser)
     }
 
     public typealias Encoding = _UnicodeEncoding
 
-    /// The result of attempting to parse a `T` from some input.
-    @frozen public enum ParseResult<T> {
-
-        /// A `T` was parsed successfully
+    public enum ParseResult<T> {
         case valid(T)
-
-        /// The input was entirely consumed.
         case emptyInput
-
-        /// An encoding error was detected.
-        ///
-        /// `length` is the number of underlying code units consumed by this
-        /// error, guaranteed to be greater than 0.
         case error(length: Int)
     }
 
     public typealias Parser = _UnicodeParser
 
-    /// A Unicode scalar value.
-    @frozen public struct Scalar : RawRepresentable, Hashable, Comparable, Sendable {
+    public struct Scalar : RawRepresentable, Hashable, Comparable, Sendable {
         public let rawValue: UnicodeScalarValue
         
         public init?(rawValue: UnicodeScalarValue) {
@@ -81,7 +67,5 @@ public func String(_ scalar: Unicode.Scalar) -> String {
 
     }
 
-    /// A version of the Unicode Standard represented by its major and minor
-    /// components.
     public typealias Version = (major: Int, minor: Int)
 }

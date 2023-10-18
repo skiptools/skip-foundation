@@ -446,7 +446,7 @@ extension JSONDecoderImpl: Decoder {
             return integer
         }
 
-        #if !SKIP
+        #if JSON_NOSKIP
         // this is the really slow path... If the fast path has failed. For example for "34.0" as
         // an integer, we try to go through NSNumber
         if let nsNumber = NSNumber.fromJSONNumber(number) {

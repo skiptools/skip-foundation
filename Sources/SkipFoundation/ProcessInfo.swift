@@ -12,7 +12,6 @@ internal typealias PlatformProcessInfo = Foundation.ProcessInfo
 #else
 #endif
 
-/// A collection of information about the current process.
 public class ProcessInfo {
     #if SKIP
     /// The global `processInfo` must be set manually at app launch with `skip.foundation.ProcessInfo.launch(context)`

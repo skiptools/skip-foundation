@@ -15,7 +15,6 @@ internal typealias PlatformLocale = java.util.Locale
 internal typealias NSLocale = Locale
 #endif
 
-/// Information about linguistic, cultural, and technological conventions for use in formatting data for presentation.
 public struct Locale : Hashable {
     internal let platformValue: PlatformLocale
 

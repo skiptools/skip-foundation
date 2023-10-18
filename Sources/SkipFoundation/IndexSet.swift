@@ -17,7 +17,6 @@ internal typealias IndexSetElement = Int
 internal typealias IndexSetIndex = Int
 #endif
 
-/// A collection of unique integer values that represent the indexes of elements in another collection.
 public struct IndexSet : Hashable, CustomStringConvertible {
     internal var platformValue: PlatformIndexSet
 

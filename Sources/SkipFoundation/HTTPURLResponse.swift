@@ -12,7 +12,6 @@ internal typealias PlatformHTTPURLResponse = Foundation.HTTPURLResponse
 #else
 #endif
 
-/// The metadata associated with the response to an HTTP protocol URL load request.
 public class HTTPURLResponse : URLResponse {
     override init(url: URL, mimeType: String?, expectedContentLength: Int, textEncodingName: String?) {
         super.init(url: url, mimeType: mimeType, expectedContentLength: expectedContentLength, textEncodingName: textEncodingName)

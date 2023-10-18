@@ -11,7 +11,6 @@
 internal typealias PlatformPropertyListSerialization = Foundation.PropertyListSerialization
 #endif
 
-/// An object that converts between a property list and one of several serialized representations.
 public class PropertyListSerialization {
     public enum PropertyListFormat {
         case openStep
@@ -19,10 +18,6 @@ public class PropertyListSerialization {
         case binary
     }
 
-    /// Creates and returns a property list from the specified data.
-    ///
-    /// NOTE: this currenly only supports the strings format ("key" = "value"). XML and binary plists are TODO.
-    @available(macOS 13, iOS 16, watchOS 9, tvOS 16, *)
     public static func propertyList(from: Data, format: PropertyListFormat? = nil) throws -> Dictionary<String, String>? {
         var dict: Dictionary<String, String> = [:]
         let re = "\"(.*)\"[ ]*=[ ]*\"(.*)\";"

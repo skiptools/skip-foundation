@@ -12,11 +12,9 @@
 @_implementationOnly import protocol Foundation.DataProtocol
 internal typealias PlatformData = Foundation.Data
 internal typealias PlatformDataProtocol = Foundation.DataProtocol
-public typealias StringProtocol = Swift.StringProtocol
 internal typealias NSData = Foundation.NSData
 #else
 public typealias PlatformData = kotlin.ByteArray
-public typealias StringProtocol = kotlin.CharSequence
 internal typealias PlatformDataProtocol = kotlin.ByteArray
 public typealias NSData = Data
 #endif
@@ -27,7 +25,6 @@ public protocol DataProtocol {
     #endif
 }
 
-/// A byte buffer in memory.
 public struct Data : DataProtocol, Hashable, CustomStringConvertible, Encodable {
     internal var platformValue: PlatformData
 
@@ -125,7 +122,6 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Encodable 
         return platformValue.description
     }
 
-    /// A UTF8-encoded `String` created from this `Data`
     public var utf8String: String? {
         #if !SKIP
         String(data: platformValue, encoding: String.Encoding.utf8)
@@ -252,12 +248,12 @@ extension String {
 // SKIP INSERT: public operator fun Data.Companion.invoke(contentsOf: URL): Data { return Data.contentsOfURL(url = contentsOf) }
 
 extension Data {
-    /// Static init until constructor overload works.
+    // Static init until constructor overload works.
     public static func contentsOfFile(filePath: String) throws -> Data {
         return Data(platformValue: java.io.File(filePath).readBytes())
     }
 
-    /// Static init until constructor overload works.
+    // Static init until constructor overload works.
     public static func contentsOfURL(url: URL) throws -> Data {
         //if url.isFileURL {
         //    return Data(java.io.File(url.path).readBytes())
@@ -268,14 +264,6 @@ extension Data {
         // this seems to work for both file URLs and network URLs
         return Data(platformValue: url.platformValue.readBytes())
     }
-}
-
-public extension StringProtocol {
-    public func lowercased() -> String { description.lowercased() }
-    public func uppercased() -> String { description.uppercased() }
-
-    public func hasPrefix(_ string: String) -> Bool { description.hasPrefix(string) }
-    public func hasSuffix(_ string: String) -> Bool { description.hasSuffix(string) }
 }
 
 #endif

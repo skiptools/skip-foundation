@@ -12,11 +12,8 @@ internal typealias PlatformURLSession = Foundation.URLSession
 #else
 #endif
 
-@available(macOS 11, iOS 14, tvOS 14, watchOS 7, *)
 fileprivate let logger: Logger = Logger(subsystem: "skip", category: "URLSession")
 
-/// An object that coordinates a group of related, network data transfer tasks.
-@available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
 public final class URLSession {
     #if !SKIP
     internal let platformValue: PlatformURLSession
@@ -53,7 +50,7 @@ public final class URLSession {
             throw NoURLInRequestError()
         }
 
-        // not that `openConnection` does not actually connect(); we do that below in a Dispatchers.IO coroutine
+        // note that `openConnection` does not actually connect(); we do that below in a Dispatchers.IO coroutine
         let connection = url.platformValue.openConnection()
 
         switch request.cachePolicy {
@@ -181,7 +178,7 @@ public final class URLSession {
         let query = android.app.DownloadManager.Query()
             .setFilterById(downloadId)
 
-        /// Query the DownloadManager for the response, which returns a SQLite cursor with the current download status of all the outstanding downloads.
+        // Query the DownloadManager for the response, which returns a SQLite cursor with the current download status of all the outstanding downloads.
         func queryDownload() -> Result<(URL, URLResponse), Error>? {
             let cursor = downloadManager.query(query)
 
@@ -411,8 +408,6 @@ public typealias PlatformAsyncStream<Element> = AsyncStream<Element>
 public typealias PlatformAsyncStream<Element> = kotlinx.coroutines.flow.Flow<Element>
 #endif
 
-/// A type that provides asynchronous, sequential, iterated access to its elements.
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public protocol SkipAsyncSequence {
     associatedtype Element
 
@@ -420,7 +415,6 @@ public protocol SkipAsyncSequence {
     var stream: PlatformAsyncStream<Element> { get }
 }
 
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public extension SkipAsyncSequence {
 
     // Skip FIXME: Cannot declare both forms of `reduce` due to JVM signature clash:
@@ -548,7 +542,6 @@ public extension SkipAsyncSequence {
 /// which terminates the sequence. The continuation conforms to `Sendable`, which permits
 /// calling it from concurrent contexts external to the iteration of the
 /// `AsyncStream`.
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public struct SkipAsyncStream<Element> : SkipAsyncSequence {
     // Swift and Kotlin treat types nested within generic types in incompatible ways, and Skip cannot translate between the two. Consider moving this type out of its generic outer type
     //public struct Continuation : Sendable {
@@ -563,7 +556,6 @@ public struct SkipAsyncStream<Element> : SkipAsyncSequence {
 // Wrap a kotlinx.coroutines.flow.Flow and provide an async interface
 // Mirrors the interface of Foundation.AsyncBytes, which extends AsyncSequence
 // Note that there could also be `URLAsyncBytes` and `SkipFileHandleAsyncBytes` for `URL.bytes` and `FileHandle.bytes`.
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public struct URLSessionAsyncBytes : SkipAsyncSequence {
     //public typealias Element = UInt8
     public let stream: PlatformAsyncStream<UInt8>
@@ -588,7 +580,6 @@ public struct URLSessionAsyncBytes : SkipAsyncSequence {
 }
 
 #if !SKIP
-
 @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
 public struct SkipAsyncLineSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
     // where BytesStream.Element == UInt8 { // Skip does not support the referenced type as a generic constraint

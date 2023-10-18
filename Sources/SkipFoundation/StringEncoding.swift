@@ -11,6 +11,13 @@ internal typealias PlatformStringEncoding = String.Encoding
 #endif
 
 #if SKIP
+public func String(bytes: [UInt8], encoding: StringEncoding) -> String? {
+    let byteArray = ByteArray(size: bytes.count) {
+         return bytes[$0].toByte()
+     }
+     return byteArray.toString(encoding.rawValue)
+}
+
 extension String {
     public typealias Encoding = StringEncoding
     
@@ -31,7 +38,6 @@ extension String {
         return Array(toByteArray(StringEncoding.utf8.rawValue).map { it.toUByte() })
     }
 }
-
 #endif
 
 public struct StringEncoding : RawRepresentable, Hashable {

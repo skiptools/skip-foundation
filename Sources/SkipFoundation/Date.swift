@@ -30,31 +30,26 @@ public func CFAbsoluteTimeGetCurrent() -> CFAbsoluteTime {
 }
 
 #else
-
 public typealias TimeInterval = Double
 public typealias CFTimeInterval = TimeInterval
 
-/// Minic the constructor for `TimeInterval()` with an Int.
+// Minic the constructor for `TimeInterval()` with an Int.
 public func TimeInterval(_ seconds: Int) -> TimeInterval {
     return seconds.toDouble()
 }
 
-/// Absolute time is the time interval since the reference date the reference date (epoch) is 00:00:00 1 January 2001.
 public typealias CFAbsoluteTime = CFTimeInterval
 
-/// Absolute time is measured in seconds relative to the absolute reference date of Jan 1 2001 00:00:00 GMT. A positive value represents a date after the reference date, a negative value represents a date before it. For example, the absolute time -32940326 is equivalent to December 16th, 1999 at 17:54:34. Repeated calls to this function do not guarantee monotonically increasing results. The system time may decrease due to synchronization with external time references or due to an explicit user change of the clock.
 public func CFAbsoluteTimeGetCurrent() -> CFAbsoluteTime {
     Date.timeIntervalSinceReferenceDate
 }
 #endif
 
-/// A specific point in time, independent of any calendar or time zone.
 public struct Date : Hashable, CustomStringConvertible, Comparable, Encodable {
     internal var platformValue: PlatformDate
 
     public static let timeIntervalBetween1970AndReferenceDate: TimeInterval = 978307200.0
 
-    /// The interval between 00:00:00 UTC on 1 January 2001 and the current date and time.
     public static var timeIntervalSinceReferenceDate: TimeInterval {
         #if !SKIP
         return PlatformDate.timeIntervalSinceReferenceDate
@@ -97,12 +92,12 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Encodable {
     }
 
     #if SKIP
-    /// We don't support initializing doubles from int literals in Kotlin, so add a constructor that lets people do things like `Date(timeIntervalSince1970: 1449332351)`.
+    // We don't support initializing doubles from int literals in Kotlin, so add a constructor that lets people do things like `Date(timeIntervalSince1970: 1449332351)`.
     public init(timeIntervalSince1970: Int) {
         self.platformValue = PlatformDate((Double(timeIntervalSince1970) * 1000.0).toLong())
     }
 
-    /// We don't support initializing doubles from int literals in Kotlin, so add a constructor that lets people do things like `Date(timeIntervalSince1970: 1449332351)`.
+    // We don't support initializing doubles from int literals in Kotlin, so add a constructor that lets people do things like `Date(timeIntervalSince1970: 1449332351)`.
     public init(timeIntervalSinceReferenceDate: Int) {
         self.platformValue = PlatformDate(((Double(timeIntervalSinceReferenceDate) + Date.timeIntervalBetween1970AndReferenceDate) * 1000.0).toLong())
     }

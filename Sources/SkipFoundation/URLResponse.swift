@@ -12,7 +12,6 @@ internal typealias PlatformURLResponse = Foundation.URLResponse
 #else
 #endif
 
-/// The metadata associated with the response to a URL load request, independent of protocol and URL scheme.
 public class URLResponse : CustomStringConvertible {
     #if !SKIP
     internal var platformValue: PlatformURLResponse

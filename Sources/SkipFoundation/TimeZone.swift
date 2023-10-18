@@ -68,7 +68,6 @@ public struct TimeZone : Hashable, CustomStringConvertible, Sendable {
         #endif
     }
 
-    @available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
     public static var gmt: TimeZone {
         #if !SKIP
         return TimeZone(platformValue: PlatformTimeZone.gmt)

@@ -15,7 +15,6 @@ public typealias PlatformURLRequest = java.net.HttpURLConnection
 public typealias NSURLRequest = URLRequest
 #endif
 
-/// A URL load request that is independent of protocol or URL scheme.
 public struct URLRequest : Hashable, CustomStringConvertible {
     #if !SKIP
     internal var platformValue: PlatformURLRequest

@@ -13,7 +13,6 @@ internal typealias PlatformIndexPath = Foundation.IndexPath
 public typealias PlatformIndexPath = skip.lib.Array<Int>
 #endif
 
-/// A list of indexes that together represent the path to a specific location in a tree of nested arrays.
 public struct IndexPath : Hashable, CustomStringConvertible {
     public typealias Element = Int
 

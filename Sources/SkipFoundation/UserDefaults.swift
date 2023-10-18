@@ -13,7 +13,6 @@ internal typealias PlatformUserDefaults = Foundation.UserDefaults
 internal typealias PlatformUserDefaults = android.content.SharedPreferences
 #endif
 
-/// An interface to the user’s defaults database, where you store key-value pairs persistently across launches of your app.
 public class UserDefaults {
     let platformValue: PlatformUserDefaults
     #if SKIP
@@ -48,7 +47,6 @@ extension UserDefaults {
         self.registrationDictionary = registrationDictionary
     }
 
-    /// Call `registerOnSharedPreferenceChangeListener` with a new listener
     public func registerOnSharedPreferenceChangeListener(key: String, onChange: () -> ()) -> AnyObject {
         let listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { (_, changedKey: String?) in
             if let changedKey = changedKey, key == changedKey {

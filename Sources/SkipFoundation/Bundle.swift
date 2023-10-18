@@ -15,9 +15,7 @@ public typealias PlatformBundle = AnyClass
 
 // TODO: each platform should have a local Bundle.module extension created. static extensions not yet supported
 
-/// A representation of the code and resources stored in a bundle directory on disk.
 public class Bundle {
-    /// A reference to the singleton `main` bundle.
     #if !SKIP
     public static let main = Bundle(platformValue: PlatformBundle.main)
     #else
@@ -111,10 +109,8 @@ public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: B
 }
 
 extension Bundle {
-    /// The bundle for the local module.
-    ///
-    /// FIXME: this is terribly expensive, since it generates a stack trace and dyamically loads the class;
-    /// once static extensions are supported, this can be rectified with locally-generated modules.
+    // FIXME: this is terribly expensive, since it generates a stack trace and dyamically loads the class;
+    // once static extensions are supported, this can be rectified with locally-generated modules.
     public static var module: Bundle {
         var callingClassName = Thread.currentThread().stackTrace[2].className
         // work-around the issue where Kotlin's top-level functions are compiled as being part of a synthesized FileNameKt file

@@ -13,7 +13,6 @@ internal typealias PlatformNumberFormatter = Foundation.NumberFormatter
 public typealias PlatformNumberFormatter = java.text.DecimalFormat
 #endif
 
-/// A formatter that converts between numeric values and their textual representations.
 public class NumberFormatter {
     internal var platformValue: PlatformNumberFormatter
 

@@ -15,7 +15,6 @@ public typealias PlatformUUID = java.util.UUID
 public typealias NSUUID = UUID
 #endif
 
-/// Represents UUID strings, which can be used to uniquely identify types, interfaces, and other items.
 public struct UUID : Hashable, CustomStringConvertible, Encodable {
     internal var platformValue: PlatformUUID
 
@@ -92,7 +91,6 @@ public struct UUID : Hashable, CustomStringConvertible, Encodable {
 #if !SKIP
 
 extension UUID {
-    /// Creates this UUID using the given most signifant bits and least significant bits.
     public init(mostSigBits: Int64, leastSigBits: Int64) {
         var mostSigBits = mostSigBits
         var leastSigBits = leastSigBits
@@ -108,7 +106,7 @@ extension UUID {
 
 // SKIP INSERT: public fun UUID(mostSigBits: Long, leastSigBits: Long): UUID { return UUID(java.util.UUID(mostSigBits, leastSigBits)) }
 
-extension UUID {
+//extension UUID {
 //    public init(mostSigBits: Int64, leastSigBits: Int64) {
 //        UUID(mostSigBits, leastSigBits)
 //    }
@@ -121,7 +119,7 @@ extension UUID {
 //    public var description: String {
 //        return uuidString
 //    }
-}
+//}
 
 #endif
 

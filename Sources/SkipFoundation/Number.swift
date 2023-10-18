@@ -57,7 +57,6 @@ public struct NSNumberWrapper : Hashable {
 public typealias NSNumber = java.lang.Number
 #endif
 
-
 #if SKIP
 public extension java.lang.Number {
     var doubleValue: Double { doubleValue() }
@@ -69,7 +68,7 @@ public extension java.lang.Number {
     var int8Value: Int8 { byteValue() }
 }
 
-/// Initializing an NSNumber with a numeric value just returns the instance itself
+// Initializing an NSNumber with a numeric value just returns the instance itself
 public func NSNumber(value: Int8) -> NSNumber { value as NSNumber }
 public func NSNumber(value: Int16) -> NSNumber { value as NSNumber }
 public func NSNumber(value: Int32) -> NSNumber { value as NSNumber }
@@ -80,7 +79,7 @@ public func NSNumber(value: UInt32) -> NSNumber { value as NSNumber }
 public func NSNumber(value: UInt64) -> NSNumber { value as NSNumber }
 public func NSNumber(value: Float) -> NSNumber { value as NSNumber }
 public func NSNumber(value: Double) -> NSNumber { value as NSNumber }
-/// NSNumber also accepts unlabeled values. Add an additional unused argument to satisfy the Kotlin compiler that they are different functions.
+// NSNumber also accepts unlabeled values. Add an additional unused argument to satisfy the Kotlin compiler that they are different functions.
 public func NSNumber(_ v: Int8, unusedp: ()? = nil) -> NSNumber { v as NSNumber }
 public func NSNumber(_ v: Int16, unusedp: ()? = nil) -> NSNumber { v as NSNumber }
 public func NSNumber(_ v: Int32, unusedp: ()? = nil) -> NSNumber { v as NSNumber }

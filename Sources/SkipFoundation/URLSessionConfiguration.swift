@@ -12,8 +12,6 @@ internal typealias PlatformURLSessionConfiguration = Foundation.URLSessionConfig
 #else
 #endif
 
-/// A configuration object that defines behavior and policies for a URL session.
-@available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
 open class URLSessionConfiguration {
     #if SKIP
     private static let _default = URLSessionConfiguration()

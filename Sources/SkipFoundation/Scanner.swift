@@ -37,7 +37,6 @@ public class Scanner : CustomStringConvertible {
         case hexadecimal
     }
 
-
 //    open var string: String { get }
 //    open var scanLocation: Int
 //    open var charactersToBeSkipped: CharacterSet?

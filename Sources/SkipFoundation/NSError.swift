@@ -47,7 +47,7 @@ public let NSStringEncodingErrorKey: String = "NSStringEncodingErrorKey"
 public let NSURLErrorKey: String = "NSURL"
 public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
 
-open class NSError : CustomStringConvertible {
+open class NSError : Error, CustomStringConvertible {
     // ErrorType forbids this being internal
     open var _domain: String
     open var _code: Int
@@ -140,8 +140,6 @@ open class NSError : CustomStringConvertible {
         return "Error Domain=\(domain) Code=\(code) \"\(localizedFailureReason ?? "(null)")\""
     }
 }
-
-extension NSError : Swift.Error { }
 
 //extension CFError : _NSBridgeable {
 //    typealias NSType = NSError
