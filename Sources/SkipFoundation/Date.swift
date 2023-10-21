@@ -74,7 +74,7 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
         self.platformValue = try PlatformDate(from: decoder)
         #else
         let container = try decoder.singleValueContainer()
-        let timestamp = try container.decode(Double.self)
+        let timeIntervalSinceReferenceDate = try container.decode(Double.self)
         self.platformValue = PlatformDate(((timeIntervalSinceReferenceDate + Date.timeIntervalBetween1970AndReferenceDate) * 1000.0).toLong())
         #endif
     }

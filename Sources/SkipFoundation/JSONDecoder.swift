@@ -690,8 +690,7 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
     }
 
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: JSONDecoderKey) throws
-        -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey
-    {
+        -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         try decoderForKey(key).container(keyedBy: type)
     }
 

@@ -15,7 +15,7 @@ public typealias PlatformUUID = java.util.UUID
 public typealias NSUUID = UUID
 #endif
 
-public struct UUID : Hashable, CustomStringConvertible, Encodable {
+public struct UUID : Hashable, CustomStringConvertible, Codable {
     internal var platformValue: PlatformUUID
 
     public init?(uuidString: String) {
@@ -53,7 +53,8 @@ public struct UUID : Hashable, CustomStringConvertible, Encodable {
         #if !SKIP
         self.platformValue = try PlatformUUID(from: decoder)
         #else
-        self.platformValue = SkipCrash("TODO: Decoder")
+        var container = decoder.singleValueContainer()
+        self.platformValue = java.util.UUID.fromString(container.decode(String.self))
         #endif
     }
 

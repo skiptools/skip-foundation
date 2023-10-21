@@ -31,79 +31,79 @@ class TestJSON : XCTestCase {
         var doubleField: Double
     }
 
-    struct DataField : Equatable, Encodable {
+    struct DataField : Equatable, Codable {
         var dataField: Data
     }
 
-    struct DateField : Equatable, Encodable {
+    struct DateField : Equatable, Codable {
         var dateField: Date
     }
 
-    struct URLField : Equatable, Encodable {
+    struct URLField : Equatable, Codable {
         var urlField: URL
     }
 
-    struct UUIDField : Equatable, Encodable {
+    struct UUIDField : Equatable, Codable {
         var uuidField: UUID
     }
 
-    struct UUIDArrayField : Equatable, Encodable {
+    struct UUIDArrayField : Equatable, Codable {
         var uuidArrayField: Array<UUID>
     }
 
-    struct StringArrayField : Equatable, Encodable {
+    struct StringArrayField : Equatable, Codable {
         var stringArrayField: Array<String>
     }
 
-    struct IntArrayField : Equatable, Encodable {
+    struct IntArrayField : Equatable, Codable {
         var intArrayField: Array<Int>
     }
 
-    struct UIntArrayField : Equatable, Encodable {
+    struct UIntArrayField : Equatable, Codable {
         var uintArrayField: Array<UInt>
     }
 
-    struct Int8ArrayField : Equatable, Encodable {
+    struct Int8ArrayField : Equatable, Codable {
         var int8ArrayField: Array<Int8>
     }
 
-    struct UInt8ArrayField : Equatable, Encodable {
+    struct UInt8ArrayField : Equatable, Codable {
         var uint8ArrayField: Array<UInt8>
     }
 
-    struct Int16ArrayField : Equatable, Encodable {
+    struct Int16ArrayField : Equatable, Codable {
         var int16ArrayField: Array<Int16>
     }
 
-    struct UInt16ArrayField : Equatable, Encodable {
+    struct UInt16ArrayField : Equatable, Codable {
         var uint16ArrayField: Array<UInt16>
     }
 
-    struct Int32ArrayField : Equatable, Encodable {
+    struct Int32ArrayField : Equatable, Codable {
         var int32ArrayField: Array<Int32>
     }
 
-    struct UInt32ArrayField : Equatable, Encodable {
+    struct UInt32ArrayField : Equatable, Codable {
         var uint32ArrayField: Array<UInt32>
     }
 
-    struct Int64ArrayField : Equatable, Encodable {
+    struct Int64ArrayField : Equatable, Codable {
         var int64ArrayField: Array<Int64>
     }
 
-    struct UInt64ArrayField : Equatable, Encodable {
+    struct UInt64ArrayField : Equatable, Codable {
         var uint64ArrayField: Array<UInt64>
     }
 
-    struct FloatArrayField : Equatable, Encodable {
+    struct FloatArrayField : Equatable, Codable {
         var floatArrayField: Array<Float>
     }
 
-    struct DoubleArrayField : Equatable, Encodable {
+    struct DoubleArrayField : Equatable, Codable {
         var doubleArrayField: Array<Double>
     }
 
-    struct BoolArrayField : Equatable, Encodable {
+    struct BoolArrayField : Equatable, Codable {
         var boolArrayField: Array<Bool>
     }
 
@@ -115,13 +115,9 @@ class TestJSON : XCTestCase {
         var boolArrayArrayArrayField: Array<Array<Array<Bool>>>
     }
 
-
-    #if !SKIP
-    // SKIP TODO: implement container.encode(stringArrayField, forKey = CodingKeys.stringArrayField)
     struct StringSetField : Equatable, Codable {
         var stringSetField: Set<String>
     }
-    #endif
 
     struct Person : Equatable, Codable {
         var firstName: String
@@ -129,18 +125,16 @@ class TestJSON : XCTestCase {
         var age: Int?
         var height: Double?
         var isStudent: Bool?
-        //var friends: [Person]?
+        var friends: [Person]?
     }
 
-    struct Org : Equatable, Encodable {
+    struct Org : Equatable, Codable {
         var head: Person?
         var people: [Person]
         var departmentHeads: [String: Person]
         var departmentMembers: [String: [Person]]
     }
 
-    // TODO: Type 'TestJSON.ManualPerson' does not conform to protocol 'Decodable'
-    // Unable to locate the property for this coding key
     struct ManualPerson: Encodable {
         let name: String
         let age: Int
@@ -157,7 +151,7 @@ class TestJSON : XCTestCase {
         }
     }
 
-    struct MyTestData: Encodable, Equatable {
+    struct MyTestData: Codable, Equatable {
         let thisIsAString: String
         let thisIsABool: Bool
         let thisIsAnInt: Int
@@ -219,7 +213,7 @@ class TestJSON : XCTestCase {
         XCTAssertEqual(#"{"stringField":"ABC"}"#, try roundtrip(value: StringField(stringField: "ABC")))
         XCTAssertEqual(#"{"stringField":"ABC\/XYZ"}"#, try roundtrip(value: StringField(stringField: "ABC/XYZ")))
 
-        XCTAssertEqual(#"{"dataField":"AQI="}"#, try enc(DataField(dataField: Data([UInt8(0x01), UInt8(0x02)]))))
+        XCTAssertEqual(#"{"dataField":"AQI="}"#, try roundtrip(value: DataField(dataField: Data([UInt8(0x01), UInt8(0x02)]))))
         XCTAssertEqual(#"{"dataField":"AQI="}"#, try enc(DataField(dataField: Data([UInt8(0x01), UInt8(0x02)])), data: .base64 as JSONEncoder.DataEncodingStrategy))
         XCTAssertEqual(#"{"dataField":3}"#, try enc(DataField(dataField: Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)])), data: .custom({ data, encoder in var container = encoder.singleValueContainer(); try container.encode(data.count) }) as JSONEncoder.DataEncodingStrategy))
         XCTAssertEqual(#"{"dataField":[1,2]}"#, try enc(DataField(dataField: Data([UInt8(0x01), UInt8(0x02)])), data: .deferredToData as JSONEncoder.DataEncodingStrategy))
@@ -237,23 +231,53 @@ class TestJSON : XCTestCase {
 
         XCTAssertEqual(#"{"dateField":9}"#, try enc(DateField(dateField: Date(timeIntervalSince1970: 1.0)), date: .custom({ date, encoder in var container = encoder.singleValueContainer(); try container.encode(encoder.codingPath.last!.stringValue.count) }) as JSONEncoder.DateEncodingStrategy))
 
-        XCTAssertEqual(#"{"uuidField":"A53BAA1C-B4F5-48DB-9567-9786B76B256C"}"#, try enc(UUIDField(uuidField: UUID(uuidString: "a53baa1c-b4f5-48db-9567-9786b76b256c")!)))
+        XCTAssertEqual(#"{"uuidField":"A53BAA1C-B4F5-48DB-9567-9786B76B256C"}"#, try roundtrip(value: UUIDField(uuidField: UUID(uuidString: "a53baa1c-b4f5-48db-9567-9786b76b256c")!)))
 
-        XCTAssertEqual(#"{"stringArrayField":["ABC","XYZ"]}"#, try enc(StringArrayField(stringArrayField: ["ABC", "XYZ"])))
-        XCTAssertEqual(#"{"intArrayField":[1,2]}"#, try enc(IntArrayField(intArrayField: [1,2])))
-        XCTAssertEqual(#"{"floatArrayField":[1,2]}"#, try enc(FloatArrayField(floatArrayField: [Float(1.0),Float(2.0)])))
-        XCTAssertEqual(#"{"int8ArrayField":[1,2]}"#, try enc(Int8ArrayField(int8ArrayField: [Int8(1),Int8(2)])))
-        XCTAssertEqual(#"{"uint8ArrayField":[1,2]}"#, try enc(UInt8ArrayField(uint8ArrayField: [UInt8(1),UInt8(2)])))
+        XCTAssertEqual(#"{"stringArrayField":["ABC","XYZ"]}"#, try roundtrip(value: StringArrayField(stringArrayField: ["ABC", "XYZ"])))
+        XCTAssertEqual(#"{"intArrayField":[1,2]}"#, try roundtrip(value: IntArrayField(intArrayField: [1,2])))
+        XCTAssertEqual(#"{"floatArrayField":[1,2]}"#, try roundtrip(value: FloatArrayField(floatArrayField: [Float(1.0),Float(2.0)])))
+        XCTAssertEqual(#"{"int8ArrayField":[1,2]}"#, try roundtrip(value: Int8ArrayField(int8ArrayField: [Int8(1),Int8(2)])))
+        XCTAssertEqual(#"{"uint8ArrayField":[1,2]}"#, try roundtrip(value: UInt8ArrayField(uint8ArrayField: [UInt8(1),UInt8(2)])))
 
-        XCTAssertEqual(#"{"uuidArrayField":["A53BAA1C-B4F5-48DB-9567-9786B76B256C"]}"#, try enc(UUIDArrayField(uuidArrayField: [UUID(uuidString: "a53baa1c-b4f5-48db-9567-9786b76b256c")!])))
+        XCTAssertEqual(#"{"uuidArrayField":["A53BAA1C-B4F5-48DB-9567-9786B76B256C"]}"#, try roundtrip(value: UUIDArrayField(uuidArrayField: [UUID(uuidString: "a53baa1c-b4f5-48db-9567-9786b76b256c")!])))
 
-        XCTAssertEqual(#"{"boolArrayField":[false,true]}"#, try enc(BoolArrayField(boolArrayField: [false,true])))
+        XCTAssertEqual(#"{"boolArrayField":[false,true]}"#, try roundtrip(value: BoolArrayField(boolArrayField: [false,true])))
         XCTAssertEqual(#"{"boolArrayArrayField":[[false,true]]}"#, try enc(BoolArrayArrayField(boolArrayArrayField: [[false,true]])))
         XCTAssertEqual(#"{"boolArrayArrayArrayField":[[[false,true],[false,true]],[[false,true],[false,true]]]}"#, try enc(BoolArrayArrayArrayField(boolArrayArrayArrayField: [[[false,true],[false,true]],[[false,true],[false,true]]])))
 
         let testData = MyTestData(thisIsAString: "ABC", thisIsABool: true, thisIsAnInt: 1, thisIsAnInt8: Int8(2), thisIsAnInt16: Int16(3), thisIsAnInt32: Int32(4), thisIsAnInt64: Int64(5), thisIsAUint: UInt(6), thisIsAUint8: UInt8(7), thisIsAUint16: UInt16(8), thisIsAUint32: UInt32(9), thisIsAUint64: UInt64(10), thisIsAFloat: Float(11.0), thisIsADouble: Double(12.0), thisIsADate: Date(timeIntervalSinceReferenceDate: 12345.0), thisIsAnArray: [-1,0,1], thisIsADictionary: ["X": true, "Y": false])
 
-        #if !SKIP
+        // TODO: Key sorting inconsistency
+        #if SKIP
+        XCTAssertEqual("""
+        {
+          "thisIsABool" : true,
+          "thisIsADate" : 12345,
+          "thisIsADictionary" : {
+            "X" : true,
+            "Y" : false
+          },
+          "thisIsADouble" : 12,
+          "thisIsAFloat" : 11,
+          "thisIsAString" : "ABC",
+          "thisIsAUint" : 6,
+          "thisIsAUint16" : 8,
+          "thisIsAUint32" : 9,
+          "thisIsAUint64" : 10,
+          "thisIsAUint8" : 7,
+          "thisIsAnArray" : [
+            -1,
+            0,
+            1
+          ],
+          "thisIsAnInt" : 1,
+          "thisIsAnInt16" : 3,
+          "thisIsAnInt32" : 4,
+          "thisIsAnInt64" : 5,
+          "thisIsAnInt8" : 2
+        }
+        """, try roundtrip(value: testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
+        #else
         XCTAssertEqual("""
         {
           "thisIsABool" : true,
@@ -281,8 +305,10 @@ class TestJSON : XCTestCase {
           "thisIsAUint32" : 9,
           "thisIsAUint64" : 10
         }
-        """, try enc(testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
+        """, try roundtrip(value: testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
+        #endif
 
+        #if !SKIP
         XCTAssertEqual("""
         {
           "this_is_a_bool" : true,
@@ -319,14 +345,14 @@ class TestJSON : XCTestCase {
         let p2 = Person(firstName: "Jan", lastName: "Noe", height: 170.0)
         let p3 = Person(firstName: "Jim", lastName: "Bro", height: 190.0)
 
-        XCTAssertEqual(#"{"firstName":"Jon","height":180.5,"lastName":"Doe"}"#, try enc(p1))
+        XCTAssertEqual(#"{"firstName":"Jon","height":180.5,"lastName":"Doe"}"#, try roundtrip(value: p1))
         XCTAssertEqual("""
         {
           "firstName" : "Jon",
           "height" : 180.5,
           "lastName" : "Doe"
         }
-        """, try enc(p1, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
+        """, try roundtrip(value: p1, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
 
         let org = Org(head: p2, people: [p1, p3], departmentHeads: ["X":p2, "Y": p3], departmentMembers: ["Y":[p1], "X": [p2, p1]])
         XCTAssertEqual("""
@@ -382,17 +408,7 @@ class TestJSON : XCTestCase {
                 }
               ]
             }
-            """, try enc(org, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
-
-        #if !SKIP
-        // TODO: convertToSnakeCase
-        XCTAssertEqual(#"{"int_field":1}"#, try enc(IntField(intField: Int(1)), keys: .convertToSnakeCase as JSONEncoder.KeyEncodingStrategy))
-
-        //XCTAssertEqual(#"{"firstName":"Jon","height":180.5,"lastName":"Doe"}"#, try enc().encode(person))
-
-        //let person2 = try JSONDecoder().decode(Person.self, from: jsonData)
-        //XCTAssertEqual(person, person)
-        #endif
+            """, try roundtrip(value: org, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
     }
 
     struct EntityCustomKeys : Encodable {
@@ -422,7 +438,7 @@ class TestJSON : XCTestCase {
 //        XCTAssertEqual(#"{"age":44.0,"firstName":"Jon","lastName":"Doe"}"#, json.stringify())
     }
 
-    func testJSONParse() throws {
+//    func testJSONParse() throws {
 //        XCTAssertEqual(JSON.null, try JSON.parse("null"))
 //        XCTAssertEqual(JSON.string("ABC"), try JSON.parse(#""ABC""#))
 //        XCTAssertEqual(JSON.bool(true), try JSON.parse("true"))
@@ -500,42 +516,42 @@ class TestJSON : XCTestCase {
 //          ]
 //        }
 //        """)
-    }
+//    }
 
-    func checkJSON(_ json: String) throws {
+//    func checkJSON(_ json: String) throws {
 //        XCTAssertEqual(json, try JSONObjectAny(json: json).stringify(pretty: false, sorted: true))
-    }
+//    }
 
-    func testJSONParsing() throws {
-        try checkJSON("""
-        {"a":1}
-        """)
-
-        try checkJSON("""
-        {"x":true}
-        """)
-
-        #if SKIP
-        try checkJSON("""
-        {"_":1.1}
-        """)
-        #else
-        try checkJSON("""
-        {"_":1.1000000000000001}
-        """)
-        #endif
-
-        try checkJSON("""
-        {"a":[1]}
-        """)
-
-        #if false // neither work
-        try checkJSON("""
-        {"a":[1,true,false,0.00001,"X"]}
-        """)
-        #endif
-
-        #if SKIP
+//    func testJSONParsing() throws {
+//        try checkJSON("""
+//        {"a":1}
+//        """)
+//
+//        try checkJSON("""
+//        {"x":true}
+//        """)
+//
+//        #if SKIP
+//        try checkJSON("""
+//        {"_":1.1}
+//        """)
+//        #else
+//        try checkJSON("""
+//        {"_":1.1000000000000001}
+//        """)
+//        #endif
+//
+//        try checkJSON("""
+//        {"a":[1]}
+//        """)
+//
+//        #if false // neither work
+//        try checkJSON("""
+//        {"a":[1,true,false,0.00001,"X"]}
+//        """)
+//        #endif
+//
+//        #if SKIP
         // Android's version of org.json:json is different
         // try checkJSON("""
         // {"a":[1,true,false,1.0E-5,"X"]}
@@ -546,22 +562,22 @@ class TestJSON : XCTestCase {
         // {"a":[1,true,false,0.00001,"X"]}
         // """)
 
-        try checkJSON("""
-        {"a":[1,true,false,1.0E-5,"X"]}
-        """)
-        #else
-        try checkJSON("""
-        {"a":[1,true,false,1.0000000000000001e-05,"X"]}
-        """)
-        #endif
-
-        let jsonString = """
-        {
-          "age": 30,
-          "isEmployed": true,
-          "name": "John Smith"
-        }
-        """
+//        try checkJSON("""
+//        {"a":[1,true,false,1.0E-5,"X"]}
+//        """)
+//        #else
+//        try checkJSON("""
+//        {"a":[1,true,false,1.0000000000000001e-05,"X"]}
+//        """)
+//        #endif
+//
+//        let jsonString = """
+//        {
+//          "age": 30,
+//          "isEmployed": true,
+//          "name": "John Smith"
+//        }
+//        """
 
         // note that unlike Swift JSON, the JSONObjectAny key/values are in the same order as the document
 //        let jsonObject = try JSONObjectAny(json: jsonString)
@@ -621,10 +637,9 @@ class TestJSON : XCTestCase {
 //        logger.info("parsing string: \(bigString.count)")
 //        let _ = try JSONObjectAny(json: bigString)
 //        //let prettyBigString = try prettyBigObject.stringify(pretty: true, sorted: true)
+//    }
 
-    }
-
-    func testJSONDeserialization() throws {
+//    func testJSONDeserialization() throws {
 //        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data("""
 //            {
 //                "a": 1.1,
@@ -662,5 +677,5 @@ class TestJSON : XCTestCase {
 //        XCTAssertEqual(0.1, (e3["y"] as? Double))
 //
 //        XCTAssertEqual(1, (e[4] as? [Any])?.count)
-    }
+//    }
 }
