@@ -20,124 +20,53 @@
 //===----------------------------------------------------------------------===//
 
 
-/// A marker protocol used to determine whether a value is a `String`-keyed `Dictionary`
-/// containing `Encodable` values (in which case it should be exempt from key conversion strategies).
-///
+#if !SKIP
 fileprivate protocol _JSONStringDictionaryEncodableMarker { }
-
-#if !SKIP // This extension cannot be merged into its extended Kotlin type definition. Therefore it cannot add additional protocols
 extension Dictionary: _JSONStringDictionaryEncodableMarker where Key == String, Value: Encodable { }
 #endif
 
-//===----------------------------------------------------------------------===//
-// JSON Encoder
-//===----------------------------------------------------------------------===//
-
-/// `JSONEncoder` facilitates the encoding of `Encodable` values into JSON.
+// SKIP DECLARE: open class JSONEncoder: TopLevelEncoder<Data>
 open class JSONEncoder {
-    // MARK: Options
-
-    /// The formatting of the output JSON data.
     public struct OutputFormatting: OptionSet {
-        /// The format's default value.
         public let rawValue: UInt
 
-        /// Creates an OutputFormatting value with the given raw value.
         public init(rawValue: UInt) {
             self.rawValue = rawValue
         }
 
-        /// Produce human-readable JSON with indented output.
         public static let prettyPrinted = OutputFormatting(rawValue: UInt(1) << 0)
-
-        /// Produce JSON with dictionary keys sorted in lexicographic order.
-        @available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *)
-        public static let sortedKeys    = OutputFormatting(rawValue: UInt(1) << 1)
-
-        /// By default slashes get escaped ("/" → "\/", "http://apple.com/" → "http:\/\/apple.com\/")
-        /// for security reasons, allowing outputted JSON to be safely embedded within HTML/XML.
-        /// In contexts where this escaping is unnecessary, the JSON is known to not be embedded,
-        /// or is intended only for display, this option avoids this escaping.
+        public static let sortedKeys = OutputFormatting(rawValue: UInt(1) << 1)
         public static let withoutEscapingSlashes = OutputFormatting(rawValue: UInt(1) << 3)
     }
 
-    /// The strategy to use for encoding `Date` values.
     public enum DateEncodingStrategy {
-        /// Defer to `Date` for choosing an encoding. This is the default strategy.
         case deferredToDate
-
-        /// Encode the `Date` as a UNIX timestamp (as a JSON number).
         case secondsSince1970
-
-        /// Encode the `Date` as UNIX millisecond timestamp (as a JSON number).
         case millisecondsSince1970
-
-        /// Encode the `Date` as an ISO-8601-formatted string (in RFC 3339 format).
-        @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
         case iso8601
-
-        /// Encode the `Date` as a string formatted by the given formatter.
         case formatted(DateFormatter)
-
-        /// Encode the `Date` as a custom value encoded by the given closure.
-        ///
-        /// If the closure fails to encode a value into the given encoder, the encoder will encode an empty automatic container in its place.
         case custom((Date, Encoder) throws -> Void)
     }
 
-    /// The strategy to use for encoding `Data` values.
     public enum DataEncodingStrategy {
-        /// Defer to `Data` for choosing an encoding.
         case deferredToData
-
-        /// Encoded the `Data` as a Base64-encoded string. This is the default strategy.
         case base64
-
-        /// Encode the `Data` as a custom value encoded by the given closure.
-        ///
-        /// If the closure fails to encode a value into the given encoder, the encoder will encode an empty automatic container in its place.
         case custom((Data, Encoder) throws -> Void)
     }
 
-    /// The strategy to use for non-JSON-conforming floating-point values (IEEE 754 infinity and NaN).
     public enum NonConformingFloatEncodingStrategy {
-        /// Throw upon encountering non-conforming values. This is the default strategy.
         case `throw`
-
-        /// Encode the values using the given representation strings.
         case convertToString(positiveInfinity: String, negativeInfinity: String, nan: String)
     }
 
-    /// The strategy to use for automatically changing the value of keys before encoding.
     public enum KeyEncodingStrategy {
-        /// Use the keys specified by each type. This is the default strategy.
         case useDefaultKeys
-
-        /// Convert from "camelCaseKeys" to "snake_case_keys" before writing a key to JSON payload.
-        ///
-        /// Capital characters are determined by testing membership in `CharacterSet.uppercaseLetters` and `CharacterSet.lowercaseLetters` (Unicode General Categories Lu and Lt).
-        /// The conversion to lower case uses `Locale.system`, also known as the ICU "root" locale. This means the result is consistent regardless of the current user's locale and language preferences.
-        ///
-        /// Converting from camel case to snake case:
-        /// 1. Splits words at the boundary of lower-case to upper-case
-        /// 2. Inserts `_` between words
-        /// 3. Lowercases the entire string
-        /// 4. Preserves starting and ending `_`.
-        ///
-        /// For example, `oneTwoThree` becomes `one_two_three`. `_oneTwoThree_` becomes `_one_two_three_`.
-        ///
-        /// - Note: Using a key encoding strategy has a nominal performance cost, as each string key has to be converted.
         case convertToSnakeCase
-
-        /// Provide a custom conversion to the key in the encoded JSON from the keys specified by the encoded types.
-        /// The full path to the current encoding position is provided for context (in case you need to locate this key within the payload). The returned key is used in place of the last component in the coding path before encoding.
-        /// If the result of the conversion is a duplicate key, then only one value will be present in the result.
         case custom((_ codingPath: [CodingKey]) -> CodingKey)
 
         fileprivate static func _convertToSnakeCase(_ stringKey: String) -> String {
             guard !stringKey.isEmpty else { return stringKey }
-
-            #if SKIP // unavailable API
+            #if SKIP
             fatalError("SKIP TODO: JSON snakeCase")
             #else
             var words: [Range<String.Index>] = []
@@ -188,25 +117,13 @@ open class JSONEncoder {
         }
     }
 
-    /// The output format to produce. Defaults to `[]`.
     open var outputFormatting: OutputFormatting = []
-
-    /// The strategy to use in encoding dates. Defaults to `.deferredToDate`.
     open var dateEncodingStrategy: DateEncodingStrategy = .deferredToDate
-
-    /// The strategy to use in encoding binary data. Defaults to `.base64`.
     open var dataEncodingStrategy: DataEncodingStrategy = .base64
-
-    /// The strategy to use in encoding non-conforming numbers. Defaults to `.throw`.
     open var nonConformingFloatEncodingStrategy: NonConformingFloatEncodingStrategy = .throw
-
-    /// The strategy to use for encoding keys. Defaults to `.useDefaultKeys`.
     open var keyEncodingStrategy: KeyEncodingStrategy = .useDefaultKeys
-
-    /// Contextual user-provided information for use during encoding.
     open var userInfo: [CodingUserInfoKey: Any] = [:]
 
-    /// Options set on the top-level encoder to pass down the encoding hierarchy.
     fileprivate struct _Options {
         let dateEncodingStrategy: DateEncodingStrategy
         let dataEncodingStrategy: DataEncodingStrategy
@@ -215,7 +132,6 @@ open class JSONEncoder {
         let userInfo: [CodingUserInfoKey: Any]
     }
 
-    /// The options set on the top-level encoder.
     fileprivate var options: _Options {
         return _Options(dateEncodingStrategy: dateEncodingStrategy,
                         dataEncodingStrategy: dataEncodingStrategy,
@@ -224,39 +140,39 @@ open class JSONEncoder {
                         userInfo: userInfo)
     }
 
-    // MARK: - Constructing a JSON Encoder
-
-    /// Initializes `self` with default strategies.
     public init() {}
 
-    // MARK: - Encoding Values
+    #if SKIP
+    // Our TopLevelEncoder superclass handles the encode calls. We just have to produce the encoder
+    override func encoder() -> Encoder {
+        return JSONEncoderImpl(options: self.options, codingPath: [])
+    }
 
-    /// Encodes the given top-level value and returns its JSON representation.
-    ///
-    /// - parameter value: The value to encode.
-    /// - returns: A new `Data` value containing the encoded JSON data.
-    /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is encountered during encoding, and the encoding strategy is `.throw`.
-    /// - throws: An error if any value throws an error during encoding.
+    override func output(from encoder: Encoder) -> Data {
+        guard let value = (encoder as! JSONEncoderImpl).value else {
+            throw EncodingError.invalidValue("?", EncodingError.Context(codingPath: [], debugDescription: "Top-level did not encode any values."))
+        }
+        let writer = JSONValue.Writer(options: self.outputFormatting)
+        let bytes = writer.writeValue(value)
+        return Data(bytes: bytes)
+    }
+    #else
     open func encode<T: Encodable>(_ value: T) throws -> Data {
         let value: JSONValue = try encodeAsJSONValue(value)
         let writer = JSONValue.Writer(options: self.outputFormatting)
         let bytes = writer.writeValue(value)
-
-        return SkipFoundation.Data(bytes)
+        return Data(bytes)
     }
 
-    func encodeAsJSONValue<T: Encodable>(_ value: T) throws -> JSONValue {
+    private func encodeAsJSONValue<T: Encodable>(_ value: T) throws -> JSONValue {
         let encoder = JSONEncoderImpl(options: self.options, codingPath: [])
         guard let topLevel = try encoder.wrapEncodable(value, for: nil) else {
-            // SKIP REPLACE: throw EncodingError.invalidValue(value, EncodingError.Context(codingPath = arrayOf(), debugDescription = "Top-level class did not encode any values.")) // Skip: cannot reference non-reified type parameter
             throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) did not encode any values."))
         }
-
         return topLevel
     }
+    #endif
 }
-
-// MARK: - _JSONEncoder
 
 private enum JSONFuture {
     case value(JSONValue)
@@ -268,26 +184,23 @@ private enum JSONFuture {
         private(set) var array: [JSONFuture] = []
 
         init() {
-            #if !SKIP // This API is not available in Skip
-            self.array.reserveCapacity(10)
-            #endif
         }
 
-        @inline(__always) func append(_ element: JSONValue) {
+        func append(_ element: JSONValue) {
             self.array.append(.value(element))
         }
 
-        @inline(__always) func append(_ encoder: JSONEncoderImpl) {
+        func append(_ encoder: JSONEncoderImpl) {
             self.array.append(.encoder(encoder))
         }
 
-        @inline(__always) func appendArray() -> RefArray {
+        func appendArray() -> RefArray {
             let array = RefArray()
             self.array.append(.nestedArray(array))
             return array
         }
 
-        @inline(__always) func appendObject() -> RefObject {
+        func appendObject() -> RefObject {
             let object = RefObject()
             self.array.append(.nestedObject(object))
             return object
@@ -313,16 +226,13 @@ private enum JSONFuture {
         private(set) var dict: [String: JSONFuture] = [:]
 
         init() {
-            #if !SKIP // This API is not available in Skip
-            self.dict.reserveCapacity(20)
-            #endif
         }
 
-        @inline(__always) func set(_ value: JSONValue, for key: String) {
+        func set(_ value: JSONValue, for key: String) {
             self.dict[key] = .value(value)
         }
 
-        @inline(__always) func setArray(for key: String) -> RefArray {
+        func setArray(for key: String) -> RefArray {
             switch self.dict[key] {
             case .encoder:
                 preconditionFailure("For key \"\(key)\" an encoder has already been created.")
@@ -330,14 +240,14 @@ private enum JSONFuture {
                 preconditionFailure("For key \"\(key)\" a keyed container has already been created.")
             case .nestedArray(let array):
                 return array
-            default: // case .none, .value: // SKIP TODO: unable to match on .none case
+            default: // .value, nil:
                 let array = RefArray()
                 dict[key] = .nestedArray(array)
                 return array
             }
         }
 
-        @inline(__always) func setObject(for key: String) -> RefObject {
+        func setObject(for key: String) -> RefObject {
             switch self.dict[key] {
             case .encoder:
                 preconditionFailure("For key \"\(key)\" an encoder has already been created.")
@@ -345,14 +255,14 @@ private enum JSONFuture {
                 return obj
             case .nestedArray:
                 preconditionFailure("For key \"\(key)\" a unkeyed container has already been created.")
-            default: // case .none, .value: // SKIP TODO: unable to match on .none case
+            default: // .value, nil:
                 let object = RefObject()
                 dict[key] = .nestedObject(object)
                 return object
             }
         }
 
-        @inline(__always) func set(_ encoder: JSONEncoderImpl, for key: String) {
+        func set(_ encoder: JSONEncoderImpl, for key: String) {
             switch self.dict[key] {
             case .encoder:
                 preconditionFailure("For key \"\(key)\" an encoder has already been created.")
@@ -360,7 +270,7 @@ private enum JSONFuture {
                 preconditionFailure("For key \"\(key)\" a keyed container has already been created.")
             case .nestedArray:
                 preconditionFailure("For key \"\(key)\" a unkeyed container has already been created.")
-            default: // case .none, .value: // SKIP TODO: unable to match on .none case
+            default: // .value, nil:
                 dict[key] = .encoder(encoder)
             }
         }
@@ -382,7 +292,7 @@ private enum JSONFuture {
     }
 }
 
-private class JSONEncoderImpl {
+private final class JSONEncoderImpl: Encoder {
     let options: JSONEncoder._Options
     let codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey: Any] {
@@ -407,23 +317,17 @@ private class JSONEncoderImpl {
         self.options = options
         self.codingPath = codingPath
     }
-}
 
-extension JSONEncoderImpl: Encoder {
     func container<Key>(keyedBy keyType: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         if let _ = object {
-            // SKIP REPLACE: fatalError("SKIP TODO: JSONEncoderImpl.container JSONKeyedEncodingContainer")
-            let container = JSONKeyedEncodingContainer<Key>(impl: self, codingPath: codingPath)
-            // SKIP REPLACE: fatalError("SKIP TODO: JSONEncoderImpl.container KeyedEncodingContainer")
+            let container = JSONKeyedEncodingContainer<Key>(keyedBy: keyType, impl: self, codingPath: codingPath)
             return KeyedEncodingContainer(container)
         }
-
         guard self.singleValue == nil, self.array == nil else {
             preconditionFailure()
         }
-
         self.object = JSONFuture.RefObject()
-        let container = JSONKeyedEncodingContainer<Key>(impl: self, codingPath: codingPath)
+        let container = JSONKeyedEncodingContainer<Key>(keyedBy: keyType, impl: self, codingPath: codingPath)
         return KeyedEncodingContainer(container)
     }
 
@@ -431,11 +335,9 @@ extension JSONEncoderImpl: Encoder {
         if let _ = array {
             return JSONUnkeyedEncodingContainer(impl: self, codingPath: self.codingPath)
         }
-
         guard self.singleValue == nil, self.object == nil else {
             preconditionFailure()
         }
-
         self.array = JSONFuture.RefArray()
         return JSONUnkeyedEncodingContainer(impl: self, codingPath: self.codingPath)
     }
@@ -444,20 +346,15 @@ extension JSONEncoderImpl: Encoder {
         guard self.object == nil, self.array == nil else {
             preconditionFailure()
         }
-
         return JSONSingleValueEncodingContainer(impl: self, codingPath: self.codingPath)
     }
 }
-
-// this is a private protocol to implement convenience methods directly on the EncodingContainers
 
 extension JSONEncoderImpl: _SpecialTreatmentEncoder {
     var impl: JSONEncoderImpl {
         return self
     }
 
-    // untyped escape hatch. needed for `wrapObject`
-    // SKIP REPLACE: // SKIP TODO: wrapUntyped
     func wrapUntyped(_ encodable: Encodable) throws -> JSONValue {
         switch encodable {
         case let date as Date:
@@ -466,10 +363,12 @@ extension JSONEncoderImpl: _SpecialTreatmentEncoder {
             return try self.wrapData(data, for: nil)
         case let url as URL:
             return .string(url.absoluteString)
+        #if !SKIP
         case let decimal as Decimal:
             return .number(decimal.description)
-        case let object as [String: Encodable]: // this emits a warning, but it works perfectly
+        case let object as [String: Encodable]:
             return try self.wrapObject(object, for: nil)
+        #endif
         default:
             try encodable.encode(to: self)
             return self.value ?? .object([:])
@@ -484,14 +383,12 @@ private protocol _SpecialTreatmentEncoder {
 }
 
 extension _SpecialTreatmentEncoder {
-    @inline(__always) fileprivate func wrapFloat<F: FloatingPoint & CustomStringConvertible>(_ float: F, for additionalKey: CodingKey?) throws -> JSONValue {
-        // SKIP REPLACE: val isNaN = (float as? Double)?.isNaN() == true || (float as? Float)?.isNaN() == true
+    // SKIP DECLARE: fun wrapFloat(float: Any, for_: CodingKey?): JSONValue
+    func wrapFloat<F: FloatingPoint & CustomStringConvertible>(_ float: F, for additionalKey: CodingKey?) throws -> JSONValue {
+        #if !SKIP
         let isNaN = float.isNaN
-        // SKIP REPLACE: val isInfinite = (float as? Double)?.isInfinite() == true || (float as? Float)?.isInfinite() == true
         let isInfinite = float.isInfinite
-
         guard !isNaN, !isInfinite else {
-            // SKIP REPLACE: // TODO: fix Skip case match issue
             if case JSONEncoder.NonConformingFloatEncodingStrategy.convertToString(let posInfString, let negInfString, let nanString) = self.options.nonConformingFloatEncodingStrategy {
                 switch float {
                 case F.infinity:
@@ -514,19 +411,17 @@ extension _SpecialTreatmentEncoder {
                 debugDescription: "Unable to encode \(float) directly in JSON."
             ))
         }
+        #endif
 
         var string = float.description
         if string.hasSuffix(".0") {
-            #if !SKIP
-            string.removeLast(2)
-            #else
-            string = string.dropLast(2)
-            #endif
+            string = String(string.dropLast(2))
         }
         return .number(string)
     }
 
-    fileprivate func wrapEncodable<E: Encodable>(_ encodable: E, for additionalKey: CodingKey?) throws -> JSONValue? {
+    // SKIP DECLARE: fun <E> wrapEncodable(encodable: E, for_: CodingKey?): JSONValue? where E: Any
+    func wrapEncodable<E: Encodable>(_ encodable: E, for additionalKey: CodingKey?) throws -> JSONValue? {
         switch encodable {
         case let date as Date:
             return try self.wrapDate(date, for: additionalKey)
@@ -534,12 +429,15 @@ extension _SpecialTreatmentEncoder {
             return try self.wrapData(data, for: additionalKey)
         case let url as URL:
             return .string(url.absoluteString)
+        #if !SKIP
         case let decimal as Decimal:
             return .number(decimal.description)
         case let obj as _JSONStringDictionaryEncodableMarker:
             return try self.wrapObject(obj as! [String: Encodable], for: additionalKey)
+        #endif
         default:
             let encoder = self.getEncoder(for: additionalKey)
+            // SKIP REPLACE: (encodable as Encodable).encode(encoder)
             try encodable.encode(to: encoder)
             return encoder.value
         }
@@ -559,20 +457,14 @@ extension _SpecialTreatmentEncoder {
             return .number((Int64(date.timeIntervalSince1970) * 1000).description)
 
         case JSONEncoder.DateEncodingStrategy.iso8601:
-            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
-                return .string(_iso8601Formatter.string(from: date))
-            } else {
-                fatalError("ISO8601DateFormatter is unavailable on this platform.")
-            }
+            return .string(_iso8601Formatter.string(from: date))
 
-        // SKIP TODO: case .formatted
         case JSONEncoder.DateEncodingStrategy.formatted(let formatter):
             return .string(formatter.string(from: date))
 
         case JSONEncoder.DateEncodingStrategy.custom(let closure):
             let encoder = self.getEncoder(for: additionalKey)
             try closure(date, encoder)
-            // The closure didn't encode anything. Return the default keyed container.
             return encoder.value ?? .object([:])
         }
     }
@@ -591,78 +483,83 @@ extension _SpecialTreatmentEncoder {
         case JSONEncoder.DataEncodingStrategy.custom(let closure):
             let encoder = self.getEncoder(for: additionalKey)
             try closure(data, encoder)
-            // The closure didn't encode anything. Return the default keyed container.
             return encoder.value ?? .object([:])
         }
     }
 
+    #if !SKIP
     func wrapObject(_ object: [String: Encodable], for additionalKey: CodingKey?) throws -> JSONValue {
         var baseCodingPath = self.codingPath
         if let additionalKey = additionalKey {
             baseCodingPath.append(additionalKey)
         }
         var result = Dictionary<String, JSONValue>()
-        // SKIP REPLACE: fatalError("SKIP TODO: _SpecialTreatmentEncoder.wrapObject")
         result.reserveCapacity(object.count)
-
-        // SKIP REPLACE: fatalError("SKIP TODO: _SpecialTreatmentEncoder.wrapObject")
         try object.forEach { (key, value) in
             var elemCodingPath = baseCodingPath
             elemCodingPath.append(_JSONKey(stringValue: key, intValue: nil))
             let encoder = JSONEncoderImpl(options: self.options, codingPath: elemCodingPath)
-
             result[key] = try encoder.wrapUntyped(value)
         }
-
-        // SKIP REPLACE: fatalError("SKIP TODO: _SpecialTreatmentEncoder.wrapObject")
         return .object(result)
     }
+    #endif
 
     fileprivate func getEncoder(for additionalKey: CodingKey?) -> JSONEncoderImpl {
-        if let additionalKey = additionalKey {
+        if let additionalKey {
             var newCodingPath = self.codingPath
             newCodingPath.append(additionalKey)
             return JSONEncoderImpl(options: self.options, codingPath: newCodingPath)
         }
-
         return self.impl
     }
 }
 
 #if SKIP
-// Skip needs to loosen the constraints
-typealias _SkipCodingKey = CodingKey
+typealias JSONEncoderKey = CodingKey
 #endif
 
 private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol, _SpecialTreatmentEncoder {
-    #if !SKIP // Kotlin does not support typealias declarations within functions and types. Consider moving this to a top level declaration
-    //typealias Key = K
-    typealias _SkipCodingKey = Key
+    #if !SKIP
+    typealias JSONEncoderKey = Key
     #endif
     
     let impl: JSONEncoderImpl
     let object: JSONFuture.RefObject
     let codingPath: [CodingKey]
+    let encodeKeys: Bool
 
     private var firstValueWritten: Bool = false
     fileprivate var options: JSONEncoder._Options {
         return self.impl.options
     }
 
-    init(impl: JSONEncoderImpl, codingPath: [CodingKey]) {
+    init(keyedBy: Any.Type, impl: JSONEncoderImpl, codingPath: [CodingKey]) {
         self.impl = impl
         self.object = impl.object!
         self.codingPath = codingPath
+        #if SKIP
+        self.encodeKeys = keyedBy == DictionaryCodingKey.self
+        #else
+        self.encodeKeys = true
+        #endif
     }
 
-    // used for nested containers
-    init(impl: JSONEncoderImpl, object: JSONFuture.RefObject, codingPath: [CodingKey]) {
+    init(keyedBy: Any.Type, impl: JSONEncoderImpl, object: JSONFuture.RefObject, codingPath: [CodingKey]) {
         self.impl = impl
         self.object = object
         self.codingPath = codingPath
+        #if SKIP
+        self.encodeKeys = keyedBy == DictionaryCodingKey.self
+        #else
+        self.encodeKeys = true
+        #endif
     }
 
-    private func _converted(_ key: _SkipCodingKey) -> CodingKey {
+    private func _converted(_ key: JSONEncoderKey) -> CodingKey {
+        guard encodeKeys else {
+            return key
+        }
         switch self.options.keyEncodingStrategy {
         case .useDefaultKeys:
             return key
@@ -674,89 +571,87 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
         }
     }
 
-    mutating func encodeNil(forKey key: _SkipCodingKey) throws {
+    mutating func encodeNil(forKey key: JSONEncoderKey) throws {
         self.object.set(JSONValue.null, for: self._converted(key).stringValue)
     }
 
-    mutating func encode(_ value: Bool, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: Bool, forKey key: JSONEncoderKey) throws {
         self.object.set(JSONValue.bool(value), for: self._converted(key).stringValue)
     }
 
-    mutating func encode(_ value: String, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: String, forKey key: JSONEncoderKey) throws {
         self.object.set(JSONValue.string(value), for: self._converted(key).stringValue)
     }
 
-    mutating func encode(_ value: Double, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: Double, forKey key: JSONEncoderKey) throws {
         try encodeFloatingPoint(value, key: self._converted(key))
     }
 
-    mutating func encode(_ value: Float, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: Float, forKey key: JSONEncoderKey) throws {
         try encodeFloatingPoint(value, key: self._converted(key))
     }
 
-    #if !SKIP
-    // SKIP Int = Int32
+    #if !SKIP // Same as Int32
     mutating func encode(_ value: Int, forKey key: Key) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
     #endif
 
-    mutating func encode(_ value: Int8, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: Int8, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    mutating func encode(_ value: Int16, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: Int16, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    mutating func encode(_ value: Int32, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: Int32, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    mutating func encode(_ value: Int64, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: Int64, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    #if !SKIP
-    // SKIP UInt = UInt32
+    #if !SKIP // Same as UInt32
     mutating func encode(_ value: UInt, forKey key: Key) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
     #endif
 
-    mutating func encode(_ value: UInt8, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: UInt8, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    mutating func encode(_ value: UInt16, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: UInt16, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    mutating func encode(_ value: UInt32, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: UInt32, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    mutating func encode(_ value: UInt64, forKey key: _SkipCodingKey) throws {
+    mutating func encode(_ value: UInt64, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    mutating func encode<T>(_ value: T, forKey key: _SkipCodingKey) throws where T: Encodable {
+    // SKIP DECLARE: override fun <T> encode(value: T, forKey: CodingKey) where T: Any
+    mutating func encode<T>(_ value: T, forKey key: JSONEncoderKey) throws where T: Encodable {
         let convertedKey = self._converted(key)
         let encoded = try self.wrapEncodable(value, for: convertedKey)
         self.object.set(encoded ?? .object([:]), for: convertedKey.stringValue)
     }
 
-    mutating func nestedContainer<NestedKey>(keyedBy nestedKeyType: NestedKey.Type, forKey key: _SkipCodingKey) ->
-        KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey
-    {
+    mutating func nestedContainer<NestedKey>(keyedBy nestedKeyType: NestedKey.Type, forKey key: JSONEncoderKey) ->
+        KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
         let convertedKey = self._converted(key)
         let newPath = self.codingPath + [convertedKey]
         let object = self.object.setObject(for: convertedKey.stringValue)
-        let nestedContainer = JSONKeyedEncodingContainer<NestedKey>(impl: impl, object: object, codingPath: newPath)
+        let nestedContainer = JSONKeyedEncodingContainer<NestedKey>(keyedBy: nestedKeyType, impl: impl, object: object, codingPath: newPath)
         return KeyedEncodingContainer(nestedContainer)
     }
 
-    mutating func nestedUnkeyedContainer(forKey key: _SkipCodingKey) -> UnkeyedEncodingContainer {
+    mutating func nestedUnkeyedContainer(forKey key: JSONEncoderKey) -> UnkeyedEncodingContainer {
         let convertedKey = self._converted(key)
         let newPath = self.codingPath + [convertedKey]
         let array = self.object.setArray(for: convertedKey.stringValue)
@@ -770,21 +665,21 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
         return newEncoder
     }
 
-    mutating func superEncoder(forKey key: _SkipCodingKey) -> Encoder {
+    mutating func superEncoder(forKey key: JSONEncoderKey) -> Encoder {
         let convertedKey = self._converted(key)
         let newEncoder = self.getEncoder(for: convertedKey)
         self.object.set(newEncoder, for: convertedKey.stringValue)
         return newEncoder
     }
-}
 
-extension JSONKeyedEncodingContainer {
-    @inline(__always) private mutating func encodeFloatingPoint<F: FloatingPoint & CustomStringConvertible>(_ float: F, key: CodingKey) throws {
+    // SKIP DECLARE: private fun encodeFloatingPoint(float: Any, key: CodingKey)
+    private mutating func encodeFloatingPoint<F: FloatingPoint & CustomStringConvertible>(_ float: F, key: CodingKey) throws {
         let value = try self.wrapFloat(float, for: key)
         self.object.set(value, for: key.stringValue)
     }
 
-    @inline(__always) private mutating func encodeFixedWidthInteger<N: FixedWidthInteger & CustomStringConvertible>(_ value: N, key: CodingKey) throws {
+    // SKIP DECLARE: private fun encodeFixedWidthInteger(value: Any, key: CodingKey)
+    private mutating func encodeFixedWidthInteger<N: FixedWidthInteger & CustomStringConvertible>(_ value: N, key: CodingKey) throws {
         self.object.set(JSONValue.number(value.description), for: key.stringValue)
     }
 }
@@ -808,7 +703,6 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
         self.codingPath = codingPath
     }
 
-    // used for nested containers
     init(impl: JSONEncoderImpl, array: JSONFuture.RefArray, codingPath: [CodingKey]) {
         self.impl = impl
         self.array = array
@@ -835,8 +729,7 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
         try encodeFloatingPoint(value)
     }
 
-    #if !SKIP
-    // SKIP Int = Int32
+    #if !SKIP // Same as Int32
     mutating func encode(_ value: Int) throws {
         try encodeFixedWidthInteger(value)
     }
@@ -858,8 +751,7 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
         try encodeFixedWidthInteger(value)
     }
 
-    #if !SKIP
-    // SKIP UInt = UInt32
+    #if !SKIP // Same as UInt32
     mutating func encode(_ value: UInt) throws {
         try encodeFixedWidthInteger(value)
     }
@@ -881,6 +773,7 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
         try encodeFixedWidthInteger(value)
     }
 
+    // SKIP DECLARE: override fun <T> encode(value: T) where T: Any
     mutating func encode<T>(_ value: T) throws where T: Encodable {
         let key = _JSONKey(stringValue: "Index \(self.count)", intValue: self.count)
         let encoded = try self.wrapEncodable(value, for: key)
@@ -888,16 +781,11 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
     }
 
     mutating func nestedContainer<NestedKey>(keyedBy nestedKeyType: NestedKey.Type) ->
-        KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey
-    {
+        KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
         let newPath = self.codingPath + [_JSONKey(index: self.count)]
         let object = self.array.appendObject()
-        #if SKIP
-        fatalError("SKIP TODO: JSONUnkeyedEncodingContainer")
-        #else
-        let nestedContainer = JSONKeyedEncodingContainer<NestedKey>(impl: impl, object: object, codingPath: newPath)
+        let nestedContainer = JSONKeyedEncodingContainer<NestedKey>(keyedBy: nestedKeyType, impl: impl, object: object, codingPath: newPath)
         return KeyedEncodingContainer(nestedContainer)
-        #endif
     }
 
     mutating func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
@@ -912,14 +800,14 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
         self.array.append(encoder)
         return encoder
     }
-}
 
-extension JSONUnkeyedEncodingContainer {
-    @inline(__always) private mutating func encodeFixedWidthInteger<N: FixedWidthInteger & CustomStringConvertible>(_ value: N) throws {
+    // SKIP DECLARE: private fun encodeFixedWidthInteger(value: Any)
+    private mutating func encodeFixedWidthInteger<N: FixedWidthInteger & CustomStringConvertible>(_ value: N) throws {
         self.array.append(JSONValue.number(value.description))
     }
 
-    @inline(__always) private mutating func encodeFloatingPoint<F: FloatingPoint & CustomStringConvertible>(_ float: F) throws {
+    // SKIP DECLARE: private fun encodeFloatingPoint(float: Any)
+    private mutating func encodeFloatingPoint<F: FloatingPoint & CustomStringConvertible>(_ float: F) throws {
         let value: JSONValue = try self.wrapFloat(float, for: _JSONKey(index: self.count))
         self.array.append(value)
     }
@@ -949,8 +837,7 @@ private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer, _
         self.impl.singleValue = .bool(value)
     }
 
-    #if !SKIP
-    // SKIP Int = Int32
+    #if !SKIP // Same as Int32
     mutating func encode(_ value: Int) throws {
         try encodeFixedWidthInteger(value)
     }
@@ -972,8 +859,7 @@ private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer, _
         try encodeFixedWidthInteger(value)
     }
 
-    #if !SKIP
-    // SKIP Int = Int32
+    #if !SKIP // Same as UInt32
     mutating func encode(_ value: UInt) throws {
         try encodeFixedWidthInteger(value)
     }
@@ -1008,6 +894,7 @@ private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer, _
         self.impl.singleValue = .string(value)
     }
 
+    // SKIP DECLARE: override fun <T> encode(value: T) where T: Any
     mutating func encode<T: Encodable>(_ value: T) throws {
         self.preconditionCanEncodeNewValue()
         self.impl.singleValue = try self.wrapEncodable(value, for: nil)
@@ -1016,15 +903,15 @@ private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer, _
     func preconditionCanEncodeNewValue() {
         precondition(self.impl.singleValue == nil, "Attempt to encode value through single value container when previously value already encoded.")
     }
-}
 
-extension JSONSingleValueEncodingContainer {
-    @inline(__always) private mutating func encodeFixedWidthInteger<N: FixedWidthInteger & CustomStringConvertible>(_ value: N) throws {
+    // SKIP DECLARE: private fun encodeFixedWidthInteger(value: Any)
+    private mutating func encodeFixedWidthInteger<N: FixedWidthInteger & CustomStringConvertible>(_ value: N) throws {
         self.preconditionCanEncodeNewValue()
         self.impl.singleValue = JSONValue.number(value.description)
     }
 
-    @inline(__always) private mutating func encodeFloatingPoint<F: FloatingPoint & CustomStringConvertible>(_ float: F) throws {
+    // SKIP DECLARE: private fun encodeFloatingPoint(float: Any)
+    private mutating func encodeFloatingPoint<F: FloatingPoint & CustomStringConvertible>(_ float: F) throws {
         self.preconditionCanEncodeNewValue()
         let value = try self.wrapFloat(float, for: nil)
         self.impl.singleValue = value
@@ -1078,7 +965,7 @@ extension JSONValue {
                 }
                 bytes.append(UInt8_closebracket)
             case JSONValue.object(let dict):
-                if #available(macOS 10.13, *), options.contains(JSONEncoder.OutputFormatting.sortedKeys) {
+                if options.contains(JSONEncoder.OutputFormatting.sortedKeys) {
                     let sorted = Array(dict).sorted { $0.key < $1.key }
                     self.writeObject(sorted, into: &bytes)
                 } else {
@@ -1095,28 +982,26 @@ extension JSONValue {
                 bytes.append(UInt8_colon)
                 self.writeValue(value, into: &bytes)
             }
+            while true {
+                if let (key, value) = iterator.next() {
+                    bytes.append(UInt8_comma)
+                    // key
+                    self.encodeString(key, to: &bytes)
+                    bytes.append(UInt8_colon)
 
-            // while let (key, value) = iterator.next() { // Kotlin does not support optional bindings in loop conditions. Consider using an if statement before or within your loop
-            while true { if  let (key, value) = iterator.next() {
-                bytes.append(UInt8_comma)
-                // key
-                self.encodeString(key, to: &bytes)
-                bytes.append(UInt8_colon)
-
-                self.writeValue(value, into: &bytes)
-            } else { break } }
+                    self.writeValue(value, into: &bytes)
+                } else {
+                    break
+                }
+            }
             bytes.append(UInt8_closebrace)
         }
 
         private func addInset(to bytes: inout [UInt8], depth: Int) {
-            #if !SKIP
-            bytes.append(contentsOf: [UInt8](repeating: UInt8_space, count: depth * 2))
-            #else
-            for _ in (0..<depth) {
+            for _ in 0..<depth {
                 bytes.append(UInt8_space)
                 bytes.append(UInt8_space)
             }
-            #endif
         }
 
         private func writeValuePretty(_ value: JSONValue, into bytes: inout [UInt8], depth: Int = 0) {
@@ -1149,7 +1034,7 @@ extension JSONValue {
                 self.addInset(to: &bytes, depth: depth)
                 bytes.append(UInt8_closebracket)
             case .object(let dict):
-                if #available(macOS 10.13, *), options.contains(JSONEncoder.OutputFormatting.sortedKeys) {
+                if options.contains(JSONEncoder.OutputFormatting.sortedKeys) {
                     let sorted = Array(dict).sorted { $0.key < $1.key }
                     self.writePrettyObject(sorted, into: &bytes, depth: depth)
                 } else {
@@ -1167,16 +1052,19 @@ extension JSONValue {
                 bytes.append(contentsOf: [UInt8_space, UInt8_colon, UInt8_space])
                 self.writeValuePretty(value, into: &bytes, depth: depth + 1)
             }
-            // while let (key, value) = iterator.next() { // Kotlin does not support optional bindings in loop conditions. Consider using an if statement before or within your loop
-            while true { if  let (key, value) = iterator.next() {
-                bytes.append(contentsOf: [UInt8_comma, UInt8_newline])
-                self.addInset(to: &bytes, depth: depth + 1)
-                // key
-                self.encodeString(key, to: &bytes)
-                bytes.append(contentsOf: [UInt8_space, UInt8_colon, UInt8_space])
-                // value
-                self.writeValuePretty(value, into: &bytes, depth: depth + 1)
-            } else { break } }
+            while true {
+                if  let (key, value) = iterator.next() {
+                    bytes.append(contentsOf: [UInt8_comma, UInt8_newline])
+                    self.addInset(to: &bytes, depth: depth + 1)
+                    // key
+                    self.encodeString(key, to: &bytes)
+                    bytes.append(contentsOf: [UInt8_space, UInt8_colon, UInt8_space])
+                    // value
+                    self.writeValuePretty(value, into: &bytes, depth: depth + 1)
+                } else {
+                    break
+                }
+            }
             bytes.append(UInt8_newline)
             self.addInset(to: &bytes, depth: depth)
             bytes.append(UInt8_closebrace)
@@ -1238,11 +1126,6 @@ extension JSONValue {
 
                     nextIndex = stringBytes.index(after: nextIndex)
                     startCopyIndex = nextIndex
-//                case UInt8(ascii: "/") where options.contains(.withoutEscapingSlashes) == false: // Kotlin does not support where conditions in case and catch matches. Consider using an if statement within the case or catch body
-//                    bytes.append(contentsOf: stringBytes[startCopyIndex ..< nextIndex])
-//                    bytes.append(contentsOf: [UInt8_backslash, UInt8(ascii: "/")])
-//                    nextIndex = stringBytes.index(after: nextIndex)
-//                    startCopyIndex = nextIndex
                 case UInt8(ascii: "/"):
                     if options.contains(JSONEncoder.OutputFormatting.withoutEscapingSlashes) == false {
                         bytes.append(contentsOf: stringBytes[startCopyIndex ..< nextIndex])
@@ -1250,15 +1133,12 @@ extension JSONValue {
                         nextIndex = stringBytes.index(after: nextIndex)
                         startCopyIndex = nextIndex
                     } else {
-                        // the default clause manually inserted to work around Kotlin lack of where conditions in case
                         nextIndex = stringBytes.index(after: nextIndex)
                     }
                 default:
                     nextIndex = stringBytes.index(after: nextIndex)
                 }
             }
-
-            // copy everything, that hasn't been copied yet
             bytes.append(contentsOf: stringBytes[startCopyIndex ..< nextIndex])
             bytes.append(UInt8(ascii: "\""))
         }
@@ -1266,13 +1146,9 @@ extension JSONValue {
 }
 
 
-//===----------------------------------------------------------------------===//
-// Shared Key Types
-//===----------------------------------------------------------------------===//
-
 internal struct _JSONKey: CodingKey {
-    public var stringValue: String
-    public var intValue: Int?
+    public let stringValue: String
+    public let intValue: Int?
 
     public init?(stringValue: String) {
         self.stringValue = stringValue
@@ -1303,42 +1179,8 @@ internal struct _JSONKey: CodingKey {
     internal static let _super = _JSONKey(stringValue: "super")!
 }
 
-//===----------------------------------------------------------------------===//
-// Shared ISO8601 Date Formatter
-//===----------------------------------------------------------------------===//
-
-// NOTE: This value is implicitly lazy and _must_ be lazy. We're compiled against the latest SDK (w/ ISO8601DateFormatter), but linked against whichever Foundation the user has. ISO8601DateFormatter might not exist, so we better not hit this code path on an older OS.
-@available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 internal var _iso8601Formatter: DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = ISO8601DateFormatter.Options.withInternetDateTime
     return formatter
 }()
-
-//===----------------------------------------------------------------------===//
-// Error Utilities
-//===----------------------------------------------------------------------===//
-
-// SKIP REPLACE: // SKIP TODO: EncodingError
-extension EncodingError {
-    /// Returns a `.invalidValue` error describing the given invalid floating-point value.
-    ///
-    ///
-    /// - parameter value: The value that was invalid to encode.
-    /// - parameter path: The path of `CodingKey`s taken to encode this value.
-    /// - returns: An `EncodingError` with the appropriate path and debug description.
-    fileprivate static func _invalidFloatingPointValue<T: FloatingPoint>(_ value: T, at codingPath: [CodingKey]) -> EncodingError {
-        let valueDescription: String
-        if value == T.infinity {
-            valueDescription = "\(T.self).infinity"
-        } else if value == -T.infinity {
-            valueDescription = "-\(T.self).infinity"
-        } else {
-            valueDescription = "\(T.self).nan"
-        }
-
-        let debugDescription = "Unable to encode \(valueDescription) directly in JSON. Use JSONEncoder.NonConformingFloatEncodingStrategy.convertToString to specify how the value should be encoded."
-        return .invalidValue(value, EncodingError.Context(codingPath: codingPath, debugDescription: debugDescription))
-    }
-}
-

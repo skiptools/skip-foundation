@@ -329,7 +329,6 @@ class TestJSON : XCTestCase {
         """, try enc(p1, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
 
         let org = Org(head: p2, people: [p1, p3], departmentHeads: ["X":p2, "Y": p3], departmentMembers: ["Y":[p1], "X": [p2, p1]])
-        #if !SKIP
         XCTAssertEqual("""
             {
               "departmentHeads" : {
@@ -384,31 +383,6 @@ class TestJSON : XCTestCase {
               ]
             }
             """, try enc(org, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
-        #else
-        // SKIP TODO: fix dictionary serialization
-        XCTAssertEqual("""
-            {
-              "head" : {
-                "firstName" : "Jan",
-                "height" : 170,
-                "lastName" : "Noe"
-              },
-              "people" : [
-                {
-                  "firstName" : "Jon",
-                  "height" : 180.5,
-                  "lastName" : "Doe"
-                },
-                {
-                  "firstName" : "Jim",
-                  "height" : 190,
-                  "lastName" : "Bro"
-                }
-              ]
-            }
-            """, try enc(org, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
-        #endif
-
 
         #if !SKIP
         // TODO: convertToSnakeCase

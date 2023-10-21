@@ -12,11 +12,11 @@ internal class JSONParser {
         self.reader = org.json.JSONTokener(String(data: Data(bytes), encoding: .utf8) ?? "")
     }
 
-    public func parse() throws -> JSONValue {
+    public func parseJSONValue() throws -> JSONValue {
         try createJSONValue(from: reader.nextValue())
     }
 
-    public func parseSwift() throws -> Any {
+    public func parseSwiftValue() throws -> Any {
         try createSwiftValue(from: reader.nextValue())
     }
 
@@ -51,7 +51,6 @@ internal class JSONParser {
         }
     }
 
-    //~~~ TODO: Remove?
     func createJSONValue(from token: Any) -> JSONValue {
         if token === nil || token === org.json.JSONObject.NULL {
             return JSONValue.null

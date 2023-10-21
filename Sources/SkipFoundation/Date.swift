@@ -45,7 +45,7 @@ public func CFAbsoluteTimeGetCurrent() -> CFAbsoluteTime {
 }
 #endif
 
-public struct Date : Hashable, CustomStringConvertible, Comparable, Encodable {
+public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
     internal var platformValue: PlatformDate
 
     public static let timeIntervalBetween1970AndReferenceDate: TimeInterval = 978307200.0
@@ -73,12 +73,9 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Encodable {
         #if !SKIP
         self.platformValue = try PlatformDate(from: decoder)
         #else
-        // In Kotlin, delegating calls to 'self' or 'super' constructors can not use local variables other than the parameters passed to this constructor
-        //let container = try decoder.singleValueContainer()
-        //let timestamp = try container.decode(Double.self)
-        //self.init(timeIntervalSinceReferenceDate: timestamp)
-        //self.init(timeIntervalSinceReferenceDate: try decoder.singleValueContainer().decode(Double.self))
-        self.platformValue = SkipCrash("TODO: Decoder")
+        let container = try decoder.singleValueContainer()
+        let timestamp = try container.decode(Double.self)
+        self.platformValue = PlatformDate(((timeIntervalSinceReferenceDate + Date.timeIntervalBetween1970AndReferenceDate) * 1000.0).toLong())
         #endif
     }
 

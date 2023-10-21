@@ -25,7 +25,7 @@ public protocol DataProtocol {
     #endif
 }
 
-public struct Data : DataProtocol, Hashable, CustomStringConvertible, Encodable {
+public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
     internal var platformValue: PlatformData
 
     internal var platformData: any PlatformDataProtocol {
@@ -80,7 +80,14 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Encodable 
         #if !SKIP
         self.platformValue = try PlatformData(from: decoder)
         #else
-        self.platformValue = SkipCrash("TODO: Decoder")
+        var container = decoder.unkeyedContainer()
+        var bytes: [UInt8] = []
+        while !container.isAtEnd {
+            bytes.append(container.decode(UInt8.self))
+        }
+        self.platformValue = PlatformData(size: bytes.count, init: {
+            bytes[$0].toByte()
+        })
         #endif
     }
 

@@ -203,7 +203,7 @@ open class JSONSerialization {
             }
             return try jsonValue.toObjcRepresentation(options: opt)
             #else
-            let value = try parser.parseSwift()
+            let value = try parser.parseSwiftValue()
             if !opt.contains(.fragmentsAllowed), !(value is Array<Any> || value is Dictionary<AnyHashable, Any>) {
                 throw JSONError.singleFragmentFoundButNotAllowed
             }
@@ -619,7 +619,6 @@ private struct JSONWriter {
     }
 }
 
-//~~~ TODO: Unused in Skip?
 public enum JSONValue: Equatable {
     case string(String)
     case number(String)

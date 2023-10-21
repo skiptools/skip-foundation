@@ -4,95 +4,67 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// This code is adapted from https://github.com/apple/swift-corelibs-foundation/blob/main/Tests/Foundation/Tests which has the following license:
+
+
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
 #if SKIP
 import kotlin.reflect.full.__
+
+typealias JSONDecoderValue = Any
+#else
+typealias JSONDecoderValue = JSONValue
 #endif
 
-/// `JSONDecoder` facilitates the decoding of JSON into semantic `Decodable` types.
+// SKIP DECLARE: open class JSONDecoder: TopLevelDecoder<Data>
 open class JSONDecoder {
-    /// The strategy to use for decoding `Date` values.
     public enum DateDecodingStrategy {
-        /// Defer to `Date` for decoding. This is the default strategy.
         case deferredToDate
-
-        /// Decode the `Date` as a UNIX timestamp from a JSON number.
         case secondsSince1970
-
-        /// Decode the `Date` as UNIX millisecond timestamp from a JSON number.
         case millisecondsSince1970
-
-        /// Decode the `Date` as an ISO-8601-formatted string (in RFC 3339 format).
-        @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
         case iso8601
-
-        /// Decode the `Date` as a string parsed by the given formatter.
         case formatted(DateFormatter)
-
-        /// Decode the `Date` as a custom value decoded by the given closure.
         case custom((_ decoder: Decoder) throws -> Date)
     }
 
-    /// The strategy to use for decoding `Data` values.
     public enum DataDecodingStrategy {
-        /// Defer to `Data` for decoding.
         case deferredToData
-
-        /// Decode the `Data` from a Base64-encoded string. This is the default strategy.
         case base64
-
-        /// Decode the `Data` as a custom value decoded by the given closure.
         case custom((_ decoder: Decoder) throws -> Data)
     }
 
-    /// The strategy to use for non-JSON-conforming floating-point values (IEEE 754 infinity and NaN).
     public enum NonConformingFloatDecodingStrategy {
-        /// Throw upon encountering non-conforming values. This is the default strategy.
         case `throw`
-
-        /// Decode the values from the given representation strings.
         case convertFromString(positiveInfinity: String, negativeInfinity: String, nan: String)
     }
 
-    /// The strategy to use for automatically changing the value of keys before decoding.
     public enum KeyDecodingStrategy {
-        /// Use the keys specified by each type. This is the default strategy.
         case useDefaultKeys
-
-        /// Convert from "snake_case_keys" to "camelCaseKeys" before attempting to match a key with the one specified by each type.
-        ///
-        /// The conversion to upper case uses `Locale.system`, also known as the ICU "root" locale. This means the result is consistent regardless of the current user's locale and language preferences.
-        ///
-        /// Converting from snake case to camel case:
-        /// 1. Capitalizes the word starting after each `_`
-        /// 2. Removes all `_`
-        /// 3. Preserves starting and ending `_` (as these are often used to indicate private variables or other metadata).
-        /// For example, `one_two_three` becomes `oneTwoThree`. `_one_two_three_` becomes `_oneTwoThree_`.
-        ///
-        /// - Note: Using a key decoding strategy has a nominal performance cost, as each string key has to be inspected for the `_` character.
         case convertFromSnakeCase
-
-        /// Provide a custom conversion from the key in the encoded JSON to the keys specified by the decoded types.
-        /// The full path to the current decoding position is provided for context (in case you need to locate this key within the payload). The returned key is used in place of the last component in the coding path before decoding.
-        /// If the result of the conversion is a duplicate key, then only one value will be present in the container for the type to decode from.
         case custom((_ codingPath: [CodingKey]) -> CodingKey)
+
+        fileprivate static func _convertFromSnakeCase(_ key: String) -> String {
+            fatalError("SKIP TODO: JSON snakeCase")
+        }
     }
 
-    /// The strategy to use in decoding dates. Defaults to `.deferredToDate`.
     open var dateDecodingStrategy: DateDecodingStrategy = .deferredToDate
-
-    /// The strategy to use in decoding binary data. Defaults to `.base64`.
     open var dataDecodingStrategy: DataDecodingStrategy = .base64
-
-    /// The strategy to use in decoding non-conforming numbers. Defaults to `.throw`.
     open var nonConformingFloatDecodingStrategy: NonConformingFloatDecodingStrategy = .throw
-
-    /// The strategy to use for decoding keys. Defaults to `.useDefaultKeys`.
     open var keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys
-
-    /// Contextual user-provided information for use during decoding.
     open var userInfo: [CodingUserInfoKey: Any] = [:]
 
-    /// Options set on the top-level encoder to pass down the decoding hierarchy.
     fileprivate struct _Options {
         let dateDecodingStrategy: DateDecodingStrategy
         let dataDecodingStrategy: DataDecodingStrategy
@@ -101,7 +73,6 @@ open class JSONDecoder {
         let userInfo: [CodingUserInfoKey: Any]
     }
 
-    /// The options set on the top-level decoder.
     fileprivate var options: _Options {
         return _Options(dateDecodingStrategy: dateDecodingStrategy,
                         dataDecodingStrategy: dataDecodingStrategy,
@@ -110,16 +81,22 @@ open class JSONDecoder {
                         userInfo: userInfo)
     }
 
-    /// Initializes `self` with default strategies.
     public init() {}
 
-    /// Decodes a top-level value of the given type from the given JSON representation.
-    ///
-    /// - parameter type: The type of the value to decode.
-    /// - parameter data: The data to decode from.
-    /// - returns: A value of the requested type.
-    /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted, or if the given data is not valid JSON.
-    /// - throws: An error if any value throws an error during decoding.
+    #if SKIP
+    // Our TopLevelDecoder superclass handles the decode calls. We just have to produce the decoder
+    public override func decoder(from data: Data) -> Decoder {
+        do {
+            var parser = JSONParser(bytes: data.bytes)
+            let json = try parser.parseSwiftValue()
+            return JSONDecoderImpl(userInfo: self.userInfo, from: json, codingPath: [], options: self.options)
+        } catch let error as JSONError {
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "The given data was not valid JSON.", underlyingError: error))
+        } catch {
+            throw error
+        }
+    }
+    #else
     open func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         do {
             var parser = JSONParser(bytes: data.bytes)
@@ -131,84 +108,100 @@ open class JSONDecoder {
             throw error
         }
     }
+    #endif
 }
 
-// MARK: - _JSONDecoder
-
-fileprivate struct JSONDecoderImpl {
+private struct JSONDecoderImpl: Decoder {
     let codingPath: [CodingKey]
     let userInfo: [CodingUserInfoKey: Any]
-
-    let json: JSONValue
+    let json: JSONDecoderValue
     let options: JSONDecoder._Options
 
-    init(userInfo: [CodingUserInfoKey: Any], from json: JSONValue, codingPath: [CodingKey], options: JSONDecoder._Options) {
+    init(userInfo: [CodingUserInfoKey: Any], from json: JSONDecoderValue, codingPath: [CodingKey], options: JSONDecoder._Options) {
         self.userInfo = userInfo
         self.codingPath = codingPath
         self.json = json
         self.options = options
     }
-}
 
-extension JSONDecoderImpl: Decoder {
     func container<Key>(keyedBy _keyType: Key.Type) throws ->
         KeyedDecodingContainer<Key> where Key: CodingKey
     {
+        let dictionary: Dictionary<String, JSONDecoderValue>?
+        let isNull: Bool
+        #if SKIP
+        // SKIP NOWARN
+        dictionary = json as? Dictionary<String, Any>
+        isNull = json is NSNull
+        #else
         switch self.json {
-        case .object(let dictionary):
+        case .object(let dict):
+            dictionary = dict
+            isNull = false
+        case .null:
+            dictionary = nil
+            isNull = true
+        default:
+            dictionary = nil
+            isNull = false
+        }
+        #endif
+        if let dictionary {
             let container = JSONKeyedDecodingContainer<Key>(
+                keyedBy: _keyType,
                 impl: self,
                 codingPath: codingPath,
                 dictionary: dictionary
             )
             return KeyedDecodingContainer(container)
-        case .null:
-            #if SKIP
-            fatalError("SKIP TODO: Error handling")
-            #else
-            throw DecodingError.valueNotFound(Dictionary<String, JSONValue>.self, DecodingError.Context(
+        } else if isNull {
+            throw DecodingError.valueNotFound(Dictionary<String, JSONDecoderValue>.self, DecodingError.Context(
                 codingPath: self.codingPath,
                 debugDescription: "Cannot get keyed decoding container -- found null value instead"
             ))
-            #endif
-        default:
-            #if SKIP
-            fatalError("SKIP TODO: Error handling")
-            #else
-            throw DecodingError.typeMismatch(Dictionary<String, JSONValue>.self, DecodingError.Context(
+        } else {
+            throw DecodingError.typeMismatch(Dictionary<String, JSONDecoderValue>.self, DecodingError.Context(
                 codingPath: self.codingPath,
-                debugDescription: "Expected to decode Dictionary<String, JSONValue> but found \(self.json.debugDataTypeDescription) instead."
+                debugDescription: "Expected to decode Dictionary<String, Any> but found \(self.json) instead."
             ))
-            #endif
         }
     }
 
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        let array: Array<JSONDecoderValue>?
+        let isNull: Bool
+        #if SKIP
+        array = json as? Array<Any>
+        isNull = json is NSNull
+        #else
         switch self.json {
-        case .array(let array):
+        case .array(let arr):
+            array = arr
+            isNull = false
+        case .null:
+            array = nil
+            isNull = true
+        default:
+            array = nil
+            isNull = false
+        }
+        #endif
+        if let array {
             return JSONUnkeyedDecodingContainer(
                 impl: self,
                 codingPath: self.codingPath,
                 array: array
             )
-        case .null:
-            #if SKIP
-            fatalError("SKIP TODO: JSONDecoder")
-            #else
-            throw DecodingError.valueNotFound(Dictionary<String, JSONValue>.self, DecodingError.Context(
+        } else if isNull {
+            throw DecodingError.valueNotFound(Array<JSONDecoderValue>.self, DecodingError.Context(
                 codingPath: self.codingPath,
                 debugDescription: "Cannot get unkeyed decoding container -- found null value instead"
             ))
-            #endif
-        default:
-            #if SKIP
-            fatalError("SKIP TODO: JSONDecoder")
-            #else
-            throw DecodingError.typeMismatch([JSONValue].self, DecodingError.Context(
+        } else {
+            throw DecodingError.typeMismatch(Array<JSONDecoderValue>.self, DecodingError.Context(
                 codingPath: self.codingPath,
-                debugDescription: "Expected to decode \([JSONValue].self) but found \(self.json.debugDataTypeDescription) instead."
+                debugDescription: "Expected to decode \(Array<Any>.self) but found \(self.json) instead."
             ))
-            #endif
         }
     }
 
@@ -220,9 +213,8 @@ extension JSONDecoderImpl: Decoder {
         )
     }
 
-    // MARK: Special case handling
-
-    func unwrap<T: Decodable>(as type: T.Type) throws -> T {
+    // SKIP DECLARE: internal fun <T> unwrap(as_: KClass<T>): T where T: Any
+    func unwrap<T>(as type: T.Type) throws -> T where T: Decodable {
         if type == Date.self {
             return try self.unwrapDate() as! T
         }
@@ -232,21 +224,25 @@ extension JSONDecoderImpl: Decoder {
         if type == URL.self {
             return try self.unwrapURL() as! T
         }
+        #if !SKIP
         if type == Decimal.self {
             return try self.unwrapDecimal() as! T
         }
-        //if T.self is _JSONStringDictionaryDecodableMarker.Type {
-        //    return try self.unwrapDictionary(as: T.self)
-        //}
+        if T.self is _JSONStringDictionaryDecodableMarker.Type {
+            return try self.unwrapDictionary(as: T.self)
+        }
+        #endif
 
-        #if !SKIP
-        return try T.init(from: self)
+        #if SKIP
+        /* SKIP INSERT:
+        val decodableCompanion = type.companionObjectInstance as? DecodableCompanion<*>
+        if (decodableCompanion != null) {
+            return decodableCompanion.init(from = this) as T
+        }
+        */
+        throw createTypeMismatchError(type: Decodable.self, value: self.json)
         #else
-        // SKIP NOWARN
-        let co = (type as KClass).companionObjectInstance as DecodableCompanion<T>
-        // TODO: Skip removed explicit `.init` call and turns it into a constructor, but we actually want "init" here since it is in the protocol
-        // SKIP REPLACE: return co.init(from = this)
-        return co.init(from: self)
+        return try T.init(from: self)
         #endif
     }
 
@@ -266,17 +262,12 @@ extension JSONDecoderImpl: Decoder {
             return Date(timeIntervalSince1970: double / 1000.0)
 
         case .iso8601:
-            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
-                let container = JSONSingleValueDecodingContainer(impl: self, codingPath: self.codingPath, json: self.json)
-                let string = try container.decode(String.self)
-                guard let date = _iso8601Formatter.date(from: string) else {
-                    throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Expected date string to be ISO8601-formatted."))
-                }
-
-                return date
-            } else {
-                fatalError("ISO8601DateFormatter is unavailable on this platform.")
+            let container = JSONSingleValueDecodingContainer(impl: self, codingPath: self.codingPath, json: self.json)
+            let string = try container.decode(String.self)
+            guard let date = _iso8601Formatter.date(from: string) else {
+                throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Expected date string to be ISO8601-formatted."))
             }
+            return date
 
         case .formatted(let formatter):
             let container = JSONSingleValueDecodingContainer(impl: self, codingPath: self.codingPath, json: self.json)
@@ -299,11 +290,9 @@ extension JSONDecoderImpl: Decoder {
         case .base64:
             let container = JSONSingleValueDecodingContainer(impl: self, codingPath: self.codingPath, json: self.json)
             let string = try container.decode(String.self)
-
             guard let data = Data(base64Encoded: string) else {
                 throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Encountered Data is not valid Base64."))
             }
-
             return data
 
         case .custom(let closure):
@@ -316,69 +305,43 @@ extension JSONDecoderImpl: Decoder {
         let string = try container.decode(String.self)
 
         guard let url = URL(string: string) else {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath,
-                                                                    debugDescription: "Invalid URL string."))
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Invalid URL string."))
         }
         return url
     }
 
+    #if !SKIP
     private func unwrapDecimal() throws -> Decimal {
         guard case JSONValue.number(let numberString) = self.json else {
-            #if SKIP
-            fatalError("SKIP TODO: JSONDecoder")
-            #else
             throw DecodingError.typeMismatch(Decimal.self, DecodingError.Context(codingPath: self.codingPath, debugDescription: ""))
-            #endif
         }
-
-        #if SKIP
-        fatalError("SKIP TODO: JSONDecoder")
-        #else
         guard let decimal = Decimal(string: numberString) else {
             throw DecodingError.dataCorrupted(.init(
                 codingPath: self.codingPath,
                 debugDescription: "Parsed JSON number <\(numberString)> does not fit in \(Decimal.self)."))
         }
         return decimal
-        #endif
     }
 
     private func unwrapDictionary<T: Decodable>(as: T.Type) throws -> T {
-        //guard let dictType = T.self as? (_JSONStringDictionaryDecodableMarker & Decodable).Type else {
-        //    preconditionFailure("Must only be called of T implements _JSONStringDictionaryDecodableMarker")
-        //}
+        guard let dictType = T.self as? (_JSONStringDictionaryDecodableMarker & Decodable).Type else {
+            preconditionFailure("Must only be called of T implements _JSONStringDictionaryDecodableMarker")
+        }
 
         guard case JSONValue.object(let obj) = self.json else {
-            #if SKIP
-            fatalError("SKIP TODO: JSONDecoder")
-            #else
             throw DecodingError.typeMismatch(Dictionary<String, JSONValue>.self, DecodingError.Context(
                 codingPath: self.codingPath,
                 debugDescription: "Expected to decode Dictionary but found \(self.json.debugDataTypeDescription) instead."
             ))
-            #endif
         }
 
-        let result = Dictionary<String, Any>()
-
+        var result = Dictionary<String, Any>()
         for (key, value) in obj {
             var newPath = self.codingPath
             newPath.append(_JSONKey(stringValue: key)!)
             let newDecoder = JSONDecoderImpl(userInfo: self.userInfo, from: value, codingPath: newPath, options: self.options)
             let _ = newDecoder
-            //result[key] = try dictType.elementType.createByDirectlyUnwrapping(from: newDecoder)
-
-//            newDecoder.unwrap(as: URL.self)
-//            if Self.self == URL.self
-//                || Self.self == Date.self
-//                || Self.self == Data.self
-//                || Self.self == Decimal.self
-//                //|| Self.self is _JSONStringDictionaryDecodableMarker.Type
-//            {
-//                return try decoder.unwrap(as: Self.self)
-//            }
-//
-//            return try T.init(from: newDecoder)
+            result[key] = try dictType.elementType.createByDirectlyUnwrapping(from: newDecoder)
         }
 
         return result as! T
@@ -390,9 +353,6 @@ extension JSONDecoderImpl: Decoder {
         as type: T.Type) throws -> T
     {
         if case .number(let number) = value {
-            #if SKIP
-            fatalError("SKIP TODO: JSONDecoder")
-            #else
             guard let floatingPoint = T(number), floatingPoint.isFinite else {
                 var path = self.codingPath
                 if let additionalKey = additionalKey {
@@ -404,14 +364,12 @@ extension JSONDecoderImpl: Decoder {
             }
 
             return floatingPoint
-            #endif
         }
 
         if case .string(let string) = value,
            case .convertFromString(let posInfString, let negInfString, let nanString) =
             self.options.nonConformingFloatDecodingStrategy
         {
-            #if !SKIP
             if string == posInfString {
                 return T.infinity
             } else if string == negInfString {
@@ -419,19 +377,11 @@ extension JSONDecoderImpl: Decoder {
             } else if string == nanString {
                 return T.nan
             }
-            #else
-            fatalError("SKIP TODO: Float.nan/infinity")
-            #endif
         }
 
-        #if SKIP
-        fatalError("SKIP TODO: JSONDecoder error")
-        #else
         throw self.createTypeMismatchError(type: type, for: additionalKey, value: value)
-        #endif
     }
 
-    #if !SKIP
     fileprivate func unwrapFixedWidthInteger<T: FixedWidthInteger>(
         from value: JSONValue,
         for additionalKey: CodingKey? = nil,
@@ -493,310 +443,259 @@ extension JSONDecoderImpl: Decoder {
     }
     #endif
 
-    fileprivate func createTypeMismatchError(type: Any.Type, for additionalKey: CodingKey? = nil, value: JSONValue) -> DecodingError {
+    fileprivate func codingPath(with additionalKey: CodingKey?) -> [CodingKey] {
         var path = self.codingPath
         if let additionalKey = additionalKey {
             path.append(additionalKey)
         }
+        return path
+    }
 
+    fileprivate func createTypeMismatchError(type: Any.Type, for additionalKey: CodingKey? = nil, value: Any) -> DecodingError {
         return DecodingError.typeMismatch(type, .init(
-            codingPath: path,
-            debugDescription: "Expected to decode \(type) but found \(value.debugDataTypeDescription) instead."
+            codingPath: self.codingPath(with: additionalKey),
+            debugDescription: "Expected to decode \(type) but found \(value) instead."
         ))
     }
 }
 
-#if !SKIP // Kotlin does not support static members in protocols
-extension Decodable {
-    fileprivate static func createByDirectlyUnwrapping(from decoder: JSONDecoderImpl) throws -> Self {
-        if Self.self == URL.self
-            || Self.self == Date.self
-            || Self.self == Data.self
-            || Self.self == Decimal.self
-            //|| Self.self is _JSONStringDictionaryDecodableMarker.Type
-        {
-            return try decoder.unwrap(as: Self.self)
-        }
-
-        return try Self.init(from: decoder)
-    }
-}
-#endif
-
 private struct JSONSingleValueDecodingContainer: SingleValueDecodingContainer {
     let impl: JSONDecoderImpl
-    let value: JSONValue
+    let value: JSONDecoderValue
     let codingPath: [CodingKey]
 
-    init(impl: JSONDecoderImpl, codingPath: [CodingKey], json: JSONValue) {
+    init(impl: JSONDecoderImpl, codingPath: [CodingKey], json: JSONDecoderValue) {
         self.impl = impl
         self.codingPath = codingPath
         self.value = json
     }
 
     func decodeNil() -> Bool {
-        self.value == .null
+        return decodeAsNil(value, impl: impl)
     }
 
     func decode(_ type: Bool.Type) throws -> Bool {
-        guard case JSONValue.bool(let bool) = self.value else {
-            #if SKIP
-            fatalError("SKIP TODO: JSONDecoder")
-            #else
-            throw self.impl.createTypeMismatchError(type: Bool.self, value: self.value)
-            #endif
-        }
-
-        return bool
+        return try decodeAsBool(value, impl: impl)
     }
 
     func decode(_ type: String.Type) throws -> String {
-        guard case JSONValue.string(let string) = self.value else {
-            #if SKIP
-            fatalError("SKIP TODO: createTypeMismatchError")
-            #else
-            throw self.impl.createTypeMismatchError(type: String.self, value: self.value)
-            #endif
-        }
-
-        return string
+        return try decodeAsString(value, impl: impl)
     }
 
     func decode(_ type: Double.Type) throws -> Double {
-        try checkOptional(Double(numericString()))
+        return try decodeAsDouble(value, impl: impl)
     }
 
     func decode(_ type: Float.Type) throws -> Float {
-        try checkOptional(Float(numericString()))
+        return try decodeAsFloat(value, impl: impl)
     }
 
-    #if !SKIP // Int == Int32
+    #if !SKIP // Same as Int32
     func decode(_ type: Int.Type) throws -> Int {
-        try checkOptional(Int(numericString()))
+        return try decodeAsInt(value, impl: impl)
     }
     #endif
 
     func decode(_ type: Int8.Type) throws -> Int8 {
-        try checkOptional(Int8(numericString()))
+        return try decodeAsInt8(value, impl: impl)
     }
 
     func decode(_ type: Int16.Type) throws -> Int16 {
-        try checkOptional(Int16(numericString()))
+        return try decodeAsInt16(value, impl: impl)
     }
 
     func decode(_ type: Int32.Type) throws -> Int32 {
-        try checkOptional(Int32(numericString()))
+        return try decodeAsInt32(value, impl: impl)
     }
 
     func decode(_ type: Int64.Type) throws -> Int64 {
-        try checkOptional(Int64(numericString()))
+        return try decodeAsInt64(value, impl: impl)
     }
 
-    #if !SKIP // Int == Int32
+    #if !SKIP // Same as UInt32
     func decode(_ type: UInt.Type) throws -> UInt {
-        try checkOptional(UInt(numericString()))
+        return try decodeAsUInt(value, impl: impl)
     }
     #endif
 
     func decode(_ type: UInt8.Type) throws -> UInt8 {
-        try checkOptional(UInt8(numericString()))
+        return try decodeAsUInt8(value, impl: impl)
     }
 
     func decode(_ type: UInt16.Type) throws -> UInt16 {
-        try checkOptional(UInt16(numericString()))
+        return try decodeAsUInt16(value, impl: impl)
     }
 
     func decode(_ type: UInt32.Type) throws -> UInt32 {
-        try checkOptional(UInt32(numericString()))
+        return try decodeAsUInt32(value, impl: impl)
     }
 
     func decode(_ type: UInt64.Type) throws -> UInt64 {
-        try checkOptional(UInt64(numericString()))
+        return try decodeAsUInt64(value, impl: impl)
     }
 
+    // SKIP DECLARE: override fun <T> decode(type: KClass<T>): T where T: Any
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
-        try self.impl.unwrap(as: type)
-    }
-
-    private func numericString() throws -> String {
-        guard case JSONValue.number(let numberString) = value else {
-            #if SKIP
-            fatalError("Type mismatch")
-            #else
-            throw DecodingError.typeMismatch(Int.self, DecodingError.Context(
-                codingPath: codingPath, debugDescription: "Expected to decode number but found \(value) instead."
-            ))
-            #endif
-        }
-        return numberString
+        return try self.impl.unwrap(as: type)
     }
 }
-
-private func checkOptional<T>(_ value: T?) throws -> T {
-    guard let value = value else {
-        fatalError("SKIP TODO: empty value for optional")
-    }
-    return value
-}
-
 
 #if SKIP
-internal typealias DecoderKey = CodingKey
+internal typealias JSONDecoderKey = CodingKey
 #endif
 
 fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingContainerProtocol {
     #if !SKIP
-    internal typealias DecoderKey = Key
+    internal typealias JSONDecoderKey = Key
     #endif
     let impl: JSONDecoderImpl
     let codingPath: [CodingKey]
-    let dictionary: Dictionary<String, JSONValue>
+    let dictionary: Dictionary<String, JSONDecoderValue>
 
-    init(impl: JSONDecoderImpl, codingPath: [CodingKey], dictionary: Dictionary<String, JSONValue>) {
+    init(keyedBy: Any.Type, impl: JSONDecoderImpl, codingPath: [CodingKey], dictionary: Dictionary<String, JSONDecoderValue>) {
         self.impl = impl
         self.codingPath = codingPath
-
-        switch impl.options.keyDecodingStrategy {
-        case .useDefaultKeys:
-            self.dictionary = dictionary
-        case .convertFromSnakeCase:
-            // Convert the snake case keys in the container to camel case.
-            // If we hit a duplicate key after conversion, then we'll use the first one we saw.
-            // Effectively an undefined behavior with JSON dictionaries.
-            //var converted = Dictionary<String, JSONValue>()
-            //converted.reserveCapacity(dictionary.count)
-            //dictionary.forEach { (key, value) in
-            //    converted[JSONDecoder.KeyDecodingStrategy._convertFromSnakeCase(key)] = value
-            //}
-            //self.dictionary = converted
-            fatalError("SKIP TODO: JSON snakeCase")
-        case .custom(let converter):
-            var converted = Dictionary<String, JSONValue>()
-            #if !SKIP
-            converted.reserveCapacity(dictionary.count)
-            #endif
-            for (key, value) in dictionary {
-                var pathForKey = codingPath
-                pathForKey.append(_JSONKey(stringValue: key)!)
-                converted[converter(pathForKey).stringValue] = value
+        #if SKIP
+        let decodeKeys = keyedBy == DictionaryCodingKey.self
+        #else
+        let decodeKeys = keyedBy != Int.self // Always true; used to prevent compiler warning
+        #endif
+        if decodeKeys {
+            switch impl.options.keyDecodingStrategy {
+            case .useDefaultKeys:
+                self.dictionary = dictionary
+            case .convertFromSnakeCase:
+                // Convert the snake case keys in the container to camel case.
+                // If we hit a duplicate key after conversion, then we'll use the first one we saw.
+                // Effectively an undefined behavior with JSON dictionaries.
+                var converted = Dictionary<String, JSONDecoderValue>()
+                dictionary.forEach { entry in
+                    converted[JSONDecoder.KeyDecodingStrategy._convertFromSnakeCase(entry.key)] = entry.value
+                }
+                self.dictionary = converted
+            case .custom(let converter):
+                var converted = Dictionary<String, JSONDecoderValue>()
+                for (key, value) in dictionary {
+                    var pathForKey = codingPath
+                    pathForKey.append(_JSONKey(stringValue: key)!)
+                    converted[converter(pathForKey).stringValue] = value
+                }
+                self.dictionary = converted
             }
-            self.dictionary = converted
+        } else {
+            self.dictionary = dictionary
         }
     }
 
-    var allKeys: [DecoderKey] {
-        #if !SKIP
-        self.dictionary.keys.compactMap { Key(stringValue: $0) }
-        #else
-        fatalError("SKIP TODO: allKeys")
-        #endif
+    var allKeys: [JSONDecoderKey] {
+        self.dictionary.keys.compactMap {
+            #if SKIP
+            _JSONKey(stringValue: $0)
+            #else
+            JSONDecoderKey(stringValue: $0)
+            #endif
+        }
     }
 
-    func contains(_ key: DecoderKey) -> Bool {
+    func contains(_ key: JSONDecoderKey) -> Bool {
         if let _ = dictionary[key.stringValue] {
             return true
         }
         return false
     }
 
-    func decodeNil(forKey key: DecoderKey) throws -> Bool {
+    func decodeNil(forKey key: JSONDecoderKey) throws -> Bool {
         let value = try getValue(forKey: key)
-        return value == .null
+        return decodeAsNil(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: Bool.Type, forKey key: DecoderKey) throws -> Bool {
+    func decode(_ type: Bool.Type, forKey key: JSONDecoderKey) throws -> Bool {
         let value = try getValue(forKey: key)
-
-        guard case JSONValue.bool(let bool) = value else {
-            #if SKIP
-            fatalError("SKIP TODO: JSON errors")
-            #else
-            throw createTypeMismatchError(type: Bool.self, forKey: key, value: value)
-            #endif
-        }
-
-        return bool
+        return try decodeAsBool(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: String.Type, forKey key: DecoderKey) throws -> String {
+    func decode(_ type: String.Type, forKey key: JSONDecoderKey) throws -> String {
         let value = try getValue(forKey: key)
-
-        guard case JSONValue.string(let string) = value else {
-            #if SKIP
-            fatalError("SKIP TODO: JSON errors")
-            #else
-            throw createTypeMismatchError(type: String.self, forKey: key, value: value)
-            #endif
-        }
-
-        return string
+        return try decodeAsString(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: Double.Type, forKey key: DecoderKey) throws -> Double {
-        try checkOptional(Double(numericString(key: key)))
+    func decode(_ type: Double.Type, forKey key: JSONDecoderKey) throws -> Double {
+        let value = try getValue(forKey: key)
+        return try decodeAsDouble(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: Float.Type, forKey key: DecoderKey) throws -> Float {
-        try checkOptional(Float(numericString(key: key)))
+    func decode(_ type: Float.Type, forKey key: JSONDecoderKey) throws -> Float {
+        let value = try getValue(forKey: key)
+        return try decodeAsFloat(value, forKey: key, impl: self.impl)
     }
 
-    #if !SKIP // Int == Int32
-    func decode(_ type: Int.Type, forKey key: DecoderKey) throws -> Int {
-        try checkOptional(Int(numericString(key: key)))
+    #if !SKIP // Same as Int32
+    func decode(_ type: Int.Type, forKey key: JSONDecoderKey) throws -> Int {
+        let value = try getValue(forKey: key)
+        return try decodeAsInt(value, forKey: key, impl: self.impl)
     }
     #endif
 
-    func decode(_ type: Int8.Type, forKey key: DecoderKey) throws -> Int8 {
-        try checkOptional(Int8(numericString(key: key)))
+    func decode(_ type: Int8.Type, forKey key: JSONDecoderKey) throws -> Int8 {
+        let value = try getValue(forKey: key)
+        return try decodeAsInt8(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: Int16.Type, forKey key: DecoderKey) throws -> Int16 {
-        try checkOptional(Int16(numericString(key: key)))
+    func decode(_ type: Int16.Type, forKey key: JSONDecoderKey) throws -> Int16 {
+        let value = try getValue(forKey: key)
+        return try decodeAsInt16(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: Int32.Type, forKey key: DecoderKey) throws -> Int32 {
-        try checkOptional(Int32(numericString(key: key)))
+    func decode(_ type: Int32.Type, forKey key: JSONDecoderKey) throws -> Int32 {
+        let value = try getValue(forKey: key)
+        return try decodeAsInt32(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: Int64.Type, forKey key: DecoderKey) throws -> Int64 {
-        try checkOptional(Int64(numericString(key: key)))
+    func decode(_ type: Int64.Type, forKey key: JSONDecoderKey) throws -> Int64 {
+        let value = try getValue(forKey: key)
+        return try decodeAsInt64(value, forKey: key, impl: self.impl)
     }
 
-    #if !SKIP // Int == Int32
-    func decode(_ type: UInt.Type, forKey key: DecoderKey) throws -> UInt {
-        try checkOptional(UInt(numericString(key: key)))
+    #if !SKIP // Same as UInt32
+    func decode(_ type: UInt.Type, forKey key: JSONDecoderKey) throws -> UInt {
+        let value = try getValue(forKey: key)
+        return try decodeAsUInt(value, forKey: key, impl: self.impl)
     }
     #endif
 
-    func decode(_ type: UInt8.Type, forKey key: DecoderKey) throws -> UInt8 {
-        try checkOptional(UInt8(numericString(key: key)))
+    func decode(_ type: UInt8.Type, forKey key: JSONDecoderKey) throws -> UInt8 {
+        let value = try getValue(forKey: key)
+        return try decodeAsUInt8(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: UInt16.Type, forKey key: DecoderKey) throws -> UInt16 {
-        try checkOptional(UInt16(numericString(key: key)))
+    func decode(_ type: UInt16.Type, forKey key: JSONDecoderKey) throws -> UInt16 {
+        let value = try getValue(forKey: key)
+        return try decodeAsUInt16(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: UInt32.Type, forKey key: DecoderKey) throws -> UInt32 {
-        try checkOptional(UInt32(numericString(key: key)))
+    func decode(_ type: UInt32.Type, forKey key: JSONDecoderKey) throws -> UInt32 {
+        let value = try getValue(forKey: key)
+        return try decodeAsUInt32(value, forKey: key, impl: self.impl)
     }
 
-    func decode(_ type: UInt64.Type, forKey key: DecoderKey) throws -> UInt64 {
-        try checkOptional(UInt64(numericString(key: key)))
+    func decode(_ type: UInt64.Type, forKey key: JSONDecoderKey) throws -> UInt64 {
+        let value = try getValue(forKey: key)
+        return try decodeAsUInt64(value, forKey: key, impl: self.impl)
     }
 
-    func decode<T>(_ type: T.Type, forKey key: DecoderKey) throws -> T where T: Decodable {
+    // SKIP DECLARE: override fun <T> decode(type: KClass<T>, forKey: CodingKey): T where T: Any
+    func decode<T>(_ type: T.Type, forKey key: JSONDecoderKey) throws -> T where T: Decodable {
         let newDecoder = try decoderForKey(key)
-        //return try newDecoder.unwrap(as: T.self)
         return try newDecoder.unwrap(as: type)
     }
 
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: DecoderKey) throws
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: JSONDecoderKey) throws
         -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey
     {
         try decoderForKey(key).container(keyedBy: type)
     }
 
-    func nestedUnkeyedContainer(forKey key: DecoderKey) throws -> UnkeyedDecodingContainer {
+    func nestedUnkeyedContainer(forKey key: JSONDecoderKey) throws -> UnkeyedDecodingContainer {
         try decoderForKey(key).unkeyedContainer()
     }
 
@@ -804,7 +703,7 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
         return decoderForKeyNoThrow(_JSONKey._super)
     }
 
-    func superDecoder(forKey key: DecoderKey) throws -> Decoder {
+    func superDecoder(forKey key: JSONDecoderKey) throws -> Decoder {
         return decoderForKeyNoThrow(key)
     }
 
@@ -822,12 +721,16 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
     }
 
     @inline(__always) private func decoderForKeyNoThrow<LocalKey: CodingKey>(_ key: LocalKey) -> JSONDecoderImpl {
-        var value: JSONValue
+        var value: JSONDecoderValue
         do {
             value = try getValue(forKey: key)
         } catch {
             // if there no value for this key then return a null value
+            #if SKIP
+            value = NSNull.null
+            #else
             value = JSONValue.null
+            #endif
         }
         var newPath = self.codingPath
         newPath.append(key)
@@ -840,208 +743,174 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
         )
     }
 
-    @inline(__always) private func getValue<LocalKey: CodingKey>(forKey key: LocalKey) throws -> JSONValue {
+    private func getValue(forKey key: any CodingKey) throws -> JSONDecoderValue {
         guard let value = dictionary[key.stringValue] else {
             throw DecodingError.keyNotFound(key, .init(
                 codingPath: self.codingPath,
                 debugDescription: "No value associated with key \(key) (\"\(key.stringValue)\")."
             ))
         }
-
         return value
-    }
-
-    @inline(__always) private func createTypeMismatchError(type: Any.Type, forKey key: CodingKey, value: JSONValue) -> DecodingError {
-        let codingPath = self.codingPath + [key]
-        return DecodingError.typeMismatch(type, .init(
-            codingPath: codingPath, debugDescription: "Expected to decode \(type) but found \(value.debugDataTypeDescription) instead."
-        ))
-    }
-
-//        @inline(__always) private func decodeFixedWidthInteger<T: FixedWidthInteger>(key: Self.Key) throws -> T {
-//            let value = try getValue(forKey: key)
-//            return try self.impl.unwrapFixedWidthInteger(from: value, for: key, as: T.self)
-//        }
-
-    private func numericString(key: DecoderKey) throws -> String {
-        let value = try getValue(forKey: key)
-        guard case JSONValue.number(let numberString) = value else {
-            #if SKIP
-            fatalError("Type mismatch")
-            #else
-            throw DecodingError.typeMismatch(Int.self, DecodingError.Context(
-                codingPath: codingPath, debugDescription: "Expected to decode number but found \(value) instead."
-            ))
-            #endif
-        }
-        return numberString
     }
 }
 
 fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     let impl: JSONDecoderImpl
     let codingPath: [CodingKey]
-    let array: [JSONValue]
+    let array: [JSONDecoderValue]
 
     var count: Int? { self.array.count }
     var isAtEnd: Bool { self.currentIndex >= (self.count ?? 0) }
     var currentIndex = 0
 
-    init(impl: JSONDecoderImpl, codingPath: [CodingKey], array: [JSONValue]) {
+    init(impl: JSONDecoderImpl, codingPath: [CodingKey], array: [JSONDecoderValue]) {
         self.impl = impl
         self.codingPath = codingPath
         self.array = array
     }
 
     mutating func decodeNil() throws -> Bool {
-        #if SKIP
-        fatalError("SKIP TODO")
-        #else
-        if try self.getNextValue(ofType: Never.self) == JSONValue.null {
+        let value = try getNextValue(ofType: Never.self)
+        if decodeAsNil(value, impl: self.impl) {
             self.currentIndex += 1
             return true
         }
-
-        // The protocol states:
-        //   If the value is not null, does not increment currentIndex.
         return false
-        #endif
     }
 
     mutating func decode(_ type: Bool.Type) throws -> Bool {
-        #if SKIP
-        fatalError("SKIP TODO")
-        #else
         let value = try self.getNextValue(ofType: Bool.self)
-        guard case JSONValue.bool(let bool) = value else {
-            throw impl.createTypeMismatchError(type: type, for: _JSONKey(index: currentIndex), value: value)
-        }
-
+        let ret = try decodeAsBool(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
         self.currentIndex += 1
-        return bool
-        #endif
+        return ret
     }
 
     mutating func decode(_ type: String.Type) throws -> String {
-        #if SKIP
-        fatalError("SKIP TODO: decode")
-        #else
         let value = try self.getNextValue(ofType: String.self)
-        guard case JSONValue.string(let string) = value else {
-            throw impl.createTypeMismatchError(type: type, for: _JSONKey(index: currentIndex), value: value)
-        }
-
+        let ret = try decodeAsString(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
         self.currentIndex += 1
-        return string
-        #endif
+        return ret
     }
 
     mutating func decode(_ type: Double.Type) throws -> Double {
-        try decodeFloatingPoint()
+        let value = try self.getNextValue(ofType: Double.self)
+        let ret = try decodeAsDouble(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
     mutating func decode(_ type: Float.Type) throws -> Float {
-        try decodeFloatingPoint()
+        let value = try self.getNextValue(ofType: Float.self)
+        let ret = try decodeAsFloat(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
-    #if !SKIP // Int == Int32
+    #if !SKIP // Same as Int32
     mutating func decode(_ type: Int.Type) throws -> Int {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: Int.self)
+        let ret = try decodeAsInt(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
     #endif
 
     mutating func decode(_ type: Int8.Type) throws -> Int8 {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: Int8.self)
+        let ret = try decodeAsInt8(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
     mutating func decode(_ type: Int16.Type) throws -> Int16 {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: Int16.self)
+        let ret = try decodeAsInt16(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
     mutating func decode(_ type: Int32.Type) throws -> Int32 {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: Int32.self)
+        let ret = try decodeAsInt32(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
     mutating func decode(_ type: Int64.Type) throws -> Int64 {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: Int64.self)
+        let ret = try decodeAsInt64(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
-    #if !SKIP // Int == Int32
+    #if !SKIP // Same as UInt32
     mutating func decode(_ type: UInt.Type) throws -> UInt {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: UInt.self)
+        let ret = try decodeAsUInt(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
     #endif
 
     mutating func decode(_ type: UInt8.Type) throws -> UInt8 {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: UInt8.self)
+        let ret = try decodeAsUInt8(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
     mutating func decode(_ type: UInt16.Type) throws -> UInt16 {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: UInt16.self)
+        let ret = try decodeAsUInt16(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
     mutating func decode(_ type: UInt32.Type) throws -> UInt32 {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: UInt32.self)
+        let ret = try decodeAsUInt32(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
     mutating func decode(_ type: UInt64.Type) throws -> UInt64 {
-        try decodeFixedWidthInteger()
+        let value = try self.getNextValue(ofType: UInt64.self)
+        let ret = try decodeAsUInt64(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
+        self.currentIndex += 1
+        return ret
     }
 
+    // SKIP DECLARE: override fun <T> decode(type: KClass<T>): T where T: Any
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
-        #if SKIP
-        fatalError("SKIP TODO: decode")
-        #else
         let newDecoder = try decoderForNextElement(ofType: type)
         let result = try newDecoder.unwrap(as: type)
-
-        // Because of the requirement that the index not be incremented unless
-        // decoding the desired result type succeeds, it can not be a tail call.
-        // Hopefully the compiler still optimizes well enough that the result
-        // doesn't get copied around.
         self.currentIndex += 1
         return result
-        #endif
     }
 
     mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws
         -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey
     {
-        #if SKIP
-        fatalError("SKIP TODO: nestedContainer")
-        #else
         let decoder = try decoderForNextElement(ofType: KeyedDecodingContainer<NestedKey>.self)
         let container = try decoder.container(keyedBy: type)
-
         self.currentIndex += 1
         return container
-        #endif
     }
 
     mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
-        #if SKIP
-        fatalError("SKIP TODO: nestedUnkeyedContainer")
-        #else
         let decoder = try decoderForNextElement(ofType: UnkeyedDecodingContainer.self)
         let container = try decoder.unkeyedContainer()
-
         self.currentIndex += 1
         return container
-        #endif
     }
 
     mutating func superDecoder() throws -> Decoder {
-        #if SKIP
-        fatalError("SKIP TODO: superDecoder")
-        #else
         let decoder = try decoderForNextElement(ofType: Decoder.self)
         self.currentIndex += 1
         return decoder
-        #endif
     }
 
-    #if !SKIP
-    private mutating func decoderForNextElement<T>(ofType: T.Type) throws -> JSONDecoderImpl {
+    private mutating func decoderForNextElement<T>(ofType: T.Type) throws -> JSONDecoderImpl where T: Any {
         let value = try self.getNextValue(ofType: ofType)
         let newPath = self.codingPath + [_JSONKey(index: self.currentIndex)]
 
@@ -1052,14 +921,8 @@ fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
             options: self.impl.options
         )
     }
-    #endif
 
-    #if !SKIP
-    //@inline(__always)
-    private func getNextValue<T>(ofType: T.Type) throws -> JSONValue {
-        #if SKIP
-        fatalError("SKIP TODO: getNextValue")
-        #else
+    private func getNextValue<T>(ofType: T.Type) throws -> JSONDecoderValue where T: Any {
         guard !self.isAtEnd else {
             var message = "Unkeyed container is at end."
             if ofType == JSONUnkeyedDecodingContainer.self {
@@ -1079,9 +942,7 @@ fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
                       underlyingError: nil))
         }
         return self.array[self.currentIndex]
-        #endif
     }
-    #endif
 
     #if !SKIP
     @inline(__always) private mutating func decodeFixedWidthInteger<T: FixedWidthInteger>() throws -> T {
@@ -1091,13 +952,7 @@ fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         self.currentIndex += 1
         return result
     }
-    #else
-    private mutating func decodeFixedWidthInteger<T>() throws -> T {
-        fatalError("SKIP TODO: decodeFixedWidthInteger")
-    }
-    #endif
 
-    #if !SKIP
     @inline(__always) private mutating func decodeFloatingPoint<T: LosslessStringConvertible & BinaryFloatingPoint>() throws -> T {
         let value = try self.getNextValue(ofType: T.self)
         let key = _JSONKey(index: self.currentIndex)
@@ -1105,17 +960,147 @@ fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         self.currentIndex += 1
         return result
     }
-    #else
-    private mutating func decodeFloatingPoint<T>() throws -> T {
-        fatalError("SKIP TODO: decodeFloatingPoint")
-    }
     #endif
 }
 
-//fileprivate protocol _JSONStringDictionaryDecodableMarker {
-//    static var elementType: Decodable.Type { get }
-//}
+private func decodeAsNil(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) -> Bool {
+    #if SKIP
+    return value is NSNull
+    #else
+    return value == .null
+    #endif
+}
 
-//extension Dictionary: _JSONStringDictionaryDecodableMarker where Key == String, Value: Decodable {
-//    static var elementType: Decodable.Type { return Value.self }
-//}
+private func decodeAsBool(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Bool {
+    let bool: Bool?
+    #if SKIP
+    bool = value as? Bool
+    #else
+    if case JSONValue.bool(let b) = value {
+        bool = b
+    } else {
+        bool = nil
+    }
+    #endif
+    guard let bool else {
+        throw impl.createTypeMismatchError(type: Bool.self, for: key, value: value)
+    }
+    return bool
+}
+
+private func decodeAsString(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> String {
+    let string: String?
+    #if SKIP
+    string = value is NSNull ? nil : value.toString()
+    #else
+    if case JSONValue.string(let s) = value {
+        string = s
+    } else {
+        string = nil
+    }
+    #endif
+    guard let string else {
+        throw impl.createTypeMismatchError(type: String.self, value: value)
+    }
+    return string
+}
+
+private func decodeAsDouble(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Double {
+    return try checkNumericOptional(Double(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsFloat(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Float {
+    return try checkNumericOptional(Float(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsInt(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Int {
+    return try checkNumericOptional(Int(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsInt8(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Int8 {
+    return try checkNumericOptional(Int8(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsInt16(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Int16 {
+    return try checkNumericOptional(Int16(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsInt32(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Int32 {
+    return try checkNumericOptional(Int32(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsInt64(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Int64 {
+    return try checkNumericOptional(Int64(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsUInt(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> UInt {
+    return try checkNumericOptional(UInt(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsUInt8(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> UInt8 {
+    return try checkNumericOptional(UInt8(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsUInt16(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> UInt16 {
+    return try checkNumericOptional(UInt16(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsUInt32(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> UInt32 {
+    return try checkNumericOptional(UInt32(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+private func decodeAsUInt64(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> UInt64 {
+    return try checkNumericOptional(UInt64(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
+}
+
+#if SKIP
+private func decodeNumeric(value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Number {
+    guard let number = value as? Number else {
+        throw DecodingError.typeMismatch(Int.self, DecodingError.Context(
+            codingPath: impl.codingPath(with: key), debugDescription: "Expected to decode number but found \(value) instead."
+        ))
+    }
+    return number
+}
+#else
+private func decodeNumeric(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> String {
+    guard case JSONValue.number(let numberString) = value else {
+        throw DecodingError.typeMismatch(Int.self, DecodingError.Context(
+            codingPath: impl.codingPath(with: key), debugDescription: "Expected to decode number but found \(value) instead."
+        ))
+    }
+    return numberString
+}
+#endif
+
+private func checkNumericOptional<T>(_ value: T?, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> T {
+    guard let value else {
+        throw DecodingError.typeMismatch(Int.self, DecodingError.Context(codingPath: impl.codingPath(with: key), debugDescription: "Unable to parse as expected numeric type"))
+    }
+    return value
+}
+
+#if !SKIP
+fileprivate protocol _JSONStringDictionaryDecodableMarker {
+    static var elementType: Decodable.Type { get }
+}
+
+extension Dictionary: _JSONStringDictionaryDecodableMarker where Key == String, Value: Decodable {
+    static var elementType: Decodable.Type { return Value.self }
+}
+
+extension Decodable {
+    fileprivate static func createByDirectlyUnwrapping(from decoder: JSONDecoderImpl) throws -> Self {
+        if Self.self == URL.self
+            || Self.self == Date.self
+            || Self.self == Data.self
+            || Self.self == Decimal.self
+            || Self.self is _JSONStringDictionaryDecodableMarker.Type
+        {
+            return try decoder.unwrap(as: Self.self)
+        }
+
+        return try Self.init(from: decoder)
+    }
+}
+#endif

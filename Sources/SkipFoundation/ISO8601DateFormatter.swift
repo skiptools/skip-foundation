@@ -15,7 +15,7 @@ public class ISO8601DateFormatter : DateFormatter {
     public var formatOptions: Options = Options(rawValue: UInt(0))
 
     public struct Options : OptionSet {
-        public private(set) var rawValue: UInt
+        public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let withYear = ISO8601DateFormatter.Options(rawValue: UInt(1) << 0)
         public static let withMonth = ISO8601DateFormatter.Options(rawValue: UInt(1) << 1)

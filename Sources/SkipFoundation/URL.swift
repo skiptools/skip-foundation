@@ -18,7 +18,7 @@ public typealias PlatformURL = java.net.URL
 public typealias NSURL = URL
 #endif
 
-public struct URL : Hashable, CustomStringConvertible, Encodable {
+public struct URL : Hashable, CustomStringConvertible, Codable {
     internal var platformValue: PlatformURL
     #if SKIP
     private let isDirectoryFlag: Bool?
@@ -71,9 +71,8 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #if !SKIP
         self.platformValue = try PlatformURL(from: decoder)
         #else
-        self.platformValue = SkipCrash("TODO: Decoder")
-        self.isDirectoryFlag = SkipCrash("TODO: Decoder")
-        self.baseURL = SkipCrash("TODO: Decoder")
+        let container = decoder.singleValueContainer()
+        self = URL(string: container.decode(String.self))!
         #endif
     }
 
@@ -81,7 +80,8 @@ public struct URL : Hashable, CustomStringConvertible, Encodable {
         #if !SKIP
         try platformValue.encode(to: encoder)
         #else
-        fatalError("SKIP TODO")
+        let container = encoder.singleValueContainer()
+        container.encode(absoluteString)
         #endif
     }
 
@@ -470,22 +470,6 @@ public func URL(string: String, relativeTo baseURL: URL? = nil) -> URL? {
 //        return URL(platformValue: PlatformURL("file://" + path)) // TODO: isDirectory handling?
 //    }
 //}
-
-extension String {
-    public var deletingLastPathComponent: String {
-        let lastSeparatorIndex = lastIndexOf("/")
-        if lastSeparatorIndex == -1 || (lastSeparatorIndex == 0 && self.length == 1) {
-            return self
-        }
-        let newPath = substring(0, lastSeparatorIndex)
-        let newLastSeparatorIndex = newPath.lastIndexOf("/")
-        if newLastSeparatorIndex == -1 {
-            return newPath
-        } else {
-            return newPath.substring(0, newLastSeparatorIndex + 1)
-        }
-    }
-}
 
 #else
 
