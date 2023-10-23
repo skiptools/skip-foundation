@@ -21,7 +21,7 @@ When you want to use a Foundation API that has not been implemented, you have op
 
 ## Contributing
 
-We welcome contributions to SkipFoundation. The Skip product documentation includes helpful instructions on [local Skip library development](https://skip.tools/docs/#local-libraries). 
+We welcome contributions to SkipFoundation. The Skip product documentation includes helpful instructions on [local Skip library development](https://skip.tools/docs/). 
 
 The most pressing need is to implement more of the most-used Foundation APIs.
 To help fill in unimplemented API in SkipFoundation:
