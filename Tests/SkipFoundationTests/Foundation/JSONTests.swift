@@ -411,6 +411,9 @@ class TestJSON : XCTestCase {
             """, try roundtrip(value: org, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
     }
 
+    // All "SKIP DOC START" directive with the same key will have their code blocks combined into an example to be included in the README.md or SNIPPETS.md file
+
+    // SKIP DOC START: EntityCustomKeys: This is an example
     struct EntityCustomKeys : Encodable {
         var nameFirst: String
         var nameLast: String
@@ -422,14 +425,20 @@ class TestJSON : XCTestCase {
             case age
         }
     }
+    // SKIP DOC END: EntityCustomKeys
 
     func testEncodeToJSON() throws {
+
+        // SKIP DOC START: EntityCustomKeys
         let person = EntityCustomKeys(nameFirst: "Jon", nameLast: "Doe", age: 44)
 
+        // SKIP DOC REPLACE: assert(EntityCustomKeys.CodingKeys.nameFirst.rawValue == "firstName")
         XCTAssertEqual("firstName", EntityCustomKeys.CodingKeys.nameFirst.rawValue)
         XCTAssertEqual("Jon", person.nameFirst)
         XCTAssertEqual("Doe", person.nameLast)
         XCTAssertEqual(44, person.age)
+
+        // SKIP DOC END: EntityCustomKeys
 
 //        let json: JSON = try person.json()
 //        XCTAssertEqual(JSON.number(44.0), json.obj?["age"])
