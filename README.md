@@ -10,7 +10,7 @@ SkipFoundation vends the `skip.foundation` Kotlin package. It is a reimplementat
 
 SkipFoundation depends on the [skip](https://source.skip.tools/skip) transpiler plugin as well as the [SkipLib](https://github.com/skiptools/skip-lib) package.
 
-SkipFoundation is part of the core *skipstack* and is not intended to be imported directly.
+SkipFoundation is part of the core *SkipStack* and is not intended to be imported directly.
 The module is transparently adopted through the translation of `import Foundation` into `import skip.foundation.*` by the Skip transpiler.
 
 ## Status
@@ -21,13 +21,13 @@ When you want to use a Foundation API that has not been implemented, you have op
 
 ## Contributing
 
-We welcome contributions to SkipFoundation. The Skip product documentation includes helpful instructions on [local Skip library development](https://skip.tools/docs/). 
+We welcome contributions to SkipFoundation. The Skip product [documentation](https://skip.tools/docs) includes helpful instructions on local Skip library development. 
 
 The most pressing need is to implement more of the most-used Foundation APIs.
 To help fill in unimplemented API in SkipFoundation:
 
 1. Find unimplemented API. Unimplemented API will generally be commented out or have TODO comments in the source. The set of skipped [tests](#tests) also gives a high-level view of what is not yet ported to Skip.
-1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
+1. Write an appropriate Kotlin implementation. See [Implementation Strategy](#implementation-strategy) below.
 1. Edit the corresponding tests to make sure they are no longer skipped, and that they pass. If there aren't existing tests, write some. See [Tests](#tests).
 1. [Submit a PR.](https://github.com/skiptools/skip-foundation/pulls)
 
@@ -114,7 +114,7 @@ extension java.util.Calendar {
 
 SkipFoundation's `Tests/` folder contains the entire set of official Foundation framework test cases. Through the magic of [SkipUnit](https://github.com/skiptools/skip-unit), this allows us to validate our SkipFoundation API implementations on Android against the same test suite used by the Foundation team on iOS.
 
-The table below details the current test run status. Many tests are skipped, which typically means that the corresponding API has not yet been ported to Skip. Other tests show `????`. This is generally equivalent to `SKIP`, but indicates that we've commented out the test altogether to avoid overwhelming github's action output buffer.
+The table below details the current test run status. Many tests are skipped, which typically means that the corresponding API has not yet been ported to Skip. Other tests show `????`. This is generally equivalent to `SKIP`, but indicates that we've commented out the test altogether to avoid overwhelming GitHub's action output buffer.
 
 It is SkipFoundation's goal to include - and pass - as much of the official test suite as possible.
 
