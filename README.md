@@ -110,6 +110,42 @@ extension java.util.Calendar {
 #endif
 ```
 
+## Topics
+
+### Codable
+
+Swift uses the `Encodable` and `Decodable` protocols to convert objects to and from various data formats. In keeping with its philosophy of *transparent adoption*, Skip supports `Encodable`, `Decodable`, and the combined `Codable` protocols for object serialization and deserialization. This includes automatic synthesis of default encoding and decoding as well as support for custom encoding and decoding using Swift's `Encodable` and `Decodable` APIs. Skip does, however, have some restrictions:
+
+- JSON is currently the only supported format. SkipFoundation includes Foundation's `JSONEncoder` and `JSONDecoder` classes.
+- Not all JSON formatting options are supported.
+- `Array`, `Set`, and `Dictionary` **are** supported, but nesting of these types is limited to arrays-of-arrays and dictionaries-of-array-values. Skip does not yet support e.g. an array of dictionaries, or a dictionary with array keys.
+- When implementing your own `init(from: Decoder)` decoding, your `decode` calls must supply a concrete type literal to decode. The following will work:
+
+    ```swift
+    init(from decoder: Decoder) throws {
+        var container = try decoder.container(keyedBy: CodingKeys.self)
+        self.array = try container.decode([Int].self, forKey: CodingKeys.array) 
+    }
+    ```
+
+    But these examples will not work:
+
+    ```swift
+    init(from decoder: Decoder) throws {
+        var container = try decoder.container(keyedBy: CodingKeys.self)
+        let arrayType = [Int].self
+        self.array = try container.decode(arrayType, forKey: CodingKeys.array) 
+    }
+
+    init(from decoder: Decoder) throws {
+        var container = try decoder.container(keyedBy: CodingKeys.self)
+        // T is a generic type of this class
+        self.array = try container.decode([T].self, forKey: CodingKeys.array) 
+    }
+    ```
+
+- As in the examples above, you must fully qualify your `CodingKeys` cases when calling `decode(_:forKey:)`.
+
 ## Tests
 
 SkipFoundation's `Tests/` folder contains the entire set of official Foundation framework test cases. Through the magic of [SkipUnit](https://github.com/skiptools/skip-unit), this allows us to validate our SkipFoundation API implementations on Android against the same test suite used by the Foundation team on iOS.
