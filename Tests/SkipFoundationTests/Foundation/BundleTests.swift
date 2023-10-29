@@ -4,26 +4,20 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 import Foundation
+import OSLog
 import XCTest
 
 @available(macOS 13, iOS 16, watchOS 10, tvOS 16, *)
 final class BundleTests: XCTestCase {
+    let logger: Logger = Logger(subsystem: "test", category: "BundleTests")
+
     func testBundle() throws {
-        if true {
-            return // TODO: fix resources
-        }
-
-        #if !SKIP
-
-        let resourceURL: URL = try XCTUnwrap(Bundle.module.url(forResource: "textasset", withExtension: "txt", subdirectory: nil, localization: nil))
-        //logger.info("resourceURL: \(resourceURL.absoluteString)")
-
         // Swift will be: Contents/Resources/ -- file:///~/Library/Developer/Xcode/DerivedData/DemoApp-ABCDEF/Build/Products/Debug/SkipFoundationTests.xctest/Contents/Resources/Skip_SkipFoundationTests.bundle/
         // Kotlin will be: file:/SRCDIR/Skip/kip/SkipFoundationTests/modules/SkipFoundation/build/tmp/kotlin-classes/debugUnitTest/skip/foundation/
-
+        let resourceURL: URL = try XCTUnwrap(Bundle.module.url(forResource: "textasset", withExtension: "txt", subdirectory: nil, localization: nil))
+        logger.info("resourceURL: \(resourceURL.absoluteString)")
         let str = try String(contentsOf: resourceURL)
         XCTAssertEqual("Some text\n", str)
-        #endif
     }
 
     func testBundleInfo() throws {
