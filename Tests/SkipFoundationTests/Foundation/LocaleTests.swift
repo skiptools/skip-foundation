@@ -69,7 +69,7 @@ final class LocaleTests: XCTestCase {
 
         //XCTAssertEqual(["en", "fr"], Bundle.module.localizations.sorted())
 
-        //let foundationBundle = _SkipFoundationBundle // Bundle(for: SkipFoundationModule.self)
+        //let foundationBundle = Bundle.module
 
         //let localeIdentifiers = foundationBundle.localizations.sorted()
 

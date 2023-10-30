@@ -107,6 +107,11 @@ public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: B
 }
 
 extension Bundle {
+    /// Access this module's bundle. External modules will generate their own `Bundle.module` extensions. 
+    static var module: Bundle {
+        return Bundle(for: Bundle.self)
+    }
+
     /// Creates a relative path to the given bundle URL
     private func relativeBundleURL(path: String) -> URL? {
         let loc: SkipLocalizedStringResource.BundleDescription = location
@@ -186,6 +191,3 @@ extension Bundle {
 }
 
 #endif
-
-// SKIP REPLACE: internal val _SkipFoundationBundle = Bundle(for_ = Bundle::class as kotlin.reflect.KClass<Any>)
-//let _SkipFoundationBundle = Bundle.module
