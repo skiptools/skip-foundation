@@ -6,6 +6,7 @@
 import Foundation
 import XCTest
 
+// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 @available(macOS 11, iOS 14, watchOS 7, tvOS 14, *)
 final class FileManagerTests: XCTestCase {
     func testFileManager() throws {
@@ -41,5 +42,26 @@ final class FileManagerTests: XCTestCase {
         XCTAssertEqual("NSFileType", FileAttributeKey.type.rawValue)
         XCTAssertEqual("NSFileBusy", FileAttributeKey.busy.rawValue)
 
+    }
+
+    func testDocumentsDirectory() throws {
+        let url = try FileManager.default.url(for: FileManager.SearchPathDirectory.documentDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
+        #if !SKIP
+        XCTAssertEqual("Documents", url.lastPathComponent)
+        #else
+        // Robolectric:  /var/folders/zl/wkdjv4s1271fbm6w0plzknkh0000gn/T/robolectric-FileManagerTests_testFileLocations_SkipFoundation_debugUnitTest525656974178778848/skip.foundation.test-dataDir/files/
+        // Emulator: /data/user/0/skip.foundation.test/files/
+        XCTAssertEqual("files", url.lastPathComponent)
+        #endif
+    }
+
+    func testCachesDirectory() throws {
+        let url = try FileManager.default.url(for: FileManager.SearchPathDirectory.cachesDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
+        #if !SKIP
+        XCTAssertEqual("Caches", url.lastPathComponent)
+        #else
+        // Emulator: /data/user/0/skip.foundation.test/cache/
+        XCTAssertEqual("cache", url.lastPathComponent)
+        #endif
     }
 }

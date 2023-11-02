@@ -112,6 +112,36 @@ extension java.util.Calendar {
 
 ## Topics
 
+### Files
+
+Skip implements much of `Foundation.FileManager`, which should be
+the primary interface for interacting with the file system.
+
+The app-specific folder can be accessed like:
+
+```swift
+// on Android, this is Context.getFilesDir()
+let folder = try FileManager.default.url(for: FileManager.SearchPathDirectory.documentDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
+```
+
+And to read and write to the cache folders:
+
+```swift
+// on Android, this is Context.getCachesDir()
+let caches = try FileManager.default.url(for: FileManager.SearchPathDirectory.cachesDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
+```
+
+And the system temporary folder can be accessed with:
+
+```swift
+let tmpdir = NSTemporaryDirectory()
+```
+
+None of the other `FileManager.SearchPathDirectory` enumerations are implemented in Skip.
+
+Both `Data` and `String` have the ability to read and write to and from URLs and path strings.
+
+
 ### Codable
 
 Swift uses the `Encodable` and `Decodable` protocols to convert objects to and from various data formats. In keeping with its philosophy of *transparent adoption*, Skip supports `Encodable`, `Decodable`, and the combined `Codable` protocols for object serialization and deserialization. This includes automatic synthesis of default encoding and decoding as well as support for custom encoding and decoding using Swift's `Encodable` and `Decodable` APIs. Skip does, however, have some restrictions:

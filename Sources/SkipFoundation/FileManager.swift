@@ -535,6 +535,48 @@ extension FileManager {
         return Array(contents)
         #endif
     }
+
+    public func url(for directory: FileManager.SearchPathDirectory, in domain: FileManager.SearchPathDomainMask, appropriateFor url: URL?, create shouldCreate: Bool) throws -> URL {
+        #if !SKIP
+        return URL(try platformValue.url(for: directory.platformValue, in: domain.platformValue, appropriateFor: url?.platformValue, create: shouldCreate))
+        #else
+        let ctx = ProcessInfo.processInfo.androidContext
+        switch directory {
+        case .documentDirectory: return URL(ctx.getFilesDir().toURL(), isDirectory: true)
+        case .cachesDirectory: return URL(ctx.getCacheDir().toURL(), isDirectory: true)
+        }
+        #endif
+    }
+
+    public enum SearchPathDirectory : UInt {
+        case documentDirectory
+        case cachesDirectory
+
+        #if !SKIP
+        var platformValue: Foundation.FileManager.SearchPathDirectory {
+            switch self {
+            case .documentDirectory: return .documentDirectory
+            case .cachesDirectory: return .cachesDirectory
+            }
+        }
+        #endif
+    }
+
+    public enum SearchPathDomainMask : UInt {
+        case userDomainMask = 1
+        //case localDomainMask = 2
+        //case networkDomainMask = 4
+        //case systemDomainMask = 8
+        //case allDomainMask = 0x0fff
+
+        #if !SKIP
+        var platformValue: Foundation.FileManager.SearchPathDomainMask {
+            switch self {
+            case .userDomainMask: return .userDomainMask
+            }
+        }
+        #endif
+    }
 }
 
 
