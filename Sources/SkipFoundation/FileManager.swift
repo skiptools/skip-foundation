@@ -542,8 +542,8 @@ extension FileManager {
         #else
         let ctx = ProcessInfo.processInfo.androidContext
         switch directory {
-        case .documentDirectory: return URL(ctx.getFilesDir().toURL(), isDirectory: true)
-        case .cachesDirectory: return URL(ctx.getCacheDir().toURL(), isDirectory: true)
+        case .documentDirectory: return URL.documentsDirectory
+        case .cachesDirectory: return URL.cachesDirectory
         }
         #endif
     }

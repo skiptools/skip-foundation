@@ -61,6 +61,8 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
     public static let distantPast = Date(timeIntervalSince1970: -62135769600.0)
     public static let distantFuture = Date(timeIntervalSince1970: 64092211200.0)
 
+    public static var now: Date { Date() }
+    
     public init() {
         self.platformValue = PlatformDate()
     }

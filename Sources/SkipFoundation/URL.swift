@@ -45,6 +45,144 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
     }
     #endif
 
+    public static func currentDirectory() -> URL {
+        #if !SKIP
+        return URL(Foundation.URL.currentDirectory())
+        #else
+        URL(fileURLWithPath: System.getProperty("user.dir"), isDirectory: true)
+        #endif
+    }
+
+    public static var homeDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.homeDirectory)
+        #else
+        URL(fileURLWithPath: System.getProperty("user.home"), isDirectory: true)
+        #endif
+    }
+
+    public static var temporaryDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.temporaryDirectory)
+        #else
+        URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        #endif
+    }
+
+    public static var cachesDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.cachesDirectory)
+        #else
+        return URL(ProcessInfo.processInfo.androidContext.getCacheDir().toURL(), isDirectory: true)
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var applicationDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.applicationDirectory)
+        #else
+        fatalError("applicationDirectory unimplemented in Skip")
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var libraryDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.libraryDirectory)
+        #else
+        fatalError("libraryDirectory unimplemented in Skip")
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var userDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.userDirectory)
+        #else
+        fatalError("desktopDirectory unimplemented in Skip")
+        #endif
+    }
+
+    public static var documentsDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.documentsDirectory)
+        #else
+        return URL(ProcessInfo.processInfo.androidContext.getFilesDir().toURL(), isDirectory: true)
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var desktopDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.desktopDirectory)
+        #else
+        fatalError("desktopDirectory unimplemented in Skip")
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var applicationSupportDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.applicationSupportDirectory)
+        #else
+        fatalError("applicationSupportDirectory unimplemented in Skip")
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var downloadsDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.downloadsDirectory)
+        #else
+        fatalError("downloadsDirectory unimplemented in Skip")
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var moviesDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.moviesDirectory)
+        #else
+        fatalError("moviesDirectory unimplemented in Skip")
+        #endif
+    }
+
+    public static var musicDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.musicDirectory)
+        #else
+        fatalError("musicDirectory unimplemented in Skip")
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var picturesDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.picturesDirectory)
+        #else
+        fatalError("picturesDirectory unimplemented in Skip")
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var sharedPublicDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.sharedPublicDirectory)
+        #else
+        fatalError("sharedPublicDirectory unimplemented in Skip")
+        #endif
+    }
+
+    @available(*, unavailable)
+    public static var trashDirectory: URL {
+        #if !SKIP
+        return URL(Foundation.URL.trashDirectory)
+        #else
+        fatalError("trashDirectory unimplemented in Skip")
+        #endif
+    }
+
     public init(fileURLWithPath path: String, isDirectory: Bool? = nil, relativeTo base: URL? = nil) {
         #if SKIP
         self.platformValue = PlatformURL("file://" + path) // TODO: escaping
