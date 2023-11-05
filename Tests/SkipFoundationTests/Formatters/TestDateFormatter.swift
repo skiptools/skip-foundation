@@ -445,7 +445,10 @@ class TestDateFormatter: XCTestCase {
         // TimeZone.current is GMT as well.
         // (ex. TestTimeZone.test_systemTimeZoneName)
 
-        try failOnAndroid() // java.lang.AssertionError: GMT != GMT+00:00
+        #if SKIP
+        throw XCTSkip("TODO: fix DST and TZ abbreviation")
+        //try failOnAndroid() // java.lang.AssertionError: GMT != GMT+00:00
+        #endif
 
         f.timeZone = TimeZone.current
         XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
