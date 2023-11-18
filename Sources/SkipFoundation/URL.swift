@@ -24,6 +24,8 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
     private let isDirectoryFlag: Bool?
     public let baseURL: URL?
 
+    public var platformURL: PlatformURL { platformValue }
+
     public init(_ platformValue: PlatformURL, isDirectory: Bool? = nil, baseURL: URL? = nil) {
         self.platformValue = platformValue
         self.isDirectoryFlag = isDirectory

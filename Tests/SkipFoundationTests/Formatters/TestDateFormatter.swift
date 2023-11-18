@@ -430,7 +430,7 @@ class TestDateFormatter: XCTestCase {
         let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
 
         XCTAssertNotEqual(newYork, losAngeles)
-
+ 
         let now = Date()
 
         let f = DateFormatter()
