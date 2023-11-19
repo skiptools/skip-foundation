@@ -10,6 +10,7 @@
 /// Skip `Logger` aliases to `SkipLogger` type and wraps `java.util.logging.Logger`
 public typealias Logger = SkipLogger
 public typealias LogMessage = String
+public typealias OSLogType = SkipLogger.LogType
 #else
 import os
 /// Non-skip `Logger` is an alias to `os.Logger`
@@ -31,11 +32,11 @@ public typealias OSLogType = os.OSLogType
 /// must be literals.
 @available(macOS 11, iOS 14, watchOS 7, tvOS 14, *)
 internal class SkipLogger {
-    #if SKIP
+#if SKIP
     let logName: String
-    #else
+#else
     let log: os.Logger
-    #endif
+#endif
 
     public enum LogType {
         case `default`
@@ -46,11 +47,26 @@ internal class SkipLogger {
     }
 
     public init(subsystem: String, category: String) {
-        #if SKIP
+#if SKIP
         self.logName = subsystem + "." + category
-        #else
+#else
         self.log = os.Logger(subsystem: subsystem, category: category)
-        #endif
+#endif
+    }
+
+    public func isEnabled(type: OSLogType) -> Bool {
+        return true
+    }
+
+    public func log(level: OSLogType, _ message: LogMessage) {
+        switch level {
+        case .default: log(message)
+        case .info: info(message)
+        case .debug: debug(message)
+        case .error: error(message)
+        case .fault: fault(message)
+        default: log(message)
+        }
     }
 
     public func log(_ message: LogMessage) {
