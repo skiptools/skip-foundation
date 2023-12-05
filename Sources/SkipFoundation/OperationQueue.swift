@@ -5,11 +5,14 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-@available(*, unavailable)
+
 public class OperationQueue {
+    /// Stub representing the main queue.
+    public static let main = OperationQueue()
 }
 
 @available(*, unavailable)
 public class Operation {
 }
+
 #endif
