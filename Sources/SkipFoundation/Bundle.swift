@@ -60,7 +60,7 @@ public class Bundle {
         #if !SKIP
         self.init(platformValue: PlatformBundle(for: forClass))
         #else
-        self.init(location: .forClass(`for`))
+        self.init(location: .forClass(forClass))
         #endif
     }
 

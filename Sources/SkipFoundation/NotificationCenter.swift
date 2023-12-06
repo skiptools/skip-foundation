@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 public class NotificationCenter {
     private var registries: MutableMap<String?, Registry> = mutableMapOf()
 
-    public static let `default` = NotificationCenter()
+    public static let `default`: NotificationCenter = NotificationCenter()
 
     public func addObserver(forName name: Notification.Name?, object: Any?, queue: OperationQueue?, using block: (Notification) -> Void) -> Any {
         let observer = Observer(forObject: object, queue: queue, block: block)
@@ -134,7 +134,7 @@ public class NotificationCenter {
     }
 }
 
-public struct Notification {
+public struct Notification : Hashable {
     public var name: Notification.Name
     public var object: Any?
     public var userInfo: [AnyHashable: Any]?
@@ -145,7 +145,7 @@ public struct Notification {
         self.userInfo = userInfo
     }
 
-    public struct Name: RawRepresentable {
+    public struct Name : RawRepresentable, Hashable {
         public let rawValue: String
 
         public init(rawValue: String) {
