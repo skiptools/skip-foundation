@@ -1,3 +1,9 @@
+## 0.3.9
+
+Released 2023-12-11
+
+  - Add string format localization support; add changelog; move regexp tests to skip-lib
+
 ## 0.3.6
 
 Released 2023-11-22
