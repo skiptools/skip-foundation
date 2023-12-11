@@ -20,40 +20,44 @@ public class PropertyListSerialization {
 
     public static func propertyList(from: Data, format: PropertyListFormat? = nil) throws -> Dictionary<String, String>? {
         var dict: Dictionary<String, String> = [:]
-        let re = "\"(.*)\"[ ]*=[ ]*\"(.*)\";"
         //let re = #"(?<!\\)"(.*?)(?<!\\)"\s*=\s*"(.*?)(?<!\\)";"# // Swift Regex error: "lookbehind is not currently supported"
+        //let re = "^\"(.*)\"[ ]*=[ ]*\"(.*)\";\\s*$"
+        let re = "^\"(.*)\"[ ]*=[ ]*\"(.*)\";$" // needs https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-regex-option/-m-u-l-t-i-l-i-n-e.html
 
         let text = from.utf8String
 
         guard let text = text else {
-            // TODO: should this throw an error?
+            // should this throw an error?
             return nil
         }
 
-        #if SKIP
-        let exp: kotlin.text.Regex = re.toRegex()
-        let matches = exp.findAll(text)
-        for match in matches {
-            if match.groupValues.size == 3,
-               let key = match.groupValues[1],
-               let value = match.groupValues[2] {
-                dict[key.replacingOccurrences(of: "\\\\\\\"", with: "\"")] = value.replacingOccurrences(of: "\\\\\\\"", with: "\"")
-            }
+        func unescape(_ string: String) -> String {
+            string
+                .replacingOccurrences(of: "\\\"", with: "\"")
+                .replacingOccurrences(of: "\\n", with: "\n")
         }
-        #else
-        let exp = try Regex(re)
 
         for line in text.components(separatedBy: "\n") {
-            let matches = line.matches(of: exp)
-            for match in matches {
+            #if SKIP
+            let exp = try kotlin.text.Regex(re, RegexOption.MULTILINE) // https://www.baeldung.com/regular-expressions-java#Pattern
+            for match in exp.findAll(text).map(\.groupValues) {
+                if match.size == 3,
+                   let key = match[1],
+                   let value = match[2] {
+                    dict[unescape(key)] = unescape(value)
+                }
+            }
+            #else
+            let exp = try Regex(re) // Swift.Regex
+            for match in line.matches(of: exp) {
                 if match.count == 3,
                    let key = match[1].substring,
                    let value = match[2].substring {
-                    dict[key.replacingOccurrences(of: "\\\"", with: "\"")] = value.replacingOccurrences(of: "\\\"", with: "\"")
+                    dict[unescape(key.description)] = unescape(value.description)
                 }
             }
+            #endif
         }
-        #endif
         return dict
     }
 }

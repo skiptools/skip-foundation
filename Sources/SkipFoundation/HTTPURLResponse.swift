@@ -55,7 +55,7 @@ public class HTTPURLResponse : URLResponse {
     public override var suggestedFilename: String? {
         #if SKIP
         func splitStringWithQuotes(input: String, separator: String) -> [String] {
-            let regex = Regex("(?<=^|\\s|\\w)(?<!\\w)\(separator)(?=\\s|\\w)")
+            let regex = kotlin.text.Regex("(?<=^|\\s|\\w)(?<!\\w)\(separator)(?=\\s|\\w)")
             return Array(regex.split(input))
         }
 

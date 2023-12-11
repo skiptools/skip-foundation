@@ -1289,7 +1289,7 @@ extension TestJSONSerialization {
             for param in paramsWholeNumbers {
                 let testDict = [param.0 : param.1]
                 let str = try? trySerialize(testDict)
-                XCTAssertEqual(str!, "{\"\(param.0)\":\(Int(param.0) ?? 0)}", "expect that serialized value should not contain trailing zero or decimal as they are whole numbers ")
+                XCTAssertEqual(str ?? "", "{\"\(param.0)\":\(Int(param.0) ?? 0)}", "expect that serialized value should not contain trailing zero or decimal as they are whole numbers ")
             }
         }
         

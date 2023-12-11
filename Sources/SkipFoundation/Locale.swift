@@ -22,6 +22,14 @@ public struct Locale : Hashable {
         self.platformValue = platformValue
     }
 
+    public static var availableIdentifiers: [String] {
+        #if SKIP
+        return Array(PlatformLocale.getAvailableLocales().map({ $0.toString() }))
+        #else
+        return PlatformLocale.availableIdentifiers
+        #endif
+    }
+
     public init(identifier: String) {
         #if SKIP
         //self.platformValue = PlatformLocale(identifier)

@@ -56,6 +56,14 @@ public class Bundle {
         #endif
     }
 
+    public init() {
+        #if !SKIP
+        self.platformValue = PlatformBundle()
+        #else
+        self.init(location: .forClass(Bundle.self))
+        #endif
+    }
+
     public convenience init(for forClass: AnyClass) {
         #if !SKIP
         self.init(platformValue: PlatformBundle(for: forClass))
@@ -101,9 +109,8 @@ public class Bundle {
 
 #if SKIP
 
-public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle = Bundle.main, value: String = "", comment: String) -> String {
-    // TODO: access the java.util.ResourceBundle for the calling class
-    return key
+public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, value: String = "", comment: String) -> String {
+    return (bundle ?? Bundle.main).localizedString(forKey: key, value: value, table: tableName)
 }
 
 extension Bundle {
@@ -136,7 +143,7 @@ extension Bundle {
     }
 
     /// Loads the resources index stored in the `resources.lst` file at the root of the resources folder.
-    private func loadResourcePaths() throws -> [String] {
+    private lazy var resourcesIndex: [String] = {
         guard let resourceListURL = try url(forResource: "resources.lst") else {
             return []
         }
@@ -146,16 +153,18 @@ extension Bundle {
         }
         let resourcePaths = resourceListString.components(separatedBy: "\n")
         return resourcePaths
-    }
+    }()
 
-    public var localizations: [String] {
-        get throws {
-            return try loadResourcePaths()
-                .compactMap({ $0.components(separatedBy: "/").first })
-                .filter({ $0.hasSuffix(".lproj") })
-                .map({ $0.dropLast(".lproj".count) })
-        }
-    }
+    /// We default to en as the development localization
+    public var developmentLocalization: String { "en" }
+
+    /// Identify the Bundle's localizations by the presence of a `LOCNAME.lproj/` folder in index of the root of the resources folder
+    public lazy var localizations: [String] = {
+        resourcesIndex
+            .compactMap({ $0.components(separatedBy: "/").first })
+            .filter({ $0.hasSuffix(".lproj") })
+            .map({ $0.dropLast(".lproj".count) })
+    }()
 
     public func path(forResource: String? = nil, ofType: String? = nil, inDirectory: String? = nil, forLocalization: String? = nil) -> String? {
         url(forResource: forResource, withExtension: ofType, subdirectory: inDirectory, localization: forLocalization)?.path
@@ -185,9 +194,22 @@ extension Bundle {
     }
 
     public func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
-        let table = tableName ?? "Localizable"
-        return key // TODO: load localization
+        synchronized(self) {
+            let table = tableName ?? "Localizable"
+            if let localizedTable = localizedTables[table] {
+                return localizedTable?[key] ?? value ?? key
+            } else {
+                let resURL = url(forResource: table, withExtension: "strings")
+                let locTable = resURL == nil ? nil : try? PropertyListSerialization.propertyList(from: Data(contentsOf: resURL!), format: nil)
+                localizedTables[key] = locTable
+                return locTable?[key] ?? value ?? key
+            }
+        }
     }
+
+    /// The localized strings tables for this bundle
+    private var localizedTables: [String: [String: String]?] = [:]
+
 }
 
 #endif

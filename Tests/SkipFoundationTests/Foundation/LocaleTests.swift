@@ -74,86 +74,438 @@ final class LocaleTests: XCTestCase {
         //let localeIdentifiers = foundationBundle.localizations.sorted()
 
         #if !SKIP
-        // TODO: the test resources list is overriding the foundation resources
-        
         //XCTAssertEqual(["ar", "ca", "cs", "da", "de", "el", "en", "en_AU", "en_GB", "es", "es_419", "fa", "fi", "fr", "fr_CA", "he", "hi", "hr", "hu", "id", "it", "ja", "ko", "ms", "nl", "no", "pl", "pt", "pt_PT", "ro", "ru", "sk", "sv", "th", "tr", "uk", "vi", "zh-Hans", "zh-Hant"], localeIdentifiers)
-
-//        for (lang, hello) in [
-//            ("ar", "مرحبًا"),
-//            ("ca", "Hola"),
-//            ("cs", "Ahoj"),
-//            ("da", "Hej"),
-//            ("de", "Hallo"),
-//            ("el", "Γεια σας"),
-//            ("en_AU", "Hello"),
-//            ("en_GB", "Hello"),
-//            ("en", "Hello"),
-//            ("es_419", "Hola"),
-//            ("es", "Hola"),
-//            ("fa", "سلام"),
-//            ("fi", "Hei"),
-//            ("fr_CA", "Bonjour"),
-//            ("fr", "Bonjour"),
-//            ("he", "שלום"),
-//            ("hi", "नमस्ते"),
-//            ("hr", "Bok"),
-//            ("hu", "Sziasztok"),
-//            ("id", "Halo"),
-//            ("it", "Ciao"),
-//            ("ja", "こんにちは"),
-//            ("ko", "안녕하세요"),
-//            ("ms", "Bonjour"),
-//            ("nl", "Hallo"),
-//            ("no", "Hei"),
-//            ("pl", "Cześć"),
-//            ("pt_PT", "Olá"),
-//            ("pt", "Olá"),
-//            ("ro", "Bună"),
-//            ("ru", "Привет"),
-//            ("sk", "Ahoj"),
-//            ("sv", "Hej"),
-//            ("th", "สวัสดี"),
-//            ("tr", "Merhaba"),
-//            ("uk", "Привіт"),
-//            ("vi", "Xin chào"),
-//            ("zh-Hans", "你好"),
-//            ("zh-Hant", "你好"),
-//        ] {
-//
-//            let lproj = try XCTUnwrap(foundationBundle.url(forResource: lang, withExtension: "lproj"), "error loading language: \(lang)")
-//            let bundle = try XCTUnwrap(Bundle(url: lproj))
-//            let helloLocalized = bundle.localizedString(forKey: "Hello", value: nil, table: nil)
-//            XCTAssertEqual(hello, helloLocalized, "bad hello translation for: \(lang)")
-//        }
         #endif
     }
 
-    func testManualStringLocalization() throws {
-        let locstr = """
-        /* A comment */
+    func testLocalizableStringsParsing() throws {
+        let locstr = #"""
+        /* French Localizable.strings */
+
         "Yes" = "Oui";
-        "The \\\"same\\\" text in English" = "Le \\\"même\\\" texte en anglais";
-        """
+        "The \"same\" text in English" = "Le \"même\" texte en anglais";
+
+        "welcome_message" = "Bienvenue dans notre application!";
+        "app_description" = "Une application géniale pour votre quotidien.";
+
+        "error_title" = "Erreur";
+        "error_message" = "Une erreur est survenue. Veuillez réessayer plus tard.";
+
+        "multiline_text" = "Ceci est une ligne.\nEt voici une autre ligne.\nUne troisième ligne ici.";
+
+        "quoted_strings" = "C'est une \"chaîne\" avec des guillemets.";
+        /* "escaped_quotes" = "Ceci a des guillemets simples \\'et doubles \\"; */
+
+        "parameter_example" = "Bonjour, %@! Aujourd'hui est le %@.";
+
+        "parameter_order" = "Le %@ est dans l'ordre.";
+
+        /* "unicode_example" = "Voici quelques caractères Unicode : \u{1F604} \u{2764}"; */
+
+        "nested_parameters" = "Bienvenue, %@! Vous êtes dans %@.";
+        """#
 
         let data = try XCTUnwrap(locstr.data(using: String.Encoding.utf8, allowLossyConversion: false))
+        let plist = try PropertyListSerialization.propertyList(from: data, format: nil)
 
-        do {
-            let plist = try PropertyListSerialization.propertyList(from: data, format: nil)
+        // SKIP NOWARN
+        let dict = try XCTUnwrap(plist as? Dictionary<String, String>)
 
-            let dict = try XCTUnwrap(plist as? Dictionary<String, String>)
-            XCTAssertEqual(2, dict.keys.count)
-            XCTAssertEqual("Oui", dict["Yes"])
-            XCTAssertEqual("Le \"même\" texte en anglais", dict["The \"same\" text in English"])
+        XCTAssertEqual(11, dict.count)
+
+        XCTAssertEqual(dict, [
+            "Yes": "Oui",
+            "The \"same\" text in English": "Le \"même\" texte en anglais",
+
+            "welcome_message": "Bienvenue dans notre application!",
+            "app_description": "Une application géniale pour votre quotidien.",
+
+            "error_title": "Erreur",
+            "error_message": "Une erreur est survenue. Veuillez réessayer plus tard.",
+
+            "multiline_text": "Ceci est une ligne.\nEt voici une autre ligne.\nUne troisième ligne ici.",
+
+            "quoted_strings": "C'est une \"chaîne\" avec des guillemets.",
+            //"escaped_quotes": "Ceci a des guillemets simples \\'et doubles \\",
+
+            "parameter_example": "Bonjour, %@! Aujourd'hui est le %@.",
+
+            "parameter_order": "Le %@ est dans l'ordre.",
+
+            //"unicode_example": "Voici quelques caractères Unicode : \u{1F604} \u{2764}",
+
+            "nested_parameters": "Bienvenue, %@! Vous êtes dans %@.",
+        ])
+    }
+
+    func testLocalizableStringsDictionary() throws {
+        // Due to .process rules, Localizable.xcstrings is processed into indvidual Localizable.strings files during resource preparation; in order to test the actual xcstrings parser, we have a link to it with the suffix "xcstringsjson", which will get embedded direcly in the resources so we can test it here
+        // let locURL = try XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"))
+        // let locData = try Data(contentsOf: locURL)
+
+        let locData = xcstringsSample.data(using: .utf8)!
+        let locStrings = try JSONDecoder().decode(LocalizableStringsDictionary.self, from: locData)
+
+        XCTAssertEqual("完成", locStrings.strings["Done"]?.localizations?["zh-Hans"]?.stringUnit?.value)
+        XCTAssertEqual("完了", locStrings.strings["Done"]?.localizations?["ja"]?.stringUnit?.value)
+
+        XCTAssertEqual("Bonjour，%@", locStrings.strings["Hello, %@"]?.localizations?["fr"]?.stringUnit?.value)
+        XCTAssertEqual("你好，%@", locStrings.strings["Hello, %@"]?.localizations?["zh-Hans"]?.stringUnit?.value)
+
+        //XCTAssertEqual("Done", String(localized: "Done", table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil)) // Type mismatch: inferred type is String but StringLocalizationValue was expected
+
+        XCTAssertEqual("Done", String(localized: String.LocalizationValue(stringLiteral: "Done"), table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil))
+
+        /// Peek inside the String.LocalizationValue to see how strings are converted into localization format patterns
+        func pat(value: String.LocalizationValue) throws -> String? { try value.patternFormat }
+
+        XCTAssertEqual("%@", try pat(value: "\("X")")) // Type mismatch: inferred type is String but StringLocalizationValue was expected
+        XCTAssertEqual(" %@ ", try pat(value: " \("X") "))
+        XCTAssertEqual("%@ %@ %@", try pat(value: "\("X") \("X") \("X")"))
+
+        XCTAssertEqual("%lld", try pat(value: "\(1)"))
+        XCTAssertEqual("%lld", try pat(value: "\(123)"))
+        XCTAssertEqual("%lf", try pat(value: "\(123.45)"))
+        //XCTAssertEqual("%lf", try pat(value: "\(CLongDouble(123.4567890))"))
+        XCTAssertEqual("%lf %@ %lld %lf %@", try pat(value: "\(123.45) \("ABC") \(0) \(0.0) \("QRS")"))
+
+        XCTAssertEqual("PATTERN: %llu", try pat(value: "PATTERN: \(UInt(123))"))
+
+        XCTAssertEqual("PATTERN: %@", try pat(value: "PATTERN: \("X")"))
+        XCTAssertEqual("PATTERN: %lld", try pat(value: "PATTERN: \(Int(0))"))
+        XCTAssertEqual("PATTERN: %d", try pat(value: "PATTERN: \(Int16(0))"))
+        // XCTAssertEqual("PATTERN: %d", try pat(value: "PATTERN: \(Int32(0))")) // FIXME: Int32=Int in Kotlin, but expected pattern in Swift is different
+        XCTAssertEqual("PATTERN: %lld", try pat(value: "PATTERN: \(Int64(0))"))
+        XCTAssertEqual("PATTERN: %llu", try pat(value: "PATTERN: \(UInt(0))"))
+        XCTAssertEqual("PATTERN: %u", try pat(value: "PATTERN: \(UInt16(0))"))
+        //XCTAssertEqual("PATTERN: %u", try pat(value: "PATTERN: \(UInt32(0))"))
+        XCTAssertEqual("PATTERN: %llu", try pat(value: "PATTERN: \(UInt64(0))"))
+        XCTAssertEqual("PATTERN: %lf", try pat(value: "PATTERN: \(Double(0))"))
+        XCTAssertEqual("PATTERN: %f", try pat(value: "PATTERN: \(Float(0))"))
+
+        XCTAssertEqual("Done ABC", String(localized: "Done \("ABC")"))
+        // XCTAssertEqual("Done %%@ ABC", String(localized: "Done %%@ \("ABC")")) // escaped pattern
+        XCTAssertEqual("Done 123", String(localized: "Done \(123)"))
+
+        XCTAssertEqual("PRE123.450000SUF", String(localized: "PRE\(123.45)SUF"))
+    }
+
+    func testLocalizableStrings() throws {
+        let localizations = Bundle.module.localizations
+        let isSPM = localizations == ["en"] // SwiftPM builds don't process the strings dictionary
+        if isSPM {
+            // This only works when running from Xcode or Skip, since the `.process("Resources")` rule will convert the Localizable.xcstrings into ar.lproj/Localizable.strings
+            throw XCTSkip("SwiftPM does not process Localizable.xcstrings")
         }
 
-        // run the same test again, but this time verifying the SkipPropertyListSerialization implementation on Darwin
-        do {
-            let plist = try PropertyListSerialization.propertyList(from: data, format: nil)
+        XCTAssertEqual(["ar", "en", "fr", "he", "ja", "pt-BR", "ru", "sv", "uk", "zh-Hans"], localizations.sorted())
 
-            let dict = try XCTUnwrap(plist as? Dictionary<String, String>)
-            XCTAssertEqual(2, dict.keys.count)
-            XCTAssertEqual("Oui", dict["Yes"])
-            XCTAssertEqual("Le \"même\" texte en anglais", dict["The \"same\" text in English"])
+        #if !SKIP
+        let devloc = Bundle.module.developmentLocalization
+        XCTAssertEqual("en", devloc)
+        #else
+        let devloc = "en"
+        #endif
+
+        for lang in localizations.filter({ $0 != devloc }) {
+            //NSLocalizedString("Hello", tableName: "Localizable", bundle: Bundle(url: Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: lang)!) ?? Bundle.module, comment: "")
+            //let isDevloc = lang == devloc
+            let isDevloc = false
+
+            let locstrs = try XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: isDevloc ? nil : lang + ".lproj", localization: nil), "missing Localizable.strings for localization: \(lang)")
+            // another way to express the same thing
+            let locstrs2 = try XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: isDevloc ? nil : lang), "missing Localizable.strings for localization: \(lang)")
+
+            XCTAssertEqual(locstrs, locstrs2)
+
+            let lb = try XCTUnwrap(Bundle(url: locstrs.deletingLastPathComponent())) 
+
+            if lang == "ar" {
+                // https://github.com/skiptools/skip/issues/64
+                #if !SKIP
+                XCTAssertEqual("تم", String(localized: "Done", bundle: lb))
+                #endif
+
+                XCTAssertEqual("تم", String(localized: String.LocalizationValue(stringLiteral: "Done"), bundle: lb))
+                //XCTAssertEqual("تم⁨X⁩", String(localized: "Done \("X")", bundle: lb)) // java.lang.AssertionError: تم⁨X⁩ != تمX
+
+                // SKIP NOWARN
+                XCTAssertEqual(try PropertyListSerialization.propertyList(from: Data(contentsOf: locstrs), format: nil) as? Dictionary<String, String>, [
+                    "Done %@": "تم%@",
+                    "Done": "تم",
+                    "Recent": "حديثًا"
+                ])
+            } else if lang == "fr" {
+                XCTAssertEqual("Terminé", String(localized: String.LocalizationValue(stringLiteral: "Done"), bundle: lb))
+                XCTAssertEqual("Terminé X", String(localized: "Done \("X")", bundle: lb))
+
+                XCTAssertEqual("""
+                Chaîne multi-ligne !
+                Avec un peu de texte « entre guillemets ».
+                """, NSLocalizedString("""
+                Multi-Line String!
+                With some "quoted" text.
+                """, bundle: lb, comment: ""))
+
+                // SKIP NOWARN
+                XCTAssertEqual(try PropertyListSerialization.propertyList(from: Data(contentsOf: locstrs), format: nil) as? Dictionary<String, String>, [
+                    "Done %@": "Terminé %@",
+                    "Done": "Terminé",
+                    "Multi-Line String!\nWith some \"quoted\" text.": "Chaîne multi-ligne !\nAvec un peu de texte « entre guillemets »."
+                ])
+
+            }
         }
     }
 }
+
+#if !SKIP
+extension String.LocalizationValue {
+    /// Returns the underlying pattern format represented by this `LocalizationValue`
+    /// Note that in Skip, this is already implemented
+    var patternFormat: String? {
+        get throws {
+            let jsonData = try JSONEncoder().encode(self)
+            // String.LocalizationValue is encoded like: {"key":"%@","arguments":[{"string":{"_0":"X"}}]}
+            if let jsonDict = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+                // the "key" property is the format of the string
+                return jsonDict["key"] as? String
+            } else {
+                return nil
+            }
+        }
+    }
+}
+#endif
+
+
+/// The contents of a `Localizable.xcstrings` file.
+public struct LocalizableStringsDictionary : Decodable {
+    public let version: String
+    public let sourceLanguage: String
+    public let strings: [String: StringsEntry]
+
+    public struct StringsEntry : Decodable {
+        public let extractionState: String? // e.g., "stale"
+        public let comment: String?
+        public let localizations: [String: TranslationSet]?
+    }
+
+    public struct TranslationSet : Decodable {
+        public let stringUnit: StringUnit?
+    }
+
+    public struct StringUnit: Decodable {
+        public let state: String? // e.g., "translated"
+        // workaround for Kotlin not liking like "value" (https://github.com/skiptools/skip/issues/62)
+        private let _value: String?
+        public var value: String? { _value }
+
+        public enum CodingKeys : String, CodingKey {
+            case state = "state"
+            case _value = "value"
+        }
+    }
+}
+
+let xcstringsSample = """
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@" : {
+
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "@"
+          }
+        }
+      }
+    },
+    "❄️" : {
+
+    },
+    "🌞" : {
+
+    },
+    "Done" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminé"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סיום"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完了"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Готово"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Готово"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
+          }
+        }
+      }
+    },
+    "Hello, %@" : {
+     "localizations" : {
+      "ar" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "مرحبا، %@"
+        }
+      },
+      "fr" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Bonjour，%@"
+        }
+      },
+      "he" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "שלום، %@"
+        }
+      },
+      "ja" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "こんにちは，%@"
+        }
+      },
+      "pt-BR" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Olá，%@"
+        }
+      },
+      "ru" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Привет，%@"
+        }
+      },
+      "sv" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Hej，%@"
+        }
+      },
+      "uk" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "Привіт，%@"
+        }
+      },
+      "zh-Hans" : {
+        "stringUnit" : {
+          "state" : "translated",
+          "value" : "你好，%@"
+        }
+      }
+     }
+    },
+
+    "Recent" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حديثًا"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אחרונות"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "履歴"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recentes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недавние"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senaste"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недавно"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近造访"
+          }
+        }
+      }
+    },
+    "Settings" : {
+
+    }
+  },
+  "version" : "1.0"
+}
+
+"""

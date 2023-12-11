@@ -29,7 +29,7 @@ final class SkipFoundationTests: XCTestCase {
             if isRobolectric {
                 XCTAssertEqual(value, env[key], "Unexpected value for Robolectric system property \(key): \(env[key] ?? "")")
             } else if isAndroidEmulator {
-                logger.log("### ANDROID VALUE: \(key): \(env[key] ?? "")")
+                logger.log("ANDROID ENV: \(key)=\(env[key] ?? "")")
                 XCTAssertNotNil(env[key], "Android system property should not been nil for key \(key)")
             } else {
                 XCTAssertNil(env[key], "Swift system property should have been nil for key \(key) value=\(env[key] ?? "")")

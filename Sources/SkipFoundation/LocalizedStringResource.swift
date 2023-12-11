@@ -56,12 +56,6 @@ public extension LocalizedStringResource {
     public typealias BundleDescription = SkipLocalizedStringResource.LocalizedStringResource
 }
 
-public func String(localized: LocalizedStringResource) -> String {
-    fatalError("TODO: String(localized:)")
-}
-
-// //SKIP INSERT: public operator fun SkipLocalizedStringResource.Companion.invoke(contentsOf: URL): SkipLocalizedStringResource { return SkipLocalizedStringResource(TODO) }
-
 extension SkipLocalizedStringResource {
 }
 
