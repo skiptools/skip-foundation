@@ -82,11 +82,11 @@ public struct StringLocalizationValue : ExpressibleByStringInterpolation {
             switch value {
             case _ as Int: pattern.append("%lld")
             case _ as Int16: pattern.append("%d")
-            case _ as Int32: pattern.append("%d")
+            //case _ as Int32: pattern.append("%d") // Int32==Int in Kotlin
             case _ as Int64: pattern.append("%lld")
             case _ as UInt: pattern.append("%llu")
             case _ as UInt16: pattern.append("%u")
-            case _ as UInt32: pattern.append("%u")
+            //case _ as UInt32: pattern.append("%u") // UInt32==UInt in Kotlin
             case _ as UInt64: pattern.append("%llu")
             case _ as Double: pattern.append("%lf")
             case _ as Float: pattern.append("%f")

@@ -109,7 +109,7 @@ public class Bundle {
 
 #if SKIP
 
-public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, value: String = "", comment: String) -> String {
+public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, value: String? = nil, comment: String) -> String {
     return (bundle ?? Bundle.main).localizedString(forKey: key, value: value, table: tableName)
 }
 
