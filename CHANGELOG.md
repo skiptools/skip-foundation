@@ -1,3 +1,9 @@
+## 0.3.10
+
+Released 2023-12-12
+
+  - Make NSLocalizedString value parameter default to nil
+
 ## 0.3.9
 
 Released 2023-12-11
