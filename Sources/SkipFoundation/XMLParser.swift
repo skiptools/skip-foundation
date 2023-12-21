@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+
 @available(*, unavailable)
 public struct XMLParser {
 }
@@ -12,30 +13,5 @@ public struct XMLParser {
 @available(*, unavailable)
 public protocol XMLParserDelegate {
 }
-#endif
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-// #if !SKIP
-// import struct Foundation.XMLParser
-// public typealias PlatformXMLParser = Foundation.XMLParser
-// #else
-// public typealias PlatformXMLParser = java.util.XMLParser
-// #endif
-//
-//
-// public struct XMLParser : RawRepresentable, Hashable, CustomStringConvertible {
-//     public var platformValue: PlatformXMLParser
-//
-//     public init(platformValue: PlatformXMLParser) {
-//         self.platformValue = platformValue
-//     }
-//
-//     public init(_ platformValue: PlatformXMLParser = PlatformXMLParser()) {
-//         self.platformValue = platformValue
-//     }
-//
-//     var description: String {
-//         return platformValue.description
-//     }
-// }
+#endif

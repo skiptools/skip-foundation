@@ -23,9 +23,6 @@
 import kotlin.reflect.full.__
 
 typealias JSONDecoderValue = Any
-#else
-typealias JSONDecoderValue = JSONValue
-#endif
 
 // SKIP DECLARE: open class JSONDecoder: TopLevelDecoder<Data>
 open class JSONDecoder {
@@ -83,7 +80,6 @@ open class JSONDecoder {
 
     public init() {}
 
-    #if SKIP
     // Our TopLevelDecoder superclass handles the decode calls. We just have to produce the decoder
     public override func decoder(from data: Data) -> Decoder {
         do {
@@ -96,19 +92,6 @@ open class JSONDecoder {
             throw error
         }
     }
-    #else
-    open func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
-        do {
-            var parser = JSONParser(bytes: data.bytes)
-            let json = try parser.parse()
-            return try JSONDecoderImpl(userInfo: self.userInfo, from: json, codingPath: [], options: self.options).unwrap(as: type)
-        } catch let error as JSONError {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "The given data was not valid JSON.", underlyingError: error))
-        } catch {
-            throw error
-        }
-    }
-    #endif
 }
 
 private struct JSONDecoderImpl: Decoder {
@@ -129,23 +112,9 @@ private struct JSONDecoderImpl: Decoder {
     {
         let dictionary: Dictionary<String, JSONDecoderValue>?
         let isNull: Bool
-        #if SKIP
         // SKIP NOWARN
         dictionary = json as? Dictionary<String, Any>
         isNull = json is NSNull
-        #else
-        switch self.json {
-        case .object(let dict):
-            dictionary = dict
-            isNull = false
-        case .null:
-            dictionary = nil
-            isNull = true
-        default:
-            dictionary = nil
-            isNull = false
-        }
-        #endif
         if let dictionary {
             let container = JSONKeyedDecodingContainer<Key>(
                 keyedBy: _keyType,
@@ -170,22 +139,8 @@ private struct JSONDecoderImpl: Decoder {
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         let array: Array<JSONDecoderValue>?
         let isNull: Bool
-        #if SKIP
         array = json as? Array<Any>
         isNull = json is NSNull
-        #else
-        switch self.json {
-        case .array(let arr):
-            array = arr
-            isNull = false
-        case .null:
-            array = nil
-            isNull = true
-        default:
-            array = nil
-            isNull = false
-        }
-        #endif
         if let array {
             return JSONUnkeyedDecodingContainer(
                 impl: self,
@@ -224,16 +179,7 @@ private struct JSONDecoderImpl: Decoder {
         if type == URL.self {
             return try self.unwrapURL() as! T
         }
-        #if !SKIP
-        if type == Decimal.self {
-            return try self.unwrapDecimal() as! T
-        }
-        if T.self is _JSONStringDictionaryDecodableMarker.Type {
-            return try self.unwrapDictionary(as: T.self)
-        }
-        #endif
 
-        #if SKIP
         /* SKIP INSERT:
         val decodableCompanion = type.companionObjectInstance as? DecodableCompanion<*>
         if (decodableCompanion != null) {
@@ -241,9 +187,6 @@ private struct JSONDecoderImpl: Decoder {
         }
         */
         throw createTypeMismatchError(type: Decodable.self, value: self.json)
-        #else
-        return try T.init(from: self)
-        #endif
     }
 
     private func unwrapDate() throws -> Date {
@@ -310,139 +253,6 @@ private struct JSONDecoderImpl: Decoder {
         return url
     }
 
-    #if !SKIP
-    private func unwrapDecimal() throws -> Decimal {
-        guard case JSONValue.number(let numberString) = self.json else {
-            throw DecodingError.typeMismatch(Decimal.self, DecodingError.Context(codingPath: self.codingPath, debugDescription: ""))
-        }
-        guard let decimal = Decimal(string: numberString) else {
-            throw DecodingError.dataCorrupted(.init(
-                codingPath: self.codingPath,
-                debugDescription: "Parsed JSON number <\(numberString)> does not fit in \(Decimal.self)."))
-        }
-        return decimal
-    }
-
-    private func unwrapDictionary<T: Decodable>(as: T.Type) throws -> T {
-        guard let dictType = T.self as? (_JSONStringDictionaryDecodableMarker & Decodable).Type else {
-            preconditionFailure("Must only be called of T implements _JSONStringDictionaryDecodableMarker")
-        }
-
-        guard case JSONValue.object(let obj) = self.json else {
-            throw DecodingError.typeMismatch(Dictionary<String, JSONValue>.self, DecodingError.Context(
-                codingPath: self.codingPath,
-                debugDescription: "Expected to decode Dictionary but found \(self.json.debugDataTypeDescription) instead."
-            ))
-        }
-
-        var result = Dictionary<String, Any>()
-        for (key, value) in obj {
-            var newPath = self.codingPath
-            newPath.append(_JSONKey(stringValue: key)!)
-            let newDecoder = JSONDecoderImpl(userInfo: self.userInfo, from: value, codingPath: newPath, options: self.options)
-            let _ = newDecoder
-            result[key] = try dictType.elementType.createByDirectlyUnwrapping(from: newDecoder)
-        }
-
-        return result as! T
-    }
-
-    fileprivate func unwrapFloatingPoint<T: LosslessStringConvertible & BinaryFloatingPoint>(
-        from value: JSONValue,
-        for additionalKey: CodingKey? = nil,
-        as type: T.Type) throws -> T
-    {
-        if case .number(let number) = value {
-            guard let floatingPoint = T(number), floatingPoint.isFinite else {
-                var path = self.codingPath
-                if let additionalKey = additionalKey {
-                    path.append(additionalKey)
-                }
-                throw DecodingError.dataCorrupted(.init(
-                    codingPath: path,
-                    debugDescription: "Parsed JSON number <\(number)> does not fit in \(type)."))
-            }
-
-            return floatingPoint
-        }
-
-        if case .string(let string) = value,
-           case .convertFromString(let posInfString, let negInfString, let nanString) =
-            self.options.nonConformingFloatDecodingStrategy
-        {
-            if string == posInfString {
-                return T.infinity
-            } else if string == negInfString {
-                return -T.infinity
-            } else if string == nanString {
-                return T.nan
-            }
-        }
-
-        throw self.createTypeMismatchError(type: type, for: additionalKey, value: value)
-    }
-
-    fileprivate func unwrapFixedWidthInteger<T: FixedWidthInteger>(
-        from value: JSONValue,
-        for additionalKey: CodingKey? = nil,
-        as type: T.Type) throws -> T
-    {
-        guard case JSONValue.number(let number) = value else {
-            throw self.createTypeMismatchError(type: type, for: additionalKey, value: value)
-        }
-
-        // this is the fast pass. Number directly convertible to Integer
-        if let integer = T(number) {
-            return integer
-        }
-
-        #if JSON_NOSKIP
-        // this is the really slow path... If the fast path has failed. For example for "34.0" as
-        // an integer, we try to go through NSNumber
-        if let nsNumber = NSNumber.fromJSONNumber(number) {
-            if type == UInt8.self, NSNumber(value: nsNumber.uint8Value) == nsNumber {
-                return nsNumber.uint8Value as! T
-            }
-            if type == Int8.self, NSNumber(value: nsNumber.int8Value) == nsNumber {
-                return nsNumber.int8Value as! T
-            }
-            if type == UInt16.self, NSNumber(value: nsNumber.uint16Value) == nsNumber {
-                return nsNumber.uint16Value as! T
-            }
-            if type == Int16.self, NSNumber(value: nsNumber.int16Value) == nsNumber {
-                return nsNumber.int16Value as! T
-            }
-            if type == UInt32.self, NSNumber(value: nsNumber.uint32Value) == nsNumber {
-                return nsNumber.uint32Value as! T
-            }
-            if type == Int32.self, NSNumber(value: nsNumber.int32Value) == nsNumber {
-                return nsNumber.int32Value as! T
-            }
-            if type == UInt64.self, NSNumber(value: nsNumber.uint64Value) == nsNumber {
-                return nsNumber.uint64Value as! T
-            }
-            if type == Int64.self, NSNumber(value: nsNumber.int64Value) == nsNumber {
-                return nsNumber.int64Value as! T
-            }
-            if type == UInt.self, NSNumber(value: nsNumber.uintValue) == nsNumber {
-                return nsNumber.uintValue as! T
-            }
-            if type == Int.self, NSNumber(value: nsNumber.intValue) == nsNumber {
-                return nsNumber.intValue as! T
-            }
-        }
-        #endif
-
-        var path = self.codingPath
-        if let additionalKey = additionalKey {
-            path.append(additionalKey)
-        }
-        throw DecodingError.dataCorrupted(.init(
-            codingPath: path,
-            debugDescription: "Parsed JSON number <\(number)> does not fit in type."))
-    }
-    #endif
-
     fileprivate func codingPath(with additionalKey: CodingKey?) -> [CodingKey] {
         var path = self.codingPath
         if let additionalKey = additionalKey {
@@ -490,12 +300,6 @@ private struct JSONSingleValueDecodingContainer: SingleValueDecodingContainer {
         return try decodeAsFloat(value, impl: impl)
     }
 
-    #if !SKIP // Same as Int32
-    func decode(_ type: Int.Type) throws -> Int {
-        return try decodeAsInt(value, impl: impl)
-    }
-    #endif
-
     func decode(_ type: Int8.Type) throws -> Int8 {
         return try decodeAsInt8(value, impl: impl)
     }
@@ -511,12 +315,6 @@ private struct JSONSingleValueDecodingContainer: SingleValueDecodingContainer {
     func decode(_ type: Int64.Type) throws -> Int64 {
         return try decodeAsInt64(value, impl: impl)
     }
-
-    #if !SKIP // Same as UInt32
-    func decode(_ type: UInt.Type) throws -> UInt {
-        return try decodeAsUInt(value, impl: impl)
-    }
-    #endif
 
     func decode(_ type: UInt8.Type) throws -> UInt8 {
         return try decodeAsUInt8(value, impl: impl)
@@ -540,14 +338,9 @@ private struct JSONSingleValueDecodingContainer: SingleValueDecodingContainer {
     }
 }
 
-#if SKIP
 internal typealias JSONDecoderKey = CodingKey
-#endif
 
 fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingContainerProtocol {
-    #if !SKIP
-    internal typealias JSONDecoderKey = Key
-    #endif
     let impl: JSONDecoderImpl
     let codingPath: [CodingKey]
     let dictionary: Dictionary<String, JSONDecoderValue>
@@ -555,11 +348,7 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
     init(keyedBy: Any.Type, impl: JSONDecoderImpl, codingPath: [CodingKey], dictionary: Dictionary<String, JSONDecoderValue>) {
         self.impl = impl
         self.codingPath = codingPath
-        #if SKIP
         let decodeKeys = keyedBy == DictionaryCodingKey.self
-        #else
-        let decodeKeys = keyedBy != Int.self // Always true; used to prevent compiler warning
-        #endif
         if decodeKeys {
             switch impl.options.keyDecodingStrategy {
             case .useDefaultKeys:
@@ -589,11 +378,7 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
 
     var allKeys: [JSONDecoderKey] {
         self.dictionary.keys.compactMap {
-            #if SKIP
             _JSONKey(stringValue: $0)
-            #else
-            JSONDecoderKey(stringValue: $0)
-            #endif
         }
     }
 
@@ -629,13 +414,6 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
         return try decodeAsFloat(value, forKey: key, impl: self.impl)
     }
 
-    #if !SKIP // Same as Int32
-    func decode(_ type: Int.Type, forKey key: JSONDecoderKey) throws -> Int {
-        let value = try getValue(forKey: key)
-        return try decodeAsInt(value, forKey: key, impl: self.impl)
-    }
-    #endif
-
     func decode(_ type: Int8.Type, forKey key: JSONDecoderKey) throws -> Int8 {
         let value = try getValue(forKey: key)
         return try decodeAsInt8(value, forKey: key, impl: self.impl)
@@ -655,13 +433,6 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
         let value = try getValue(forKey: key)
         return try decodeAsInt64(value, forKey: key, impl: self.impl)
     }
-
-    #if !SKIP // Same as UInt32
-    func decode(_ type: UInt.Type, forKey key: JSONDecoderKey) throws -> UInt {
-        let value = try getValue(forKey: key)
-        return try decodeAsUInt(value, forKey: key, impl: self.impl)
-    }
-    #endif
 
     func decode(_ type: UInt8.Type, forKey key: JSONDecoderKey) throws -> UInt8 {
         let value = try getValue(forKey: key)
@@ -725,11 +496,7 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
             value = try getValue(forKey: key)
         } catch {
             // if there no value for this key then return a null value
-            #if SKIP
             value = NSNull.null
-            #else
-            value = JSONValue.null
-            #endif
         }
         var newPath = self.codingPath
         newPath.append(key)
@@ -805,15 +572,6 @@ fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         return ret
     }
 
-    #if !SKIP // Same as Int32
-    mutating func decode(_ type: Int.Type) throws -> Int {
-        let value = try self.getNextValue(ofType: Int.self)
-        let ret = try decodeAsInt(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
-        self.currentIndex += 1
-        return ret
-    }
-    #endif
-
     mutating func decode(_ type: Int8.Type) throws -> Int8 {
         let value = try self.getNextValue(ofType: Int8.self)
         let ret = try decodeAsInt8(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
@@ -841,15 +599,6 @@ fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         self.currentIndex += 1
         return ret
     }
-
-    #if !SKIP // Same as UInt32
-    mutating func decode(_ type: UInt.Type) throws -> UInt {
-        let value = try self.getNextValue(ofType: UInt.self)
-        let ret = try decodeAsUInt(value, forKey: _JSONKey(index: currentIndex), impl: self.impl)
-        self.currentIndex += 1
-        return ret
-    }
-    #endif
 
     mutating func decode(_ type: UInt8.Type) throws -> UInt8 {
         let value = try self.getNextValue(ofType: UInt8.self)
@@ -942,45 +691,14 @@ fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         }
         return self.array[self.currentIndex]
     }
-
-    #if !SKIP
-    @inline(__always) private mutating func decodeFixedWidthInteger<T: FixedWidthInteger>() throws -> T {
-        let value = try self.getNextValue(ofType: T.self)
-        let key = _JSONKey(index: self.currentIndex)
-        let result = try self.impl.unwrapFixedWidthInteger(from: value, for: key, as: T.self)
-        self.currentIndex += 1
-        return result
-    }
-
-    @inline(__always) private mutating func decodeFloatingPoint<T: LosslessStringConvertible & BinaryFloatingPoint>() throws -> T {
-        let value = try self.getNextValue(ofType: T.self)
-        let key = _JSONKey(index: self.currentIndex)
-        let result = try self.impl.unwrapFloatingPoint(from: value, for: key, as: T.self)
-        self.currentIndex += 1
-        return result
-    }
-    #endif
 }
 
 private func decodeAsNil(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) -> Bool {
-    #if SKIP
     return value is NSNull
-    #else
-    return value == .null
-    #endif
 }
 
 private func decodeAsBool(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Bool {
-    let bool: Bool?
-    #if SKIP
-    bool = value as? Bool
-    #else
-    if case JSONValue.bool(let b) = value {
-        bool = b
-    } else {
-        bool = nil
-    }
-    #endif
+    let bool = value as? Bool
     guard let bool else {
         throw impl.createTypeMismatchError(type: Bool.self, for: key, value: value)
     }
@@ -988,16 +706,7 @@ private func decodeAsBool(_ value: JSONDecoderValue, forKey key: CodingKey? = ni
 }
 
 private func decodeAsString(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> String {
-    let string: String?
-    #if SKIP
-    string = value is NSNull ? nil : value.toString()
-    #else
-    if case JSONValue.string(let s) = value {
-        string = s
-    } else {
-        string = nil
-    }
-    #endif
+    let string: String? = value is NSNull ? nil : value.toString()
     guard let string else {
         throw impl.createTypeMismatchError(type: String.self, value: value)
     }
@@ -1052,7 +761,6 @@ private func decodeAsUInt64(_ value: JSONDecoderValue, forKey key: CodingKey? = 
     return try checkNumericOptional(UInt64(decodeNumeric(value, forKey: key, impl: impl)), forKey: key, impl: impl)
 }
 
-#if SKIP
 private func decodeNumeric(value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> Number {
     guard let number = value as? Number else {
         throw DecodingError.typeMismatch(Int.self, DecodingError.Context(
@@ -1061,16 +769,6 @@ private func decodeNumeric(value: JSONDecoderValue, forKey key: CodingKey? = nil
     }
     return number
 }
-#else
-private func decodeNumeric(_ value: JSONDecoderValue, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> String {
-    guard case JSONValue.number(let numberString) = value else {
-        throw DecodingError.typeMismatch(Int.self, DecodingError.Context(
-            codingPath: impl.codingPath(with: key), debugDescription: "Expected to decode number but found \(value) instead."
-        ))
-    }
-    return numberString
-}
-#endif
 
 private func checkNumericOptional<T>(_ value: T?, forKey key: CodingKey? = nil, impl: JSONDecoderImpl) throws -> T {
     guard let value else {
@@ -1079,27 +777,4 @@ private func checkNumericOptional<T>(_ value: T?, forKey key: CodingKey? = nil, 
     return value
 }
 
-#if !SKIP
-fileprivate protocol _JSONStringDictionaryDecodableMarker {
-    static var elementType: Decodable.Type { get }
-}
-
-extension Dictionary: _JSONStringDictionaryDecodableMarker where Key == String, Value: Decodable {
-    static var elementType: Decodable.Type { return Value.self }
-}
-
-extension Decodable {
-    fileprivate static func createByDirectlyUnwrapping(from decoder: JSONDecoderImpl) throws -> Self {
-        if Self.self == URL.self
-            || Self.self == Date.self
-            || Self.self == Data.self
-            || Self.self == Decimal.self
-            || Self.self is _JSONStringDictionaryDecodableMarker.Type
-        {
-            return try decoder.unwrap(as: Self.self)
-        }
-
-        return try Self.init(from: decoder)
-    }
-}
 #endif

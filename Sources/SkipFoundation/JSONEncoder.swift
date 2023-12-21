@@ -19,11 +19,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-
-#if !SKIP
-fileprivate protocol _JSONStringDictionaryEncodableMarker { }
-extension Dictionary: _JSONStringDictionaryEncodableMarker where Key == String, Value: Encodable { }
-#endif
+#if SKIP
 
 // SKIP DECLARE: open class JSONEncoder: TopLevelEncoder<Data>
 open class JSONEncoder {
@@ -66,54 +62,51 @@ open class JSONEncoder {
 
         fileprivate static func _convertToSnakeCase(_ stringKey: String) -> String {
             guard !stringKey.isEmpty else { return stringKey }
-            #if SKIP
             fatalError("SKIP TODO: JSON snakeCase")
-            #else
-            var words: [Range<String.Index>] = []
-            // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
-            //
-            // myProperty -> my_property
-            // myURLProperty -> my_url_property
-            //
-            // We assume, per Swift naming conventions, that the first character of the key is lowercase.
-            var wordStart = stringKey.startIndex
-            var searchRange = stringKey.index(after: wordStart)..<stringKey.endIndex
-
-            // Find next uppercase character
-            while let upperCaseRange = stringKey.rangeOfCharacter(from: .uppercaseLetters, options: [], range: searchRange) {
-                let untilUpperCase = wordStart..<upperCaseRange.lowerBound
-                words.append(untilUpperCase)
-
-                // Find next lowercase character
-                searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
-                guard let lowerCaseRange = stringKey.rangeOfCharacter(from: .lowercaseLetters, options: [], range: searchRange) else {
-                    // There are no more lower case letters. Just end here.
-                    wordStart = searchRange.lowerBound
-                    break
-                }
-
-                // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
-                let nextCharacterAfterCapital = stringKey.index(after: upperCaseRange.lowerBound)
-                if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
-                    // The next character after capital is a lower case character and therefore not a word boundary.
-                    // Continue searching for the next upper case for the boundary.
-                    wordStart = upperCaseRange.lowerBound
-                } else {
-                    // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
-                    let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
-                    words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
-
-                    // Next word starts at the capital before the lowercase we just found
-                    wordStart = beforeLowerIndex
-                }
-                searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
-            }
-            words.append(wordStart..<searchRange.upperBound)
-            let result = words.map({ (range) in
-                return stringKey[range].lowercased()
-            }).joined(separator: "_")
-            return result
-            #endif
+//            var words: [Range<String.Index>] = []
+//            // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
+//            //
+//            // myProperty -> my_property
+//            // myURLProperty -> my_url_property
+//            //
+//            // We assume, per Swift naming conventions, that the first character of the key is lowercase.
+//            var wordStart = stringKey.startIndex
+//            var searchRange = stringKey.index(after: wordStart)..<stringKey.endIndex
+//
+//            // Find next uppercase character
+//            while let upperCaseRange = stringKey.rangeOfCharacter(from: .uppercaseLetters, options: [], range: searchRange) {
+//                let untilUpperCase = wordStart..<upperCaseRange.lowerBound
+//                words.append(untilUpperCase)
+//
+//                // Find next lowercase character
+//                searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
+//                guard let lowerCaseRange = stringKey.rangeOfCharacter(from: .lowercaseLetters, options: [], range: searchRange) else {
+//                    // There are no more lower case letters. Just end here.
+//                    wordStart = searchRange.lowerBound
+//                    break
+//                }
+//
+//                // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
+//                let nextCharacterAfterCapital = stringKey.index(after: upperCaseRange.lowerBound)
+//                if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
+//                    // The next character after capital is a lower case character and therefore not a word boundary.
+//                    // Continue searching for the next upper case for the boundary.
+//                    wordStart = upperCaseRange.lowerBound
+//                } else {
+//                    // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
+//                    let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
+//                    words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
+//
+//                    // Next word starts at the capital before the lowercase we just found
+//                    wordStart = beforeLowerIndex
+//                }
+//                searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
+//            }
+//            words.append(wordStart..<searchRange.upperBound)
+//            let result = words.map({ (range) in
+//                return stringKey[range].lowercased()
+//            }).joined(separator: "_")
+//            return result
         }
     }
 
@@ -142,7 +135,6 @@ open class JSONEncoder {
 
     public init() {}
 
-    #if SKIP
     // Our TopLevelEncoder superclass handles the encode calls. We just have to produce the encoder
     override func encoder() -> Encoder {
         return JSONEncoderImpl(options: self.options, codingPath: [])
@@ -156,22 +148,6 @@ open class JSONEncoder {
         let bytes = writer.writeValue(value)
         return Data(bytes: bytes)
     }
-    #else
-    open func encode<T: Encodable>(_ value: T) throws -> Data {
-        let value: JSONValue = try encodeAsJSONValue(value)
-        let writer = JSONValue.Writer(options: self.outputFormatting)
-        let bytes = writer.writeValue(value)
-        return Data(bytes)
-    }
-
-    private func encodeAsJSONValue<T: Encodable>(_ value: T) throws -> JSONValue {
-        let encoder = JSONEncoderImpl(options: self.options, codingPath: [])
-        guard let topLevel = try encoder.wrapEncodable(value, for: nil) else {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Top-level \(T.self) did not encode any values."))
-        }
-        return topLevel
-    }
-    #endif
 }
 
 private enum JSONFuture {
@@ -363,12 +339,6 @@ extension JSONEncoderImpl: _SpecialTreatmentEncoder {
             return try self.wrapData(data, for: nil)
         case let url as URL:
             return .string(url.absoluteString)
-        #if !SKIP
-        case let decimal as Decimal:
-            return .number(decimal.description)
-        case let object as [String: Encodable]:
-            return try self.wrapObject(object, for: nil)
-        #endif
         default:
             try encodable.encode(to: self)
             return self.value ?? .object([:])
@@ -385,33 +355,6 @@ private protocol _SpecialTreatmentEncoder {
 extension _SpecialTreatmentEncoder {
     // SKIP DECLARE: fun wrapFloat(float: Any, for_: CodingKey?): JSONValue
     func wrapFloat<F: FloatingPoint & CustomStringConvertible>(_ float: F, for additionalKey: CodingKey?) throws -> JSONValue {
-        #if !SKIP
-        let isNaN = float.isNaN
-        let isInfinite = float.isInfinite
-        guard !isNaN, !isInfinite else {
-            if case JSONEncoder.NonConformingFloatEncodingStrategy.convertToString(let posInfString, let negInfString, let nanString) = self.options.nonConformingFloatEncodingStrategy {
-                switch float {
-                case F.infinity:
-                    return JSONValue.string(posInfString)
-                case -F.infinity:
-                    return JSONValue.string(negInfString)
-                default:
-                    // must be nan in this case
-                    return JSONValue.string(nanString)
-                }
-            }
-
-            var path = self.codingPath
-            if let additionalKey = additionalKey {
-                path.append(additionalKey)
-            }
-
-            throw EncodingError.invalidValue(float, EncodingError.Context(
-                codingPath: path,
-                debugDescription: "Unable to encode \(float) directly in JSON."
-            ))
-        }
-        #endif
 
         var string = float.description
         if string.hasSuffix(".0") {
@@ -429,12 +372,6 @@ extension _SpecialTreatmentEncoder {
             return try self.wrapData(data, for: additionalKey)
         case let url as URL:
             return .string(url.absoluteString)
-        #if !SKIP
-        case let decimal as Decimal:
-            return .number(decimal.description)
-        case let obj as _JSONStringDictionaryEncodableMarker:
-            return try self.wrapObject(obj as! [String: Encodable], for: additionalKey)
-        #endif
         default:
             let encoder = self.getEncoder(for: additionalKey)
             // SKIP REPLACE: (encodable as Encodable).encode(encoder)
@@ -487,24 +424,6 @@ extension _SpecialTreatmentEncoder {
         }
     }
 
-    #if !SKIP
-    func wrapObject(_ object: [String: Encodable], for additionalKey: CodingKey?) throws -> JSONValue {
-        var baseCodingPath = self.codingPath
-        if let additionalKey = additionalKey {
-            baseCodingPath.append(additionalKey)
-        }
-        var result = Dictionary<String, JSONValue>()
-        result.reserveCapacity(object.count)
-        try object.forEach { (key, value) in
-            var elemCodingPath = baseCodingPath
-            elemCodingPath.append(_JSONKey(stringValue: key, intValue: nil))
-            let encoder = JSONEncoderImpl(options: self.options, codingPath: elemCodingPath)
-            result[key] = try encoder.wrapUntyped(value)
-        }
-        return .object(result)
-    }
-    #endif
-
     fileprivate func getEncoder(for additionalKey: CodingKey?) -> JSONEncoderImpl {
         if let additionalKey {
             var newCodingPath = self.codingPath
@@ -515,15 +434,10 @@ extension _SpecialTreatmentEncoder {
     }
 }
 
-#if SKIP
 typealias JSONEncoderKey = CodingKey
-#endif
 
 private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContainerProtocol, _SpecialTreatmentEncoder {
-    #if !SKIP
-    typealias JSONEncoderKey = Key
-    #endif
-    
+
     let impl: JSONEncoderImpl
     let object: JSONFuture.RefObject
     let codingPath: [CodingKey]
@@ -538,22 +452,14 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
         self.impl = impl
         self.object = impl.object!
         self.codingPath = codingPath
-        #if SKIP
         self.encodeKeys = keyedBy == DictionaryCodingKey.self
-        #else
-        self.encodeKeys = true
-        #endif
     }
 
     init(keyedBy: Any.Type, impl: JSONEncoderImpl, object: JSONFuture.RefObject, codingPath: [CodingKey]) {
         self.impl = impl
         self.object = object
         self.codingPath = codingPath
-        #if SKIP
         self.encodeKeys = keyedBy == DictionaryCodingKey.self
-        #else
-        self.encodeKeys = true
-        #endif
     }
 
     private func _converted(_ key: JSONEncoderKey) -> CodingKey {
@@ -591,12 +497,6 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
         try encodeFloatingPoint(value, key: self._converted(key))
     }
 
-    #if !SKIP // Same as Int32
-    mutating func encode(_ value: Int, forKey key: Key) throws {
-        try encodeFixedWidthInteger(value, key: self._converted(key))
-    }
-    #endif
-
     mutating func encode(_ value: Int8, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
@@ -612,12 +512,6 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
     mutating func encode(_ value: Int64, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
-
-    #if !SKIP // Same as UInt32
-    mutating func encode(_ value: UInt, forKey key: Key) throws {
-        try encodeFixedWidthInteger(value, key: self._converted(key))
-    }
-    #endif
 
     mutating func encode(_ value: UInt8, forKey key: JSONEncoderKey) throws {
         try encodeFixedWidthInteger(value, key: self._converted(key))
@@ -729,12 +623,6 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
         try encodeFloatingPoint(value)
     }
 
-    #if !SKIP // Same as Int32
-    mutating func encode(_ value: Int) throws {
-        try encodeFixedWidthInteger(value)
-    }
-    #endif
-
     mutating func encode(_ value: Int8) throws {
         try encodeFixedWidthInteger(value)
     }
@@ -750,12 +638,6 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
     mutating func encode(_ value: Int64) throws {
         try encodeFixedWidthInteger(value)
     }
-
-    #if !SKIP // Same as UInt32
-    mutating func encode(_ value: UInt) throws {
-        try encodeFixedWidthInteger(value)
-    }
-    #endif
 
     mutating func encode(_ value: UInt8) throws {
         try encodeFixedWidthInteger(value)
@@ -837,12 +719,6 @@ private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer, _
         self.impl.singleValue = .bool(value)
     }
 
-    #if !SKIP // Same as Int32
-    mutating func encode(_ value: Int) throws {
-        try encodeFixedWidthInteger(value)
-    }
-    #endif
-
     mutating func encode(_ value: Int8) throws {
         try encodeFixedWidthInteger(value)
     }
@@ -858,12 +734,6 @@ private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer, _
     mutating func encode(_ value: Int64) throws {
         try encodeFixedWidthInteger(value)
     }
-
-    #if !SKIP // Same as UInt32
-    mutating func encode(_ value: UInt) throws {
-        try encodeFixedWidthInteger(value)
-    }
-    #endif
 
     mutating func encode(_ value: UInt8) throws {
         try encodeFixedWidthInteger(value)
@@ -1170,11 +1040,9 @@ internal struct _JSONKey: CodingKey {
         self.intValue = index
     }
 
-    #if SKIP
     public var rawValue: String {
         stringValue
     }
-    #endif
 
     internal static let _super = _JSONKey(stringValue: "super")!
 }
@@ -1184,3 +1052,5 @@ internal var _iso8601Formatter: DateFormatter = {
     formatter.formatOptions = ISO8601DateFormatter.Options.withInternetDateTime
     return formatter
 }()
+
+#endif

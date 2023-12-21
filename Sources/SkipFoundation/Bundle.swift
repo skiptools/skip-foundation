@@ -4,86 +4,38 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import class Foundation.Bundle
-internal typealias PlatformBundle = Foundation.Bundle
-#else
-public typealias PlatformBundle = AnyClass
-#endif
+#if SKIP
 
 public class Bundle {
-    #if !SKIP
-    public static let main = Bundle(platformValue: PlatformBundle.main)
-    #else
     public static let main = Bundle(location: .main)
-    #endif
 
-    #if !SKIP
-    internal let platformValue: PlatformBundle
-
-    internal init(platformValue: PlatformBundle) {
-        self.platformValue = platformValue
-    }
-    #else
     private let location: SkipLocalizedStringResource.BundleDescription
 
     public init(location: SkipLocalizedStringResource.BundleDescription) {
         self.location = location
     }
-    #endif
 
     public convenience init?(path: String) {
-        #if !SKIP
-        guard let platformBundle = PlatformBundle(path: path) else {
-            return nil
-        }
-        self.init(platformValue: platformBundle)
-        #else
         self.init(location: .atURL(URL(fileURLWithPath: path)))
-        #endif
     }
 
     public convenience init?(url: URL) {
-        #if !SKIP
-        guard let platformBundle = PlatformBundle(url: url.platformValue) else {
-            return nil
-        }
-        self.init(platformValue: platformBundle)
-        #else
         self.init(location: .atURL(url))
-        #endif
     }
 
     public init() {
-        #if !SKIP
-        self.platformValue = PlatformBundle()
-        #else
         self.init(location: .forClass(Bundle.self))
-        #endif
     }
 
     public convenience init(for forClass: AnyClass) {
-        #if !SKIP
-        self.init(platformValue: PlatformBundle(for: forClass))
-        #else
         self.init(location: .forClass(forClass))
-        #endif
     }
 
     public var description: String {
-        #if !SKIP
-        return platformValue.description
-        #else
         return location.description
-        #endif
     }
 
     public var bundleURL: URL {
-        #if !SKIP
-        return URL(platformValue: platformValue.bundleURL)
-        #else
         let loc: SkipLocalizedStringResource.BundleDescription = location
         switch loc {
         case .main:
@@ -94,27 +46,12 @@ public class Bundle {
             return relativeBundleURL("resources.lst")!
                 .deletingLastPathComponent()
         }
-        #endif
     }
 
     public var resourceURL: URL? {
-        #if !SKIP
-        return URL(platformValue: platformValue.bundleURL)
-        #else
         return bundleURL // FIXME: this is probably not correct
-        #endif
     }
 
-}
-
-#if SKIP
-
-public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, value: String? = nil, comment: String) -> String {
-    return (bundle ?? Bundle.main).localizedString(forKey: key, value: value, table: tableName)
-}
-
-extension Bundle {
-    /// Access this module's bundle. External modules will generate their own `Bundle.module` extensions. 
     static var module: Bundle {
         return Bundle(for: Bundle.self)
     }
@@ -229,6 +166,10 @@ extension Bundle {
     /// The localized strings tables for this bundle
     private var localizedTables: [String: [String: String]?] = [:]
 
+}
+
+public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, value: String? = nil, comment: String) -> String {
+    return (bundle ?? Bundle.main).localizedString(forKey: key, value: value, table: tableName)
 }
 
 #endif

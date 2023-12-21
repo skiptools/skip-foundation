@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+
 // This code is adapted from https://github.com/apple/swift-corelibs-foundation/blob/main/Tests/Foundation/Tests which has the following license:
 
 public typealias UnicodeScalarValue = UInt32
@@ -69,3 +71,5 @@ public struct Unicode {
 
     public typealias Version = (major: Int, minor: Int)
 }
+
+#endif

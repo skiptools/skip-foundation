@@ -4,47 +4,22 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import class Foundation.URLSessionConfiguration
-internal typealias PlatformURLSessionConfiguration = Foundation.URLSessionConfiguration
-#else
-#endif
+#if SKIP
 
 open class URLSessionConfiguration {
-    #if SKIP
     private static let _default = URLSessionConfiguration()
-    #endif
 
     static var `default`: URLSessionConfiguration {
-        #if !SKIP
-        return URLSessionConfiguration(platformValue: PlatformURLSessionConfiguration.default)
-        #else
         return _default
-        #endif
     }
 
-    #if SKIP
     // TODO: ephemeral config
     private static let _ephemeral = URLSessionConfiguration()
-    #endif
 
     open class var ephemeral: URLSessionConfiguration {
-        #if !SKIP
-        return URLSessionConfiguration(platformValue: PlatformURLSessionConfiguration.ephemeral)
-        #else
         return _ephemeral
-        #endif
     }
 
-    #if !SKIP
-    internal var platformValue: PlatformURLSessionConfiguration
-
-    init(platformValue: PlatformURLSessionConfiguration) {
-        self.platformValue = platformValue
-    }
-    #else
     public var identifier: String?
     //public var requestCachePolicy: NSURLRequest.CachePolicy
     public var timeoutIntervalForRequest: TimeInterval = 60.0
@@ -76,10 +51,8 @@ open class URLSessionConfiguration {
 
     public init() {
     }
-    #endif
 }
 
-#if SKIP
 internal protocol HTTPCookieStorage {
 }
 
@@ -93,4 +66,5 @@ internal class URLCache {
 
 internal protocol CachedURLResponse {
 }
+
 #endif

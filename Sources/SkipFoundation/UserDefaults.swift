@@ -4,37 +4,21 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import class Foundation.UserDefaults
-internal typealias PlatformUserDefaults = Foundation.UserDefaults
-#else
-internal typealias PlatformUserDefaults = android.content.SharedPreferences
-#endif
-
-public class UserDefaults {
-    let platformValue: PlatformUserDefaults
-    #if SKIP
-    /// The default default values
-    private var registrationDictionary: [String: Any] = [:]
-    #endif
-
-    init(platformValue: PlatformUserDefaults) {
-        self.platformValue = platformValue
-    }
-
-    init(_ platformValue: PlatformUserDefaults) {
-        self.platformValue = platformValue
-    }
-}
-
 #if SKIP
 
-// iOS: https://developer.apple.com/documentation/foundation/userdefaults
-// Android: https://developer.android.com/reference/android/content/SharedPreferences
+public class UserDefaults {
+    let platformValue: android.content.SharedPreferences
+    /// The default default values
+    private var registrationDictionary: [String: Any] = [:]
 
-extension UserDefaults {
+    init(platformValue: android.content.SharedPreferences) {
+        self.platformValue = platformValue
+    }
+
+    init(_ platformValue: android.content.SharedPreferences) {
+        self.platformValue = platformValue
+    }
+
     public static var standard: UserDefaults {
         UserDefaults(suiteName: nil)
     }
@@ -211,9 +195,7 @@ extension UserDefaults {
         }
     }
 }
-#endif
 
-#if SKIP
 extension UserDefaults {
     public func kotlin(nocopy: Bool = false) -> android.content.SharedPreferences {
         return platformValue
@@ -225,4 +207,5 @@ extension android.content.SharedPreferences {
         return UserDefaults(platformValue: self)
     }
 }
+
 #endif

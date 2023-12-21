@@ -4,46 +4,23 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import class Foundation.URLSession
-internal typealias PlatformURLSession = Foundation.URLSession
-#else
-#endif
+#if SKIP
 
 fileprivate let logger: Logger = Logger(subsystem: "skip", category: "URLSession")
 
 public final class URLSession {
-    #if !SKIP
-    internal let platformValue: PlatformURLSession
-
-    internal init(platformValue: PlatformURLSession) {
-        self.platformValue = platformValue
-    }
-    #else
     private static let _shared = URLSession(configuration: URLSessionConfiguration.default)
 
     public var configuration: URLSessionConfiguration
-    #endif
 
     public init(configuration: URLSessionConfiguration) {
-        #if !SKIP
-        self.platformValue = PlatformURLSession(configuration: configuration.platformValue)
-        #else
         self.configuration = configuration
-        #endif
     }
 
     public static var shared: URLSession {
-        #if !SKIP
-        return URLSession(platformValue: PlatformURLSession.shared)
-        #else
         return _shared
-        #endif
     }
 
-    #if SKIP
     private func openConnection(request: URLRequest) -> java.net.URLConnection {
         let config = self.configuration
         guard let url = request.url else {
@@ -112,14 +89,8 @@ public final class URLSession {
         let response = HTTPURLResponse(url: request.url!, statusCode: statusCode, httpVersion: httpVersion, headerFields: headers)
         return (connection, response!)
     }
-    #endif
 
     public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        #if !SKIP
-        let (data, response) = try await platformValue.data(for: request.platformValue)
-        let result = (Data(platformValue: data), URLResponse(platformValue: response))
-        return result
-        #else
         let (data, response) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             let (connection, response) = try connect(request: request)
             let inputStream = connection.getInputStream()
@@ -136,25 +107,13 @@ public final class URLSession {
         }
 
         return (data, response)
-        #endif
     }
 
     public func data(from url: URL) async throws -> (Data, URLResponse) {
-        #if !SKIP
-        let (data, response) = try await platformValue.data(from: url.platformValue)
-        let result = (Data(platformValue: data), URLResponse(platformValue: response))
-        return result
-        #else
         return self.data(for: URLRequest(url: url))
-        #endif
     }
 
     public func download(for request: URLRequest) async throws -> (URL, URLResponse) {
-        #if !SKIP
-        let (localURL, response) = try await platformValue.download(for: request.platformValue)
-        let result = (URL(platformValue: localURL), URLResponse(platformValue: response))
-        return result
-        #else
         // WARNING: this is untested, since Robolectric's ShadowDownloadManager is a stub
         guard let url = request.url else {
             throw NoURLInRequestError()
@@ -272,60 +231,27 @@ public final class URLSession {
         case .failure(let error): throw error
         case .success(let urlResponseTuple): return urlResponseTuple
         }
-
-        #endif
     }
 
     public func download(from url: URL) async throws -> (URL, URLResponse) {
-        #if !SKIP
-        let (localURL, response) = try await platformValue.download(from: url.platformValue)
-        let result = (URL(platformValue: localURL), URLResponse(platformValue: response))
-        return result
-        #else
         return self.download(for: URLRequest(url: url))
-        #endif
     }
 
     @available(*, unavailable)
     public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
-        #if !SKIP
-        let (data, response) = try await platformValue.upload(for: request.platformValue, fromFile: fileURL.platformValue)
-        let result = (Data(platformValue: data), URLResponse(platformValue: response))
-        return result
-        #else
         fatalError("TODO: URLSession.data")
-        #endif
     }
 
     @available(*, unavailable)
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
-        #if !SKIP
-        let (data, response) = try await platformValue.upload(for: request.platformValue, from: bodyData.platformValue)
-        let result = (Data(platformValue: data), URLResponse(platformValue: response))
-        return result
-        #else
         fatalError("TODO: URLSession.data")
-        #endif
     }
 
     public func bytes(from url: URL) async throws -> (URLSessionAsyncBytes, URLResponse) {
-        #if !SKIP
-        //let (bytes, response) = try await platformValue.bytes(from: url.platformValue)
-        fatalError("TODO: non-Skip bytes(from:")
-        //let result = (URLSessionAsyncBytes(stream: bytes), URLResponse(platformValue: response))
-        //return result
-        #else
         return bytes(for: URLRequest(url: url))
-        #endif
     }
 
     public func bytes(for request: URLRequest) async throws -> (URLSessionAsyncBytes, URLResponse) {
-        #if !SKIP
-        let (stream, response) = try await platformValue.bytes(for: request.platformValue)
-        fatalError("TODO: non-Skip bytes(from:")
-        //let result = (URLSessionAsyncBytes(byteStream: stream), URLResponse(rawValue: response))
-        //return result
-        #else
         return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             let (connection, response) = try connect(request: request)
             let stream: kotlinx.coroutines.flow.Flow<UByte> = kotlinx.coroutines.flow.flow {
@@ -343,7 +269,6 @@ public final class URLSession {
 
             return (URLSessionAsyncBytes(stream: stream), response)
         }
-        #endif
     }
 
     public enum DelayedRequestDisposition : Int, @unchecked Sendable {
@@ -367,7 +292,6 @@ public final class URLSession {
     }
 }
 
-#if SKIP
 public protocol URLSessionTask {
 }
 
@@ -395,24 +319,16 @@ public struct UnableToStartDownload : Error {
 public struct DownloadUnsupportedWithRobolectric : Error {
     let status: Int
 }
-#endif
 
 // -------------------------------
 // TODO: add Flow support to SkipLib.AsyncSequence and combine implementations
 // -------------------------------
 
-#if !SKIP
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias PlatformAsyncStream<Element> = AsyncStream<Element>
-#else
-public typealias PlatformAsyncStream<Element> = kotlinx.coroutines.flow.Flow<Element>
-#endif
-
 public protocol SkipAsyncSequence {
     associatedtype Element
 
     /// The underlying `AsyncStream` or `kotlinx.coroutines.flow.Flow` for this element
-    var stream: PlatformAsyncStream<Element> { get }
+    var stream: kotlinx.coroutines.flow.Flow<Element> { get }
 }
 
 public extension SkipAsyncSequence {
@@ -424,15 +340,11 @@ public extension SkipAsyncSequence {
     //}
 
     func reduce<Result>(into initialResult: Result, _ updateAccumulatingResult: (_ partialResult: inout Result, Element) async throws -> Void) async rethrows -> Result {
-        #if !SKIP
-        return try await stream.reduce(into: initialResult, updateAccumulatingResult)
-        #else
         var result = initialResult
         stream.collect { element in
             updateAccumulatingResult(&result, element)
         }
         return result
-        #endif
     }
 
     func contains(where predicate: (Element) async throws -> Bool) async rethrows -> Bool {
@@ -467,63 +379,7 @@ public extension SkipAsyncSequence {
         fatalError("TODO: SkipAsyncSequence extension functions")
     }
 
-    #if !SKIP // references to Self not allowed
-    func compactMap<ElementOfResult>(_ transform: @escaping @Sendable (Element) async -> ElementOfResult?) -> AsyncCompactMapSequence<Self, ElementOfResult> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func dropFirst(_ count: Int = 1) -> SkipAsyncDropFirstSequence<Self> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func drop(while predicate: @escaping @Sendable (Element) async -> Bool) -> SkipAsyncDropWhileSequence<Self> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func filter(_ isIncluded: @escaping @Sendable (Element) async -> Bool) -> SkipAsyncFilterSequence<Self> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func flatMap<SegmentOfResult>(_ transform: @escaping @Sendable (Element) async -> SegmentOfResult) -> SkipAsyncFlatMapSequence<Self, SegmentOfResult> where SegmentOfResult : AsyncSequence {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func map<Transformed>(_ transform: @escaping @Sendable (Element) async -> Transformed) -> SkipAsyncMapSequence<Self, Transformed> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func prefix(_ count: Int) -> SkipAsyncPrefixSequence<Self> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func prefix(while predicate: @escaping @Sendable (Element) async throws -> Bool) rethrows -> SkipAsyncPrefixWhileSequence<Self> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func compactMap<ElementOfResult>(_ transform: @escaping @Sendable (Element) async throws -> ElementOfResult?) -> SkipAsyncThrowingCompactMapSequence<Self, ElementOfResult> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func drop(while predicate: @escaping @Sendable (Element) async throws -> Bool) -> SkipAsyncThrowingDropWhileSequence<Self> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func filter(_ isIncluded: @escaping @Sendable (Element) async throws -> Bool) -> SkipAsyncThrowingFilterSequence<Self> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func flatMap<SegmentOfResult>(_ transform: @escaping @Sendable (Element) async throws -> SegmentOfResult) -> SkipAsyncThrowingFlatMapSequence<Self, SegmentOfResult> where SegmentOfResult : AsyncSequence {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func map<Transformed>(_ transform: @escaping @Sendable (Element) async throws -> Transformed) -> SkipAsyncThrowingMapSequence<Self, Transformed> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func prefix(while predicate: @escaping @Sendable (Element) async throws -> Bool) rethrows -> SkipAsyncThrowingPrefixWhileSequence<Self> {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-    #endif
+    // TODO: Missing API
 }
 
 /// An asynchronous sequence generated from a closure that calls a continuation
@@ -547,8 +403,8 @@ public struct SkipAsyncStream<Element> : SkipAsyncSequence {
     //public struct Continuation : Sendable {
     //}
 
-    public let stream: PlatformAsyncStream<Element>
-    public init(stream: PlatformAsyncStream<Element>) {
+    public let stream: kotlinx.coroutines.flow.Flow<Element>
+    public init(stream: kotlinx.coroutines.flow.Flow<Element>) {
         self.stream = stream
     }
 }
@@ -558,7 +414,7 @@ public struct SkipAsyncStream<Element> : SkipAsyncSequence {
 // Note that there could also be `URLAsyncBytes` and `SkipFileHandleAsyncBytes` for `URL.bytes` and `FileHandle.bytes`.
 public struct URLSessionAsyncBytes : SkipAsyncSequence {
     //public typealias Element = UInt8
-    public let stream: PlatformAsyncStream<UInt8>
+    public let stream: kotlinx.coroutines.flow.Flow<UInt8>
 
     //#if !SKIP
     //public var lines: SkipAsyncLineSequence<URLSessionAsyncBytes> {
@@ -567,113 +423,12 @@ public struct URLSessionAsyncBytes : SkipAsyncSequence {
     //#endif
 
     public func allSatisfy(_ condition: (UInt8) async throws -> (Bool)) async rethrows -> Bool {
-        #if !SKIP
-        return try await stream.allSatisfy(condition)
-        #else
         var satisfied = false
         stream.collect { b in
             satisfied = condition(b) && satisfied
         }
         return satisfied
-        #endif
     }
-}
-
-#if !SKIP
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncLineSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    // where BytesStream.Element == UInt8 { // Skip does not support the referenced type as a generic constraint
-    public let stream: PlatformAsyncStream<String>
-
-    public func allSatisfy(_ condition: (String) async throws -> (Bool)) async rethrows -> Bool {
-        fatalError("TODO: SkipAsyncLineSequence.allSatisfy")
-    }
-}
-
-/// Default declaration: `class SkipAsyncCompactMapSequence<Base, ElementOfResult>: SkipAsyncSequence<Element> where Base: SkipAsyncSequence`
-// SKIP DECLARE: class SkipAsyncCompactMapSequence<Base, ElementOfResult, Element>: SkipAsyncSequence<Element> where Base: SkipAsyncSequence<Element>
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncCompactMapSequence<Base: SkipAsyncSequence, ElementOfResult> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncDropFirstSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncDropWhileSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncFilterSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncFlatMapSequence<Base: SkipAsyncSequence, SegmentOfResult> : SkipAsyncSequence where SegmentOfResult : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncMapSequence<Base: SkipAsyncSequence, Transformed> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncPrefixSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncPrefixWhileSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncThrowingCompactMapSequence<Base: SkipAsyncSequence, ElementOfResult> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncThrowingDropWhileSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncThrowingFilterSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncThrowingFlatMapSequence<Base: SkipAsyncSequence, SegmentOfResult: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncThrowingMapSequence<Base: SkipAsyncSequence, Transformed> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
-}
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public struct SkipAsyncThrowingPrefixWhileSequence<Base: SkipAsyncSequence> : SkipAsyncSequence {
-    public typealias Element = Base.Element
-    public let stream: PlatformAsyncStream<Element>
 }
 
 #endif

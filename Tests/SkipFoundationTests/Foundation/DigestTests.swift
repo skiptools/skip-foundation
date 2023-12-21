@@ -3,9 +3,9 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
-#if !SKIP
-@testable import SkipFoundation
-#endif
+
+#if SKIP
+
 import Foundation
 import XCTest
 
@@ -71,3 +71,5 @@ final class DigestTests: XCTestCase {
         XCTAssertEqual("TrfwQeSZQ8gTfY7U+NQY+CDxexfk6hHVDJ2pevtMM2OXmxY9X/60uWhsXnMym1+vzg7XGgO729yGQgsPdAY19A==", Data(HMACSHA512.authenticationCode(for: Data("Your message to sign".utf8), using: SymmetricKey(data: Data("your-secret-key".utf8)))).base64EncodedString())
     }
 }
+
+#endif

@@ -18,6 +18,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if SKIP
+
 open class JSONSerialization {
     public struct ReadingOptions : OptionSet {
         public let rawValue: UInt
@@ -69,19 +71,11 @@ open class JSONSerialization {
 
             // object is a Double and is not NaN or infinity
             if let number = obj as? Double  {
-                #if SKIP
                 return number.isFinite()
-                #else
-                return number.isFinite
-                #endif
             }
             // object is a Float and is not NaN or infinity
             if let number = obj as? Float  {
-                #if SKIP
                 return number.isFinite()
-                #else
-                return number.isFinite
-                #endif
             }
 
             #if JSON_NOSKIP
@@ -196,19 +190,11 @@ open class JSONSerialization {
                 parser = JSONParser(bytes: Array(utf8String.utf8))
             }
 
-            #if !SKIP
-            let jsonValue = try parser.parse()
-            if jsonValue.isValue, !opt.contains(.fragmentsAllowed) {
-                throw JSONError.singleFragmentFoundButNotAllowed
-            }
-            return try jsonValue.toObjcRepresentation(options: opt)
-            #else
             let value = try parser.parseSwiftValue()
             if !opt.contains(.fragmentsAllowed), !(value is Array<Any> || value is Dictionary<AnyHashable, Any>) {
                 throw JSONError.singleFragmentFoundButNotAllowed
             }
             return value
-            #endif
         } catch let error as JSONError {
             switch error {
             case .cannotConvertInputDataToUTF8:
@@ -664,85 +650,4 @@ public enum JSONValue: Equatable {
     }
 }
 
-#if !SKIP
-@_implementationOnly import class Foundation.NSMutableArray
-@_implementationOnly import class Foundation.NSMutableDictionary
-@_implementationOnly import class Foundation.NSMutableString
-
-private extension JSONValue {
-    func toObjcRepresentation(options: JSONSerialization.ReadingOptions) throws -> Any {
-        switch self {
-        case .array(let values):
-            let array = try values.map { try $0.toObjcRepresentation(options: options) }
-            if !options.contains(.mutableContainers) {
-                return array
-            }
-            return NSMutableArray(array: array, copyItems: false)
-        case .object(let object):
-            let dictionary = try object.mapValues { try $0.toObjcRepresentation(options: options) }
-            if !options.contains(.mutableContainers) {
-                return dictionary
-            }
-            return NSMutableDictionary(dictionary: dictionary, copyItems: false)
-        case .bool(let bool):
-            return NSNumber(value: bool)
-        case .number(let string):
-            guard let number = NSNumber.fromJSONNumber(string) else {
-                throw JSONError.numberIsNotRepresentableInSwift(parsed: string)
-            }
-            return number
-        case .null:
-            return NSNull()
-        case .string(let string):
-            if options.contains(.mutableLeaves) {
-                return NSMutableString(string: string)
-            }
-            return string
-        }
-    }
-}
-
-extension NSNumber {
-    static func fromJSONNumber(_ string: String) -> NSNumber? {
-        let decIndex = string.firstIndex(of: ".")
-        let expIndex = string.firstIndex(of: "e")
-        let isInteger = decIndex == nil && expIndex == nil
-        let isNegative = string.utf8[string.utf8.startIndex] == UInt8(ascii: "-")
-        let digitCount = string[string.startIndex..<(expIndex ?? string.endIndex)].count
-
-        // Try Int64() or UInt64() first
-        if isInteger {
-            if isNegative {
-                if digitCount <= 19, let intValue = Int64(string) {
-                    return NSNumber(value: intValue)
-                }
-            } else {
-                if digitCount <= 20, let uintValue = UInt64(string) {
-                    return NSNumber(value: uintValue)
-                }
-            }
-        }
-
-//        var exp = 0
-//        if let expIndex = expIndex {
-//            let expStartIndex = string.index(after: expIndex)
-//            if let parsed = Int(string[expStartIndex...]) {
-//                exp = parsed
-//            }
-//        }
-
-        // Decimal holds more digits of precision but a smaller exponent than Double
-        // so try that if the exponent fits and there are more digits than Double can hold
-//        if digitCount > 17, exp >= -128, exp <= 127, let decimal = Decimal(string: string), decimal.isFinite {
-//            return NSDecimalNumber(decimal: decimal) as NSNumber?
-//        }
-
-        // Fall back to Double() for everything else
-        if let doubleValue = Double(string), doubleValue.isFinite {
-            return NSNumber(value: doubleValue)
-        }
-
-        return nil
-    }
-}
 #endif

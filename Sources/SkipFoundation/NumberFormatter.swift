@@ -4,34 +4,21 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import class Foundation.NumberFormatter
-internal typealias PlatformNumberFormatter = Foundation.NumberFormatter
-#else
-public typealias PlatformNumberFormatter = java.text.DecimalFormat
-#endif
+#if SKIP
 
 public class NumberFormatter {
-    internal var platformValue: PlatformNumberFormatter
+    internal var platformValue: java.text.DecimalFormat
 
-    internal init(platformValue: PlatformNumberFormatter) {
+    internal init(platformValue: java.text.DecimalFormat) {
         self.platformValue = platformValue
     }
 
     public init() {
-        #if !SKIP
-        self.platformValue = PlatformNumberFormatter()
-        #else
-        self.platformValue = PlatformNumberFormatter.getIntegerInstance() as PlatformNumberFormatter
+        self.platformValue = java.text.DecimalFormat.getIntegerInstance() as java.text.DecimalFormat
         self.groupingSize = 0
-        #endif
     }
 
-    #if SKIP
     private var _numberStyle: NumberFormatter.Style = .none
-    #endif
 
     public var description: String {
         return platformValue.description
@@ -39,45 +26,38 @@ public class NumberFormatter {
 
     public var numberStyle: NumberFormatter.Style {
         get {
-            #if !SKIP
-            return Style(rawValue: .init(platformValue.numberStyle.rawValue))!
-            #else
             return _numberStyle
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.numberStyle = PlatformNumberFormatter.Style(rawValue: .init(newValue.rawValue))!
-            #else
-            var fmt: PlatformNumberFormatter = self.platformValue
+            var fmt: java.text.DecimalFormat = self.platformValue
             switch newValue {
             case .none:
                 if let loc = _locale?.platformValue {
-                    fmt = PlatformNumberFormatter.getIntegerInstance(loc) as PlatformNumberFormatter
+                    fmt = java.text.DecimalFormat.getIntegerInstance(loc) as java.text.DecimalFormat
                 } else {
-                    fmt = PlatformNumberFormatter.getIntegerInstance() as PlatformNumberFormatter
+                    fmt = java.text.DecimalFormat.getIntegerInstance() as java.text.DecimalFormat
                 }
             case .decimal:
                 if let loc = _locale?.platformValue {
-                    fmt = PlatformNumberFormatter.getNumberInstance(loc) as PlatformNumberFormatter
+                    fmt = java.text.DecimalFormat.getNumberInstance(loc) as java.text.DecimalFormat
                 } else {
-                    fmt = PlatformNumberFormatter.getNumberInstance() as PlatformNumberFormatter
+                    fmt = java.text.DecimalFormat.getNumberInstance() as java.text.DecimalFormat
                 }
             case .currency:
                 if let loc = _locale?.platformValue {
-                    fmt = PlatformNumberFormatter.getCurrencyInstance(loc) as PlatformNumberFormatter
+                    fmt = java.text.DecimalFormat.getCurrencyInstance(loc) as java.text.DecimalFormat
                 } else {
-                    fmt = PlatformNumberFormatter.getCurrencyInstance() as PlatformNumberFormatter
+                    fmt = java.text.DecimalFormat.getCurrencyInstance() as java.text.DecimalFormat
                 }
             case .percent:
                 if let loc = _locale?.platformValue {
-                    fmt = PlatformNumberFormatter.getPercentInstance(loc) as PlatformNumberFormatter
+                    fmt = java.text.DecimalFormat.getPercentInstance(loc) as java.text.DecimalFormat
                 } else {
-                    fmt = PlatformNumberFormatter.getPercentInstance() as PlatformNumberFormatter
+                    fmt = java.text.DecimalFormat.getPercentInstance() as java.text.DecimalFormat
                 }
             //case .scientific:
-            //    fmt = PlatformNumberFormatter.getScientificInstance(loc)
+            //    fmt = java.text.DecimalFormat.getScientificInstance(loc)
             default:
                 fatalError("SkipNumberFormatter: unsupported style \(newValue)")
             }
@@ -91,32 +71,21 @@ public class NumberFormatter {
                 self.platformValue.applyPattern(fmt.toPattern())
             }
             self.platformValue.decimalFormatSymbols = symbols
-            #endif
         }
     }
 
-    #if SKIP
     private var _locale: Locale? = Locale.current
-    #endif
 
     public var locale: Locale? {
         get {
-            #if !SKIP
-            return platformValue.locale.flatMap(Locale.init(platformValue:))
-            #else
             return _locale
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.locale = newValue?.platformValue ?? platformValue.locale
-            #else
             self._locale = newValue
             if let loc = newValue {
                 applySymbol { $0.currency = java.util.Currency.getInstance(loc.platformValue) }
             }
-            #endif
         }
     }
 
@@ -127,190 +96,110 @@ public class NumberFormatter {
     @available(tvOS, unavailable, message: "NumberFormatter.format unavailable on tvOS")
     public var format: String {
         get {
-            #if !SKIP
-            return platformValue.format
-            #else
             return platformValue.toPattern()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.format = newValue
-            #else
             platformValue.applyPattern(newValue)
-            #endif
         }
     }
     #endif
 
     public var groupingSize: Int {
         get {
-            #if !SKIP
-            return platformValue.groupingSize
-            #else
             return platformValue.getGroupingSize()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.groupingSize = newValue
-            #else
             platformValue.setGroupingSize(newValue)
-            #endif
         }
     }
 
     public var generatesDecimalNumbers: Bool {
         get {
-            #if !SKIP
-            return platformValue.generatesDecimalNumbers
-            #else
             return platformValue.isParseBigDecimal()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.generatesDecimalNumbers = newValue
-            #else
             platformValue.setParseBigDecimal(newValue)
-            #endif
         }
     }
 
     public var alwaysShowsDecimalSeparator: Bool {
         get {
-            #if !SKIP
-            return platformValue.alwaysShowsDecimalSeparator
-            #else
             return platformValue.isDecimalSeparatorAlwaysShown()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.alwaysShowsDecimalSeparator = newValue
-            #else
             platformValue.setDecimalSeparatorAlwaysShown(newValue)
-            #endif
         }
     }
 
     public var usesGroupingSeparator: Bool {
         get {
-            #if !SKIP
-            return platformValue.usesGroupingSeparator
-            #else
             return platformValue.isGroupingUsed()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.usesGroupingSeparator = newValue
-            #else
             platformValue.setGroupingUsed(newValue)
-            #endif
         }
     }
 
     public var multiplier: NSNumber? {
         get {
-            #if !SKIP
-            return platformValue.multiplier.flatMap(NSNumber.init(platformValue:))
-            #else
             return platformValue.multiplier as NSNumber
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.multiplier = newValue?.platformValue
-            #else
             if let value = newValue {
                 platformValue.multiplier = value.intValue
             }
-            #endif
         }
     }
 
     public var groupingSeparator: String? {
         get {
-            #if !SKIP
-            return platformValue.groupingSeparator
-            #else
             return platformValue.decimalFormatSymbols.groupingSeparator.toString()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.groupingSeparator = newValue
-            #else
             if let groupingSeparator = newValue?.first {
                 applySymbol { $0.groupingSeparator = groupingSeparator }
             }
-            #endif
         }
     }
 
     public var percentSymbol: String? {
         get {
-            #if !SKIP
-            return platformValue.percentSymbol
-            #else
             return platformValue.decimalFormatSymbols.percent.toString()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.percentSymbol = newValue
-            #else
             if let percentSymbol = newValue?.first {
                 applySymbol { $0.percent = percentSymbol }
             }
-            #endif
         }
     }
 
     public var currencySymbol: String? {
         get {
-            #if !SKIP
-            return platformValue.currencySymbol
-            #else
             return platformValue.decimalFormatSymbols.currencySymbol
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.currencySymbol = newValue
-            #else
             applySymbol { $0.currencySymbol = newValue }
-            #endif
         }
     }
 
     public var zeroSymbol: String? {
         get {
-            #if !SKIP
-            return platformValue.zeroSymbol
-            #else
             return platformValue.decimalFormatSymbols.zeroDigit?.toString()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.zeroSymbol = newValue
-            #else
             if let zeroSymbolChar = newValue?.first {
                 applySymbol { $0.zeroDigit = zeroSymbolChar }
             }
-            #endif
         }
     }
 
@@ -337,172 +226,100 @@ public class NumberFormatter {
 
     public var minusSign: String? {
         get {
-            #if !SKIP
-            return platformValue.minusSign
-            #else
             return platformValue.decimalFormatSymbols.minusSign?.toString()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.minusSign = newValue
-            #else
             if let minusSignChar = newValue?.first {
                 applySymbol { $0.minusSign = minusSignChar }
             }
-            #endif
         }
     }
 
     public var exponentSymbol: String? {
         get {
-            #if !SKIP
-            return platformValue.exponentSymbol
-            #else
             return platformValue.decimalFormatSymbols.exponentSeparator
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.exponentSymbol = newValue
-            #else
             applySymbol { $0.exponentSeparator = newValue }
-            #endif
         }
     }
 
     public var negativeInfinitySymbol: String {
         get {
-            #if !SKIP
-            return platformValue.negativeInfinitySymbol
-            #else
             // Note: java.text.DecimalFormatSymbols has only a single `infinity` compares to `positiveInfinitySymbol` and `negativeInfinitySymbol`
             return platformValue.decimalFormatSymbols.infinity
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.negativeInfinitySymbol = newValue
-            #else
             applySymbol { $0.infinity = newValue }
-            #endif
         }
     }
 
     public var positiveInfinitySymbol: String {
         get {
-            #if !SKIP
-            return platformValue.positiveInfinitySymbol
-            #else
             // Note: java.text.DecimalFormatSymbols has only a single `infinity` compares to `positiveInfinitySymbol` and `negativeInfinitySymbol`
             return platformValue.decimalFormatSymbols.infinity
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.positiveInfinitySymbol = newValue
-            #else
             applySymbol { $0.infinity = newValue }
-            #endif
         }
     }
 
     public var internationalCurrencySymbol: String? {
         get {
-            #if !SKIP
-            return platformValue.internationalCurrencySymbol
-            #else
             return platformValue.decimalFormatSymbols.internationalCurrencySymbol
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.internationalCurrencySymbol = newValue
-            #else
             applySymbol { $0.internationalCurrencySymbol = newValue }
-            #endif
         }
     }
 
 
     public var decimalSeparator: String? {
         get {
-            #if !SKIP
-            return platformValue.decimalSeparator
-            #else
             return platformValue.decimalFormatSymbols.decimalSeparator?.toString()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.decimalSeparator = newValue
-            #else
             if let decimalSeparatorChar = newValue?.first {
                 applySymbol { $0.decimalSeparator = decimalSeparatorChar }
             }
-            #endif
         }
     }
 
     public var currencyCode: String? {
         get {
-            #if !SKIP
-            return platformValue.currencyCode
-            #else
             return platformValue.decimalFormatSymbols.internationalCurrencySymbol
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.currencyCode = newValue
-            #else
             applySymbol { $0.internationalCurrencySymbol = newValue }
-            #endif
         }
     }
 
     public var currencyDecimalSeparator: String? {
         get {
-            #if !SKIP
-            return platformValue.currencyDecimalSeparator
-            #else
             return platformValue.decimalFormatSymbols.monetaryDecimalSeparator?.toString()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.currencyDecimalSeparator = newValue
-            #else
             if let currencyDecimalSeparatorChar = newValue?.first {
                 applySymbol { $0.monetaryDecimalSeparator = currencyDecimalSeparatorChar }
             }
-            #endif
         }
     }
 
     public var notANumberSymbol: String? {
         get {
-            #if !SKIP
-            return platformValue.notANumberSymbol
-            #else
             return platformValue.decimalFormatSymbols.getNaN()
-            #endif
         }
 
         set {
-            #if !SKIP
-            platformValue.notANumberSymbol = newValue
-            #else
             applySymbol { $0.setNaN(newValue) }
-            #endif
         }
     }
 
@@ -547,14 +364,9 @@ public class NumberFormatter {
     }
 
     public func string(from number: NSNumber) -> String? {
-        #if !SKIP
-        return platformValue.string(from: number.platformValue)
-        #else
         return platformValue.format(number)
-        #endif
     }
 
-    #if SKIP
     public func string(from number: Int) -> String? { string(from: number as NSNumber) }
     public func string(from number: Double) -> String? { string(from: number as NSNumber) }
 
@@ -564,12 +376,8 @@ public class NumberFormatter {
         block(dfs)
         platformValue.setDecimalFormatSymbols(dfs)
     }
-    #endif
 
     public func string(for object: Any?) -> String? {
-        #if !SKIP
-        return platformValue.string(for: object)
-        #else
         if let number = object as? NSNumber {
             return string(from: number)
         } else if let bool = object as? Bool {
@@ -578,15 +386,10 @@ public class NumberFormatter {
         } else {
             return nil
         }
-        #endif
     }
 
     public func number(from string: String) -> NSNumber? {
-        #if !SKIP
-        return platformValue.number(from: string).flatMap(NSNumber.init(platformValue:))
-        #else
         return platformValue.parse(string) as? NSNumber
-        #endif
     }
 
     public enum Style : Int, @unchecked Sendable {
@@ -619,3 +422,5 @@ public class NumberFormatter {
         case halfUp = 6
     }
 }
+
+#endif

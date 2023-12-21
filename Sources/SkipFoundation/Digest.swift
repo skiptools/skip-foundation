@@ -4,115 +4,23 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-import CryptoKit
-@_implementationOnly import struct Foundation.Data
+#if SKIP
 
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SymmetricKey = CryptoKit.SymmetricKey
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias HMAC = CryptoKit.HMAC
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias Insecure = CryptoKit.Insecure
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias HashFunction = CryptoKit.HashFunction
-
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias MD5 = CryptoKit.Insecure.MD5
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias MD5Digest = CryptoKit.Insecure.MD5Digest
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SHA1 = CryptoKit.Insecure.SHA1
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SHA1Digest = CryptoKit.Insecure.SHA1Digest
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SHA256 = CryptoKit.SHA256
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SHA256Digest = CryptoKit.SHA256Digest
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SHA384 = CryptoKit.SHA384
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SHA384Digest = CryptoKit.SHA384Digest
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SHA512 = CryptoKit.SHA512
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias SHA512Digest = CryptoKit.SHA512Digest
-
-extension Sequence where Element == UInt8 {
-    public func base64() -> String {
-        Foundation.Data(self).base64EncodedString()
-    }
-
-    public func hex() -> String {
-        map { String(format: "%02x", $0) }.joined()
-    }
-
-    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-    public func sha256() -> SHA256.Digest {
-        CryptoKit.SHA256.hash(data: Foundation.Data(self))
-    }
-
-    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-    public func sha384() -> SHA384.Digest {
-        CryptoKit.SHA384.hash(data: Foundation.Data(self))
-    }
-
-    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-    public func sha512() -> SHA512.Digest {
-        CryptoKit.SHA512.hash(data: Foundation.Data(self))
-    }
-}
-
-// An alias for `HMAC<Insecure.MD5>` since Kotlin does not support static access to generics
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias HMACMD5 = HMAC<Insecure.MD5>
-// An alias for `HMAC<Insecure.SHA1>` since Kotlin does not support static access to generics
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias HMACSHA1 = HMAC<Insecure.SHA1>
-// An alias for `HMAC<SHA256>` since Kotlin does not support static access to generics
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias HMACSHA256 = HMAC<SHA256>
-// An alias for `HMAC<SHA384>` since Kotlin does not support static access to generics
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias HMACSHA384 = HMAC<SHA384>
-// An alias for `HMAC<SHA512>` since Kotlin does not support static access to generics
-@available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-public typealias HMACSHA512 = HMAC<SHA512>
-
-#else
 public typealias MessageDigest = java.security.MessageDigest
-#endif
 
 extension Data {
     public func base64EncodedString() -> String {
-        #if !SKIP
-        return platformValue.base64EncodedString()
-        #else
         return java.util.Base64.getEncoder().encodeToString(platformValue)
-        #endif
     }
 
-    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
     public func sha256() -> Data {
-        #if !SKIP
-        return Data(platformValue: Foundation.Data(SHA256.hash(data: platformValue)))
-        #else
         return Data(SHA256.hash(data: self).bytes)
-        #endif
     }
 
     public func hex() -> String {
         return platformValue.hex()
     }
-}
 
-#if SKIP
-extension Data {
     public init(_ checksum: Digest) {
         self.init(checksum.bytes)
     }

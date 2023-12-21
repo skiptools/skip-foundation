@@ -4,12 +4,6 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
-//public typealias PlatformStringLocalizationValue = String.LocalizationValue
-#else
-internal typealias PlatformStringLocalizationValue = String.LocalizationValue
-#endif
-
 #if SKIP
 
 /// e.g.: `String(localized: "Done", table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil)`
@@ -25,7 +19,6 @@ public func String(localized keyAndValue: String.LocalizationValue, table: Strin
 extension String {
     public typealias LocalizationValue = StringLocalizationValue
 }
-#endif
 
 public struct StringLocalizationValue : ExpressibleByStringInterpolation {
     /// A type that represents a string literal.
@@ -95,3 +88,5 @@ public struct StringLocalizationValue : ExpressibleByStringInterpolation {
         }
     }
 }
+
+#endif

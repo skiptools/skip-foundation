@@ -4,12 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import class Foundation.PropertyListSerialization
-internal typealias PlatformPropertyListSerialization = Foundation.PropertyListSerialization
-#endif
+#if SKIP
 
 public class PropertyListSerialization {
     public enum PropertyListFormat {
@@ -38,7 +33,6 @@ public class PropertyListSerialization {
         }
 
         for line in text.components(separatedBy: "\n") {
-            #if SKIP
             let exp = try kotlin.text.Regex(re, RegexOption.MULTILINE) // https://www.baeldung.com/regular-expressions-java#Pattern
             for match in exp.findAll(text).map(\.groupValues) {
                 if match.size == 3,
@@ -47,17 +41,9 @@ public class PropertyListSerialization {
                     dict[unescape(key)] = unescape(value)
                 }
             }
-            #else
-            let exp = try Regex(re) // Swift.Regex
-            for match in line.matches(of: exp) {
-                if match.count == 3,
-                   let key = match[1].substring,
-                   let value = match[2].substring {
-                    dict[unescape(key.description)] = unescape(value.description)
-                }
-            }
-            #endif
         }
         return dict
     }
 }
+
+#endif

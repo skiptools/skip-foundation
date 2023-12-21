@@ -18,46 +18,21 @@ func SkipCrash<T>(_ reason: String) -> T {
 }
 
 #if SKIP
+
 public func NSLog(_ message: String) {
     print(message)
 }
-#endif
 
-#if SKIP
 public typealias NSObject = java.lang.Object
 
 public protocol NSObjectProtocol {
 }
-#endif
 
-#if !SKIP
-@_implementationOnly import class Foundation.NSNull
-internal typealias NSNull = Foundation.NSNull
-#else
 public class NSNull {
     public static let null = NSNull()
     public init() {
     }
 }
-#endif
-
-#if !SKIP
-internal extension RawRepresentable {
-    /// Creates a `RawRepresentable` with another `RawRepresentable` that has the same underlying type
-    func rekey<NewKey : RawRepresentable>() -> NewKey? where NewKey.RawValue == RawValue {
-        NewKey(rawValue: rawValue)
-    }
-}
-
-internal extension Dictionary where Key : RawRepresentable {
-    /// Remaps a dictionary to another key type with a compatible raw value
-    func rekey<NewKey : Hashable & RawRepresentable>() -> [NewKey: Value] where NewKey.RawValue == Key.RawValue {
-        Dictionary<NewKey, Value>(uniqueKeysWithValues: map {
-            (NewKey(rawValue: $0.rawValue)!, $1)
-        })
-    }
-}
-#endif
 
 /// The Objective-C BOOL type.
 public struct ObjCBool {
@@ -67,8 +42,6 @@ public struct ObjCBool {
 }
 
 // MARK: Foundation Stubs
-
-#if SKIP
 
 internal struct EnergyFormatter {
 }

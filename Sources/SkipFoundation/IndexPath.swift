@@ -4,21 +4,14 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import struct Foundation.IndexPath
-internal typealias PlatformIndexPath = Foundation.IndexPath
-#else
-public typealias PlatformIndexPath = skip.lib.Array<Int>
-#endif
+#if SKIP
 
 public struct IndexPath : Hashable, CustomStringConvertible {
     public typealias Element = Int
 
-    internal var platformValue: PlatformIndexPath
+    internal var platformValue: Array<Int>
 
-    internal init(platformValue: PlatformIndexPath) {
+    internal init(platformValue: Array<Int>) {
         self.platformValue = platformValue
     }
 
@@ -66,10 +59,10 @@ public struct IndexPath : Hashable, CustomStringConvertible {
 //    public var hashValue: Int { get }
 }
 
-#if SKIP
 extension IndexPath {
-    public func kotlin(nocopy: Bool = false) -> skip.lib.Array<Int> {
+    public func kotlin(nocopy: Bool = false) -> Array<Int> {
         return nocopy ? platformValue : platformValue.sref()
     }
 }
+
 #endif

@@ -18,7 +18,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-//@_implementationOnly import CoreFoundation
+#if SKIP
 
 public typealias NSErrorDomain = String
 
@@ -250,20 +250,9 @@ public protocol CustomNSError : Error {
 }
 
 public extension CustomNSError {
-    #if !SKIP // Kotlin does not support static members in protocols
-    /// Default domain of the error.
-    static var errorDomain: String {
-        return String(reflecting: self)
-    }
-    #endif
-
     /// The error code within the given domain.
     var errorCode: Int {
-        #if !SKIP
-        return _getDefaultErrorCode(self)
-        #else
         return 0 // no equivalent for Swift._getDefaultErrorCode()
-        #endif
     }
 
     /// The default user-info dictionary.
@@ -394,14 +383,6 @@ public extension CocoaError {
     var filePath: String? {
         return _nsUserInfo[NSFilePathErrorKey] as? String
     }
-
-    #if !SKIP // String.Encoding constructor
-    /// The string encoding associated with this error, if any.
-    var stringEncoding: StringEncoding? {
-        return (_nsUserInfo[NSStringEncodingErrorKey] as? NSNumber)
-        .map { StringEncoding(rawValue: $0.uintValue) }
-    }
-    #endif
 
     /// The underlying error behind this error, if any.
     var underlying: Error? {
@@ -1323,11 +1304,11 @@ extension POSIXError {
 
     /// Operation canceled.
     public static var ECANCELED: POSIXError.Code {
-#if os(Windows)
+    #if os(Windows)
         return POSIXError.Code(rawValue: Int32(ERROR_CANCELLED))!
-#else
+    #else
         return .ECANCELED
-#endif
+    #endif
     }
 
     #if !os(Windows)
@@ -1492,3 +1473,5 @@ public var NSURLErrorRequestBodyStreamExhausted: Int { return -1021 }
 public var NSURLErrorBackgroundSessionRequiresSharedContainer: Int { return -995 }
 public var NSURLErrorBackgroundSessionInUseByAnotherProcess: Int { return -996 }
 public var NSURLErrorBackgroundSessionWasDisconnected: Int { return -997 }
+
+#endif

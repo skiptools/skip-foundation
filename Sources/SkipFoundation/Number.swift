@@ -4,60 +4,13 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
-@_implementationOnly import struct Foundation.Decimal
-internal typealias Decimal = Foundation.Decimal
-internal typealias NSDecimalNumber = Decimal
-#else
+#if SKIP
+
 public typealias Decimal = java.math.BigDecimal
 public typealias NSDecimalNumber = java.math.BigDecimal
-#endif
 
-#if !SKIP
-@_implementationOnly import class Foundation.NSNumber
-
-public typealias NSNumber = NSNumberWrapper
-public struct NSNumberWrapper : Hashable {
-    internal let platformValue: Foundation.NSNumber
-
-    init(platformValue: Foundation.NSNumber) {
-        self.platformValue = platformValue
-    }
-
-    public init(value: CChar) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: UInt8) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: Int16) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: UInt16) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: Int32) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: UInt32) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: Int64) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: UInt64) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: Float) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: Double) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: Bool) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: Int) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-    public init(value: UInt) { self.init(platformValue: Foundation.NSNumber(value: value)) }
-
-    public var int8Value: CChar { platformValue.int8Value }
-    public var uint8Value: UInt8 { platformValue.uint8Value }
-    public var int16Value: Int16 { platformValue.int16Value }
-    public var uint16Value: UInt16 { platformValue.uint16Value }
-    public var int32Value: Int32 { platformValue.int32Value }
-    public var uint32Value: UInt32 { platformValue.uint32Value }
-    public var int64Value: Int64 { platformValue.int64Value }
-    public var uint64Value: UInt64 { platformValue.uint64Value }
-    public var floatValue: Float { platformValue.floatValue }
-    public var doubleValue: Double { platformValue.doubleValue }
-    public var boolValue: Bool { platformValue.boolValue }
-    public var intValue: Int { platformValue.intValue }
-    public var uintValue: UInt { platformValue.uintValue }
-    public var stringValue: String { platformValue.stringValue }
-}
-#else
 public typealias NSNumber = java.lang.Number
-#endif
 
-#if SKIP
 public extension java.lang.Number {
     var doubleValue: Double { doubleValue() }
     var intValue: Int { intValue() }

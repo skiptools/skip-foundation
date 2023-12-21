@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+
 public class ISO8601DateFormatter : DateFormatter {
     public override init() {
         super.init()
@@ -33,3 +35,5 @@ public class ISO8601DateFormatter : DateFormatter {
         public static let withInternetDateTime = ISO8601DateFormatter.Options(rawValue: withFullDate.rawValue + withFullTime.rawValue)
     }
 }
+
+#endif

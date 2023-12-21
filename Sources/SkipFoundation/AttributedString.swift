@@ -5,31 +5,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+
 @available(*, unavailable)
 public struct AttributedString {
 }
-#endif
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-// #if !SKIP
-// import struct Foundation.AttributedString
-// public typealias AttributedString = Foundation.AttributedString
-// public typealias PlatformAttributedString = Foundation.AttributedString
-// #else
-// public typealias AttributedString = SkipAttributedString
-// public typealias PlatformAttributedString = android.text.SpannableString
-// #endif
-//
-//
-// public struct SkipAttributedString {
-//     public let platformValue: PlatformAttributedString
-//
-//     public init(platformValue: PlatformAttributedString) {
-//         self.platformValue = platformValue
-//     }
-//
-//     public init(_ platformValue: PlatformAttributedString = PlatformAttributedString()) {
-//         self.platformValue = platformValue
-//     }
-// }
+#endif

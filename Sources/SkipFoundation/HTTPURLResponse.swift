@@ -4,20 +4,13 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import class Foundation.HTTPURLResponse
-internal typealias PlatformHTTPURLResponse = Foundation.HTTPURLResponse
-#else
-#endif
+#if SKIP
 
 public class HTTPURLResponse : URLResponse {
     override init(url: URL, mimeType: String?, expectedContentLength: Int, textEncodingName: String?) {
         super.init(url: url, mimeType: mimeType, expectedContentLength: expectedContentLength, textEncodingName: textEncodingName)
     }
 
-    #if SKIP
     public private(set) var statusCode: Int = 0
     public private(set) var allHeaderFields: [String : String] = [:]
     private var httpVersion: String? = nil
@@ -50,10 +43,8 @@ public class HTTPURLResponse : URLResponse {
             }
         }
     }
-    #endif
 
     public override var suggestedFilename: String? {
-        #if SKIP
         func splitStringWithQuotes(input: String, separator: String) -> [String] {
             let regex = kotlin.text.Regex("(?<=^|\\s|\\w)(?<!\\w)\(separator)(?=\\s|\\w)")
             return Array(regex.split(input))
@@ -78,23 +69,14 @@ public class HTTPURLResponse : URLResponse {
                 }
             }
         }
-        #endif
         return super.suggestedFilename // fallback to super impl
     }
 
-    @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
     public func value(forHTTPHeaderField field: String) -> String? {
-        #if !SKIP
-        return (platformValue as? PlatformHTTPURLResponse)?.value(forHTTPHeaderField: field)
-        #else
         return URLRequest.value(forHTTPHeaderField: field, in: allHeaderFields)
-        #endif
     }
 
     public static func localizedString(forStatusCode statusCode: Int) -> String {
-        #if !SKIP
-        return PlatformHTTPURLResponse.localizedString(forStatusCode: statusCode)
-        #else
         switch statusCode {
             // Informational 1xx
             case 100: return "Continue"
@@ -169,6 +151,7 @@ public class HTTPURLResponse : URLResponse {
             // Add more cases for additional status codes if needed
             default: return "Unknown"
         }
-        #endif
     }
 }
+
+#endif

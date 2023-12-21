@@ -4,28 +4,17 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import class Foundation.Scanner
-typealias PlatformScanner = Foundation.Scanner
-#else
-typealias PlatformScanner = java.util.Scanner
-#endif
+#if SKIP
 
 public class Scanner : CustomStringConvertible {
-    let platformValue: PlatformScanner
+    let platformValue: java.util.Scanner
 
-    init(platformValue: PlatformScanner) {
+    init(platformValue: java.util.Scanner) {
         self.platformValue = platformValue
     }
 
     public init(_ string: String) {
-        #if !SKIP
-        self.platformValue = PlatformScanner(string: string)
-        #else
-        self.platformValue = PlatformScanner(string)
-        #endif
+        self.platformValue = java.util.Scanner(string)
     }
 
     public var description: String {
@@ -73,7 +62,6 @@ public class Scanner : CustomStringConvertible {
 //    open class func localizedScanner(with string: String) -> Any
 }
 
-#if SKIP
 extension Scanner {
     public func kotlin(nocopy: Bool = false) -> java.util.Scanner {
         return platformValue
@@ -85,4 +73,5 @@ extension java.util.Scanner {
         return Scanner(platformValue: self)
     }
 }
+
 #endif

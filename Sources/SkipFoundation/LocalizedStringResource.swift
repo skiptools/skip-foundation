@@ -4,20 +4,11 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import struct Foundation.LocalizedStringResource
-@available(macOS 13, iOS 16, tvOS 16, watchOS 8, *)
-internal typealias LocalizedStringResource = Foundation.LocalizedStringResource
-#else
-public typealias LocalizedStringResource = SkipLocalizedStringResource
-#endif
+#if SKIP
 
-// Override the Kotlin type to be public while keeping the Swift version internal:
-// SKIP DECLARE: class SkipLocalizedStringResource
-@available(macOS 13, iOS 16, tvOS 16, watchOS 8, *)
-internal final class SkipLocalizedStringResource {
+public typealias LocalizedStringResource = SkipLocalizedStringResource
+
+public final class SkipLocalizedStringResource {
     public let key: String
     public let defaultValue: String? // TODO: String.LocalizationValue
     public let table: String?
@@ -50,8 +41,6 @@ internal final class SkipLocalizedStringResource {
     }
 }
 
-#if SKIP
-
 public extension LocalizedStringResource {
     public typealias BundleDescription = SkipLocalizedStringResource.LocalizedStringResource
 }
@@ -60,4 +49,3 @@ extension SkipLocalizedStringResource {
 }
 
 #endif
-

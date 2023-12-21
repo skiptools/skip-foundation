@@ -5,7 +5,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+
 @available(*, unavailable)
 public struct DateIntervalFormatter {
 }
+
 #endif

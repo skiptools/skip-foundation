@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+
 public typealias NSString = kotlin.String
 public func NSString(string: String) -> NSString { string }
 
@@ -50,4 +51,5 @@ extension String {
         return trim { set.platformValue.contains($0) }
     }
 }
+
 #endif

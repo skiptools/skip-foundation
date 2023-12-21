@@ -4,103 +4,59 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Note: !SKIP code paths used to validate implementation only.
-// Not used in applications. See contribution guide for details.
-#if !SKIP
-@_implementationOnly import struct Foundation.Locale
-internal typealias PlatformLocale = Foundation.Locale
-internal typealias NSLocale = Foundation.Locale.ReferenceType
-#else
-internal typealias PlatformLocale = java.util.Locale
+#if SKIP
+
 internal typealias NSLocale = Locale
-#endif
 
 public struct Locale : Hashable {
-    internal let platformValue: PlatformLocale
+    internal let platformValue: java.util.Locale
 
-    internal init(platformValue: PlatformLocale) {
+    internal init(platformValue: java.util.Locale) {
         self.platformValue = platformValue
     }
 
     public static var availableIdentifiers: [String] {
-        #if SKIP
-        return Array(PlatformLocale.getAvailableLocales().map({ $0.toString() }))
-        #else
-        return PlatformLocale.availableIdentifiers
-        #endif
+        return Array(java.util.Locale.getAvailableLocales().map({ $0.toString() }))
     }
 
     public init(identifier: String) {
-        #if SKIP
         //self.platformValue = PlatformLocale(identifier)
         //self.platformValue = PlatformLocale.forLanguageTag(identifier)
         let parts = Array(identifier.split(separator: "_"))
         if parts.count >= 2 {
             // turn fr_FR into the language/country form
-            self.platformValue = PlatformLocale(parts.first, parts.last)
+            self.platformValue = java.util.Locale(parts.first, parts.last)
         } else {
             // language only
-            self.platformValue = PlatformLocale(identifier)
+            self.platformValue = java.util.Locale(identifier)
         }
-        #else
-        self.platformValue = PlatformLocale(identifier: identifier)
-        #endif
     }
 
     public static var current: Locale {
-        #if !SKIP
-        return Locale(platformValue: PlatformLocale.current)
-        #else
-        return Locale(platformValue: PlatformLocale.getDefault())
-        #endif
+        return Locale(platformValue: java.util.Locale.getDefault())
     }
 
     public static var system: Locale {
-        #if !SKIP
-        return Locale(platformValue: NSLocale.system)
-        #else
-        return Locale(platformValue: PlatformLocale.getDefault()) // FIXME: not the same as .system: “Use the system locale when you don’t want any localizations”
-        #endif
+        return Locale(platformValue: java.util.Locale.getDefault()) // FIXME: not the same as .system: “Use the system locale when you don’t want any localizations”
     }
 
     public var identifier: String {
-        #if !SKIP
-        return platformValue.identifier
-        #else
         return platformValue.toString()
-        #endif
     }
 
     public var languageCode: String? {
-        #if !SKIP
-        if #available(macOS 13, macCatalyst 16, iOS 16, tvOS 16, watchOS 8, *) {
-            return platformValue.language.languageCode?.identifier
-        } else {
-            return platformValue.languageCode
-        }
-        #else
         return platformValue.getLanguage()
-        #endif
     }
 
     public func localizedString(forLanguageCode languageCode: String) -> String? {
-        #if !SKIP
-        return platformValue.localizedString(forLanguageCode: languageCode)
-        #else
-        return PlatformLocale(languageCode).getDisplayLanguage(platformValue)
-        #endif
+        return java.util.Locale(languageCode).getDisplayLanguage(platformValue)
     }
 
     public var currencySymbol: String? {
-        #if !SKIP
-        return platformValue.currencySymbol
-        #else
         java.text.NumberFormat.getCurrencyInstance(platformValue).currency?.symbol
-        #endif
     }
 }
 
-#if SKIP
 extension Locale {
     public func kotlin(nocopy: Bool = false) -> java.util.Locale {
         return nocopy ? platformValue : platformValue.clone() as java.util.Locale
@@ -113,4 +69,5 @@ extension java.util.Locale {
         return Locale(platformValue: platformValue)
     }
 }
+
 #endif
