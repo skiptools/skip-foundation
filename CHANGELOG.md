@@ -1,3 +1,9 @@
+## 0.3.11
+
+Released 2023-12-20
+
+  - Enable Bundle.url for directory arguments by consulting the embedded resources.lst index
+
 ## 0.3.10
 
 Released 2023-12-12
