@@ -129,10 +129,16 @@ extension Bundle {
             return url.appendingPathComponent(path)
         case .forClass(let cls):
             do {
-                let resURL = cls.java.getResource("Resources/" + path)
+                let rpath = "Resources/" + path
+                let resURL = cls.java.getResource(rpath)
                 return URL(platformValue: resURL)
             } catch {
-                // getResource throws when it cannot find the resource
+                // getResource throws when it cannot find the resource, but it doesn't handle directories
+                // such as .lproj folders; so manually scan the resources.lst elements, and if any
+                // appear to be a directory, then just return that relative URL without validating its existance
+                if self.resourcesIndex.contains(where: { $0.hasPrefix(path + "/") }) {
+                    return resourcesFolderURL?.appendingPathComponent(path, isDirectory: true)
+                }
                 return nil
             }
         }
@@ -142,9 +148,22 @@ extension Bundle {
         bundleURL.path
     }
 
+    /// The URL for the `resources.lst` resources index file that is created by the transpiler when converting resources files.
+    private var resourcesIndexURL: URL? {
+        url(forResource: "resources.lst")
+    }
+
+    /// THe path to the base folder of the `Resources/` directory.
+    ///
+    /// In Robolectric, this will be a simple file system directory URL.
+    /// On Android it will be something like `jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/`
+    private var resourcesFolderURL: URL? {
+        resourcesIndexURL?.deletingLastPathComponent()
+    }
+
     /// Loads the resources index stored in the `resources.lst` file at the root of the resources folder.
     private lazy var resourcesIndex: [String] = {
-        guard let resourceListURL = try url(forResource: "resources.lst") else {
+        guard let resourceListURL = try self.resourcesIndexURL else {
             return []
         }
         let resourceList = try Data(contentsOf: resourceListURL)
