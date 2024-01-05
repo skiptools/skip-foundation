@@ -73,7 +73,7 @@ public class Bundle {
                 // getResource throws when it cannot find the resource, but it doesn't handle directories
                 // such as .lproj folders; so manually scan the resources.lst elements, and if any
                 // appear to be a directory, then just return that relative URL without validating its existance
-                if self.resourcesIndex.contains(where: { $0.hasPrefix(path + "/") }) {
+                if self.resourcesIndexIsSet == true && self.resourcesIndex.contains(where: { $0.hasPrefix(path + "/") }) {
                     return resourcesFolderURL?.appendingPathComponent(path, isDirectory: true)
                 }
                 return nil
@@ -90,13 +90,16 @@ public class Bundle {
         url(forResource: "resources.lst")
     }
 
-    /// THe path to the base folder of the `Resources/` directory.
+    /// The path to the base folder of the `Resources/` directory.
     ///
     /// In Robolectric, this will be a simple file system directory URL.
     /// On Android it will be something like `jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/`
     private var resourcesFolderURL: URL? {
         resourcesIndexURL?.deletingLastPathComponent()
     }
+
+    /// Internal flag to indicate whether the resources index has been loaded (to avoid stack overflow when there is a missing `resources.lst`)
+    private var resourcesIndexIsSet: Bool = false
 
     /// Loads the resources index stored in the `resources.lst` file at the root of the resources folder.
     private lazy var resourcesIndex: [String] = {
@@ -108,6 +111,8 @@ public class Bundle {
             return []
         }
         let resourcePaths = resourceListString.components(separatedBy: "\n")
+        resourcesIndexIsSet = true
+
         return resourcePaths
     }()
 
