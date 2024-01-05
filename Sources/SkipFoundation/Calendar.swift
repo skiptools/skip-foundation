@@ -113,9 +113,10 @@ public struct Calendar : Hashable, CustomStringConvertible {
         return date(from: comps)
     }
 
-    @available(*, unavailable)
     public func date(byAdding component: Calendar.Component, value: Int, to date: Date, wrappingComponents: Bool = false) -> Date? {
-        fatalError("TODO: Skip Calendar.date(byAdding:Calendar.Component)")
+        var comps = DateComponents(fromCalendar: self, in: self.timeZone, from: date)
+        comps.addValue(value, for: component)
+        return date(from: comps)
     }
 
     public func isDateInWeekend(_ date: Date) -> Bool {

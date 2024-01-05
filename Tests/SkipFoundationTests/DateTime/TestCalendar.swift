@@ -230,6 +230,17 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(dayAfterComponents.day, 5)
     }
 
+    func test_addingComponents() {
+        let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
+        let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4))!
+        let dayAfter = calendar.date(byAdding: .day, value: 1, to: thisDay)
+
+        let dayAfterComponents = calendar.dateComponents(Set([Calendar.Component.year, Calendar.Component.month, Calendar.Component.day]), from: dayAfter!)
+        XCTAssertEqual(dayAfterComponents.year, 2016)
+        XCTAssertEqual(dayAfterComponents.month, 10)
+        XCTAssertEqual(dayAfterComponents.day, 5)
+    }
+
     func test_datesNotOnWeekend() {
         let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
         let mondayInDecember = calendar.date(from: DateComponents(year: 2018, month: 12, day: 10))!
