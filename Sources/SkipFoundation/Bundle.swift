@@ -103,6 +103,8 @@ public class Bundle {
 
     /// Loads the resources index stored in the `resources.lst` file at the root of the resources folder.
     private lazy var resourcesIndex: [String] = {
+        defer { resourcesIndexIsSet = true }
+
         guard let resourceListURL = try self.resourcesIndexURL else {
             return []
         }
@@ -111,7 +113,6 @@ public class Bundle {
             return []
         }
         let resourcePaths = resourceListString.components(separatedBy: "\n")
-        resourcesIndexIsSet = true
 
         return resourcePaths
     }()
