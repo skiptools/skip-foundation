@@ -1,3 +1,9 @@
+## 0.3.14
+
+Released 2024-01-06
+
+  - Have bundle mark when to resources index has been loaded to handle bundles without resources
+
 ## 0.3.11
 
 Released 2023-12-20
