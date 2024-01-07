@@ -1,3 +1,10 @@
+## 0.3.15
+
+Released 2024-01-07
+
+  - Update localization tests
+  - Handle failure to load localized resources for packages that have no resources.lst index
+
 ## 0.3.14
 
 Released 2024-01-06
