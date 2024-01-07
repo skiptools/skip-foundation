@@ -43,7 +43,7 @@ public class Bundle {
         case .atURL(let url):
             return url
         case .forClass(let cls):
-            return relativeBundleURL("resources.lst")!
+            return relativeBundleURL(Self.resourceIndexFileName)!
                 .deletingLastPathComponent()
         }
     }
@@ -61,19 +61,24 @@ public class Bundle {
         let loc: SkipLocalizedStringResource.BundleDescription = location
         switch loc {
         case .main:
-            fatalError("Skip does not support .main bundle")
+            fatalError("Skip does not yet support .main bundle; use Bundle.module instead to load local assets")
         case .atURL(let url):
             return url.appendingPathComponent(path)
         case .forClass(let cls):
             do {
                 let rpath = "Resources/" + path
-                let resURL = cls.java.getResource(rpath)
+                let resURL = try cls.java.getResource(rpath)
                 return URL(platformValue: resURL)
             } catch {
                 // getResource throws when it cannot find the resource, but it doesn't handle directories
                 // such as .lproj folders; so manually scan the resources.lst elements, and if any
                 // appear to be a directory, then just return that relative URL without validating its existance
-                if self.resourcesIndexIsSet == true && self.resourcesIndex.contains(where: { $0.hasPrefix(path + "/") }) {
+
+                if path == Self.resourceIndexFileName {
+                    return nil // if the resources index itself is not found (which will be the case when the project has no resources), then do not try to load it
+                }
+
+                if self.resourcesIndex.contains(where: { $0.hasPrefix(path + "/") }) {
                     return resourcesFolderURL?.appendingPathComponent(path, isDirectory: true)
                 }
                 return nil
@@ -85,9 +90,11 @@ public class Bundle {
         bundleURL.path
     }
 
+    static let resourceIndexFileName = "resources.lst"
+
     /// The URL for the `resources.lst` resources index file that is created by the transpiler when converting resources files.
     private var resourcesIndexURL: URL? {
-        url(forResource: "resources.lst")
+        url(forResource: Self.resourceIndexFileName)
     }
 
     /// The path to the base folder of the `Resources/` directory.
@@ -98,13 +105,8 @@ public class Bundle {
         resourcesIndexURL?.deletingLastPathComponent()
     }
 
-    /// Internal flag to indicate whether the resources index has been loaded (to avoid stack overflow when there is a missing `resources.lst`)
-    private var resourcesIndexIsSet: Bool = false
-
     /// Loads the resources index stored in the `resources.lst` file at the root of the resources folder.
     private lazy var resourcesIndex: [String] = {
-        defer { resourcesIndexIsSet = true }
-
         guard let resourceListURL = try self.resourcesIndexURL else {
             return []
         }

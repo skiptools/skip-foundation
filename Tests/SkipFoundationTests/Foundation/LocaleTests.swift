@@ -257,6 +257,17 @@ final class LocaleTests: XCTestCase {
             }
         }
     }
+
+    func testLocalizedBundles() throws {
+        XCTAssertNil(Bundle.module.url(forResource: "xx", withExtension: "lproj"))
+
+        let frURL = try XCTUnwrap(Bundle.module.url(forResource: "fr.lproj/", withExtension: ""), "could not locate fr.lproj in Bundle.module: \(String(describing: Bundle.module.resourceURL))")
+
+        let frBundle = try XCTUnwrap(Bundle(url: frURL), "cannot locate fr.lproj bundle resource")
+
+        XCTAssertEqual("Terminé", frBundle.localizedString(forKey: "Done", value: nil, table: nil))
+        XCTAssertEqual("Terminé X", String(localized: "Done \("X")", bundle: frBundle))
+    }
 }
 
 #if !SKIP
