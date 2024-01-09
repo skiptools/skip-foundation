@@ -165,6 +165,20 @@ class TestUserDefaults : XCTestCase {
 		XCTAssertEqual(defaults.string(forKey: "test_setValue_String"), "hello")
 	}
 
+    func test_setValue_Date() {
+        let defaults = UserDefaults.standard
+
+        let string = Date.now.ISO8601Format()
+        let date = ISO8601DateFormatter().date(from: string)
+
+        defaults.set(date, forKey: "test_setValue_Date")
+
+        XCTAssertEqual(defaults.object(forKey: "test_setValue_Date") as? Date, date)
+    }
+
+    func test_getObject_Date() {
+    }
+
 	func test_setValue_NSURL() throws {
 		let defaults = UserDefaults.standard
 
@@ -207,6 +221,16 @@ class TestUserDefaults : XCTestCase {
 
 		XCTAssertEqual(defaults.data(forKey: "test_setValue_Data"), Data(bytes))
 	}
+
+    func test_getObject_Data() {
+        let defaults = UserDefaults.standard
+        let bytes: [UInt8] = [UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)] // as [UInt8]
+
+        // Set a Data value. UserDefaults.data(forKey:) is supposed to return the Data
+        defaults.set(Data(bytes), forKey: "test_setValue_Data")
+
+        XCTAssertEqual(defaults.object(forKey: "test_setValue_Data") as? Data, Data(bytes))
+    }
 
 	func test_setValue_BoolFromString() {
 		let defaults = UserDefaults.standard
