@@ -11,12 +11,12 @@ internal typealias NSLocale = Locale
 public struct Locale : Hashable {
     internal let platformValue: java.util.Locale
 
-    internal init(platformValue: java.util.Locale) {
-        self.platformValue = platformValue
-    }
-
     public static var availableIdentifiers: [String] {
         return Array(java.util.Locale.getAvailableLocales().map({ $0.toString() }))
+    }
+
+    public init(platformValue: java.util.Locale) {
+        self.platformValue = platformValue
     }
 
     public init(identifier: String) {
@@ -57,16 +57,9 @@ public struct Locale : Hashable {
     }
 }
 
-extension Locale {
-    public func kotlin(nocopy: Bool = false) -> java.util.Locale {
+extension Locale: KotlinConverting<java.util.Locale> {
+    public override func kotlin(nocopy: Bool = false) -> java.util.Locale {
         return nocopy ? platformValue : platformValue.clone() as java.util.Locale
-    }
-}
-
-extension java.util.Locale {
-    public func swift(nocopy: Bool = false) -> Locale {
-        let platformValue = nocopy ? self : clone() as java.util.Locale
-        return Locale(platformValue: platformValue)
     }
 }
 

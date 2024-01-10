@@ -41,7 +41,7 @@ public struct TimeZone : Hashable, CustomStringConvertible, Sendable {
         return TimeZone(platformValue: java.util.TimeZone.getTimeZone("GMT"))
     }
 
-    internal init(platformValue: java.util.TimeZone) {
+    public init(platformValue: java.util.TimeZone) {
         self.platformValue = platformValue
     }
 
@@ -153,16 +153,9 @@ public struct TimeZone : Hashable, CustomStringConvertible, Sendable {
     }
 }
 
-extension TimeZone {
-    public func kotlin(nocopy: Bool = false) -> java.util.TimeZone {
+extension TimeZone: KotlinConverting<java.util.TimeZone> {
+    public override func kotlin(nocopy: Bool = false) -> java.util.TimeZone {
         return nocopy ? platformValue : platformValue.clone() as java.util.TimeZone
-    }
-}
-
-extension java.util.TimeZone {
-    public func swift(nocopy: Bool = false) -> TimeZone {
-        let platformValue = nocopy ? self : clone() as java.util.TimeZone
-        return TimeZone(platformValue: platformValue)
     }
 }
 

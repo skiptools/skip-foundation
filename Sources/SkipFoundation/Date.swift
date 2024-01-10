@@ -39,7 +39,7 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
         self.platformValue = java.util.Date()
     }
 
-    internal init(platformValue: java.util.Date) {
+    public init(platformValue: java.util.Date) {
         self.platformValue = platformValue
     }
 
@@ -168,16 +168,9 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
     }
 }
 
-extension Date {
-    public func kotlin(nocopy: Bool = false) -> java.util.Date {
+extension Date: KotlinConverting<java.util.Date> {
+    public override func kotlin(nocopy: Bool = false) -> java.util.Date {
         return nocopy ? platformValue : platformValue.clone() as java.util.Date
-    }
-}
-
-extension java.util.Date {
-    public func swift(nocopy: Bool = false) -> Date {
-        let platformValue = nocopy ? self : clone() as java.util.Date
-        return Date(platformValue: platformValue)
     }
 }
 

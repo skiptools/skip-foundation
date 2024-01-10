@@ -9,7 +9,7 @@
 public class Scanner : CustomStringConvertible {
     let platformValue: java.util.Scanner
 
-    init(platformValue: java.util.Scanner) {
+    public init(platformValue: java.util.Scanner) {
         self.platformValue = platformValue
     }
 
@@ -62,15 +62,9 @@ public class Scanner : CustomStringConvertible {
 //    open class func localizedScanner(with string: String) -> Any
 }
 
-extension Scanner {
-    public func kotlin(nocopy: Bool = false) -> java.util.Scanner {
+extension Scanner: KotlinConverting<java.util.Scanner> {
+    public override func kotlin(nocopy: Bool = false) -> java.util.Scanner {
         return platformValue
-    }
-}
-
-extension java.util.Scanner {
-    public func swift(nocopy: Bool = false) -> Scanner {
-        return Scanner(platformValue: self)
     }
 }
 

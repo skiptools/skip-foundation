@@ -128,16 +128,9 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
     }
 }
 
-extension Data {
-    public func kotlin(nocopy: Bool = false) -> PlatformData {
+extension Data: KotlinConverting<PlatformData> {
+    public override func kotlin(nocopy: Bool = false) -> PlatformData {
         return nocopy ? platformValue : platformValue.copyOf()
-    }
-}
-
-extension kotlin.ByteArray {
-    public func swift(nocopy: Bool = false) -> Data {
-        let platformValue = nocopy ? self : copyOf()
-        return Data(platformValue: platformValue)
     }
 }
 

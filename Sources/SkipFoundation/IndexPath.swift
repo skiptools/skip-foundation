@@ -9,18 +9,22 @@
 public struct IndexPath : Hashable, CustomStringConvertible {
     public typealias Element = Int
 
-    internal var platformValue: Array<Int>
+    internal var array: Array<Int>
 
-    internal init(platformValue: Array<Int>) {
-        self.platformValue = platformValue
+    internal init(array: Array<Int>) {
+        self.array = array
+    }
+
+    public init(collection: Iterable<Int>) {
+        self.array = Array(collection)
     }
 
     public init(index: IndexPath.Element) {
-        self.platformValue = [index]
+        self.array = [index]
     }
 
     public var description: String {
-        return platformValue.description
+        return array.description
     }
 
 //    public typealias Index = Array<Int>.Index
@@ -59,9 +63,9 @@ public struct IndexPath : Hashable, CustomStringConvertible {
 //    public var hashValue: Int { get }
 }
 
-extension IndexPath {
-    public func kotlin(nocopy: Bool = false) -> Array<Int> {
-        return nocopy ? platformValue : platformValue.sref()
+extension IndexPath: KotlinConverting<MutableList<Int>> {
+    public override func kotlin(nocopy: Bool = false) -> MutableList<Int> {
+        return array.kotlin(nocopy: nocopy) as! MutableList<Int>
     }
 }
 

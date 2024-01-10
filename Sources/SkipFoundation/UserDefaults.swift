@@ -11,16 +11,12 @@ public class UserDefaults {
     /// The default default values
     private var registrationDictionary: [String: Any] = [:]
 
-    init(platformValue: android.content.SharedPreferences) {
-        self.platformValue = platformValue
-    }
-
-    init(_ platformValue: android.content.SharedPreferences) {
-        self.platformValue = platformValue
-    }
-
     public static var standard: UserDefaults {
         UserDefaults(suiteName: nil)
+    }
+
+    public init(platformValue: android.content.SharedPreferences) {
+        self.platformValue = platformValue
     }
 
     public init(suiteName: String?) {
@@ -232,15 +228,9 @@ public class UserDefaults {
     }
 }
 
-extension UserDefaults {
-    public func kotlin(nocopy: Bool = false) -> android.content.SharedPreferences {
+extension UserDefaults: KotlinConverting<android.content.SharedPreferences> {
+    public override func kotlin(nocopy: Bool = false) -> android.content.SharedPreferences {
         return platformValue
-    }
-}
-
-extension android.content.SharedPreferences {
-    public func swift(nocopy: Bool = false) -> UserDefaults {
-        return UserDefaults(platformValue: self)
     }
 }
 

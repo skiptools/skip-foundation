@@ -17,11 +17,6 @@ public struct Calendar : Hashable, CustomStringConvertible {
         return Calendar(platformValue: java.util.Calendar.getInstance())
     }
 
-    internal init(platformValue: java.util.Calendar) {
-        self.platformValue = platformValue
-        self.locale = Locale.current
-    }
-
     internal init(_ platformValue: java.util.Calendar) {
         self.platformValue = platformValue
         self.locale = Locale.current
@@ -88,7 +83,6 @@ public struct Calendar : Hashable, CustomStringConvertible {
     public var shortWeekdaySymbols: [String] {
         return Array(dateFormatSymbols.getShortWeekdays().toList()).filter({ $0?.isEmpty == false })
     }
-
 
     public func date(from components: DateComponents) -> Date? {
         // TODO: Need to set `this` calendar in the components.calendar
@@ -207,16 +201,9 @@ public struct Calendar : Hashable, CustomStringConvertible {
     }
 }
 
-extension Calendar {
-    public func kotlin(nocopy: Bool = false) -> java.util.Calendar {
+extension Calendar: KotlinConverting<java.util.Calendar> {
+    public override func kotlin(nocopy: Bool = false) -> java.util.Calendar {
         return nocopy ? platformValue : platformValue.clone() as java.util.Calendar
-    }
-}
-
-extension java.util.Calendar {
-    public func swift(nocopy: Bool = false) -> Calendar {
-        let platformValue = nocopy ? self : clone() as java.util.Calendar
-        return Calendar(platformValue: platformValue)
     }
 }
 

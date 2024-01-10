@@ -19,7 +19,7 @@ public struct UUID : Hashable, CustomStringConvertible, Codable {
         self.platformValue = uuid
     }
 
-    internal init(_ platformValue: java.util.UUID) {
+    public init(platformValue: java.util.UUID) {
         self.platformValue = platformValue
     }
 
@@ -70,15 +70,9 @@ public struct UUID : Hashable, CustomStringConvertible, Codable {
 //    }
 //}
 
-extension UUID {
-    public func kotlin(nocopy: Bool = false) -> java.util.UUID {
+extension UUID: KotlinConverting<java.util.UUID> {
+    public override func kotlin(nocopy: Bool = false) -> java.util.UUID {
         return platformValue
-    }
-}
-
-extension java.util.UUID {
-    public func swift(nocopy: Bool = false) -> UUID {
-        return UUID(platformValue: self)
     }
 }
 

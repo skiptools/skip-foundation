@@ -13,9 +13,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
     private let isDirectoryFlag: Bool?
     public let baseURL: URL?
 
-    public var platformURL: java.net.URL { platformValue }
-
-    public init(_ platformValue: java.net.URL, isDirectory: Bool? = nil, baseURL: URL? = nil) {
+    public init(platformValue: java.net.URL, isDirectory: Bool? = nil, baseURL: URL? = nil) {
         self.platformValue = platformValue
         self.isDirectoryFlag = isDirectory
         self.baseURL = baseURL
@@ -347,15 +345,9 @@ public func URL(string: String, relativeTo baseURL: URL? = nil) -> URL? {
 //    }
 //}
 
-extension URL {
-    public func kotlin(nocopy: Bool = false) -> java.net.URL {
+extension URL: KotlinConverting<java.net.URL> {
+    public override func kotlin(nocopy: Bool = false) -> java.net.URL {
         return platformValue
-    }
-}
-
-extension java.net.URL {
-    public func swift(nocopy: Bool = false) -> URL {
-        return URL(platformValue: self)
     }
 }
 

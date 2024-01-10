@@ -35,24 +35,19 @@ Other forms of contributions such as test cases, comments, and documentation are
 
 ## Implementation Strategy
 
-The goal of SkipFoundation is to mirror the Foundation framework for Android. When possible, `SkipFoundation` types wrap corresponding Kotlin or Java foundation types. When a `SkipFoundation` type wraps a corresponding Kotlin or Java type, please provide Skip's standard `.kotlin()` and `.swift()` functions for converting between the two:
+The goal of SkipFoundation is to mirror the Foundation framework for Android. When possible, `SkipFoundation` types wrap corresponding Kotlin or Java foundation types. When a `SkipFoundation` type wraps a corresponding Kotlin or Java type, please conform to the `skip.lib.KotlinConverting<T>` protocol, which means adding a `.kotlin()` function:
 
 ```swift
 #if SKIP
-extension Calendar {
-    public func kotlin(nocopy: Bool = false) -> java.util.Calendar {
+extension Calendar: KotlinConverting<java.util.Calendar> {
+    public override func kotlin(nocopy: Bool = false) -> java.util.Calendar {
         return nocopy ? platformValue : platformValue.clone() as java.util.Calendar
-    }
-}
-
-extension java.util.Calendar {
-    public func swift(nocopy: Bool = false) -> Calendar {
-        let platformValue = nocopy ? self : clone() as java.util.Calendar
-        return Calendar(platformValue: platformValue)
     }
 }
 #endif
 ```
+
+You should also implement a constructor that accepts the equivalent Kotlin or Java object.
 
 ## Topics
 
