@@ -258,7 +258,12 @@ final class LocaleTests: XCTestCase {
     }
 
     func testLocalizedBundles() throws {
-        let frURL = try XCTUnwrap(Bundle.module.url(forResource: "fr.lproj/Localizable.strings", withExtension: nil), "could not locate fr.lproj in Bundle.module: \(String(describing: Bundle.module.resourceURL))")
+        if isMacOS && !isJava {
+            // note that this *does* work when running from Xcode but not SwiftPM; always works on iOS some tests needs to be run through the Xcode toolchain
+            throw XCTSkip("does not work when run from SwiftPM because the Localizable.xcstrings file is not converted to strings")
+        }
+
+        let frURL = try XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: "fr"), "could not locate fr.lproj in Bundle.module: \(String(describing: Bundle.module.resourceURL))")
 
         let frBundle = try XCTUnwrap(Bundle(url: frURL.deletingLastPathComponent()), "cannot locate fr.lproj bundle resource")
 
