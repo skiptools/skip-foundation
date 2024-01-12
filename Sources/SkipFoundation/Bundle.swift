@@ -6,7 +6,7 @@
 
 #if SKIP
 
-public class Bundle {
+public class Bundle : Hashable {
     public static let main = Bundle(location: .main)
 
     private let location: SkipLocalizedStringResource.BundleDescription
@@ -31,6 +31,14 @@ public class Bundle {
         self.init(location: .forClass(forClass))
     }
 
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.location == rhs.location
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(location.hashCode())
+    }
+
     public var description: String {
         return location.description
     }
@@ -52,8 +60,10 @@ public class Bundle {
         return bundleURL // FIXME: this is probably not correct
     }
 
+    private static let _bundleModule = Bundle(for: Bundle.self)
+
     static var module: Bundle {
-        return Bundle(for: Bundle.self)
+        _bundleModule
     }
 
     /// Creates a relative path to the given bundle URL
@@ -157,6 +167,10 @@ public class Bundle {
         return relativeBundleURL(path: res)
     }
 
+
+    /// The localized strings tables for this bundle
+    private var localizedTables: [String: [String: String]?] = [:]
+
     public func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
         synchronized(self) {
             let table = tableName ?? "Localizable"
@@ -171,9 +185,34 @@ public class Bundle {
         }
     }
 
-    /// The localized strings tables for this bundle
-    private var localizedTables: [String: [String: String]?] = [:]
+    /// The individual loaded bundles by locale
+    private var localizedBundles: [Locale: Bundle?] = [:]
 
+    /// Looks up the Bundle for the given locale and returns it, caching the result in the process.
+    public func localizedBundle(locale: Locale) -> Bundle {
+        synchronized(self) {
+            if let cached = self.localizedBundles[locale] {
+                return cached ?? self
+            }
+
+            var locBundle: Bundle? = nil
+            // for each identifier, attempt to load the Localizable.strings to see if it exists
+            for localeid in locale.localeSearchTags {
+                //print("trying localeid: \(localeid)")
+                if locBundle == nil,
+                   let locstrURL = self.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: localeid),
+                   let locBundleLocal = try? Bundle(url: locstrURL.deletingLastPathComponent()) {
+                    locBundle = locBundleLocal
+                }
+            }
+
+            // cache the result of the lookup (even if it is nil)
+            self.localizedBundles[locale] = locBundle
+
+            // fall back to the top-level bundle, if available
+            return locBundle ?? self
+        }
+    }
 }
 
 public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, value: String? = nil, comment: String) -> String {

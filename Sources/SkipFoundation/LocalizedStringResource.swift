@@ -8,7 +8,7 @@
 
 public typealias LocalizedStringResource = SkipLocalizedStringResource
 
-public final class SkipLocalizedStringResource {
+public final class SkipLocalizedStringResource: Hashable {
     public let key: String
     public let defaultValue: String? // TODO: String.LocalizationValue
     public let table: String?
@@ -25,8 +25,37 @@ public final class SkipLocalizedStringResource {
         self.comment = comment
     }
 
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.key == rhs.key
+        && lhs.defaultValue == rhs.defaultValue
+        && lhs.table == rhs.table
+        && lhs.locale == rhs.locale
+        && lhs.bundle == rhs.bundle
+        && lhs.comment == rhs.comment
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(key.hashCode())
+        if let defaultValue = defaultValue {
+            hasher.combine(defaultValue.hashCode())
+        }
+        if let table = table {
+            hasher.combine(table.hashCode())
+        }
+        if let locale = locale {
+            hasher.combine(locale.hashCode())
+        }
+        if let bundle = bundle {
+            hasher.combine(bundle.hashCode())
+        }
+        if let comment = comment {
+            hasher.combine(comment.hashCode())
+        }
+    }
+
+
     // FIXME: move to `Bundle.BundleDescription` so we can internalize the location
-    public enum BundleDescription: CustomStringConvertible {
+    public enum BundleDescription: CustomStringConvertible, Hashable {
         case main
         case forClass(AnyClass)
         case atURL(URL)

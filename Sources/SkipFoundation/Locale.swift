@@ -20,16 +20,25 @@ public struct Locale : Hashable {
     }
 
     public init(identifier: String) {
-        //self.platformValue = PlatformLocale(identifier)
-        //self.platformValue = PlatformLocale.forLanguageTag(identifier)
-        let parts = Array(identifier.split(separator: "_"))
-        if parts.count >= 2 {
-            // turn fr_FR into the language/country form
-            self.platformValue = java.util.Locale(parts.first, parts.last)
-        } else {
-            // language only
-            self.platformValue = java.util.Locale(identifier)
-        }
+        // Returns a locale for the specified IETF BCP 47 language tag string.
+        self.platformValue = java.util.Locale.forLanguageTag(identifier.replace("_", "-"))
+    }
+
+    /// Construct an identifier that conforms to the expected Foundation identifiers
+    public var identifier: String {
+        // Returns a string representation of this Locale object, consisting of language, country, variant, script, and extensions as below: language + "_" + country + "_" + (variant + "_#" | "#") + script + "-" + extensions Language is always lower case, country is always upper case, script is always title case, and extensions are always lower case.
+        //return platformValue.toString()
+
+        // To represent a Locale as a String for interchange purposes, use toLanguageTag().
+        return platformValue.toLanguageTag().replace("-", "_")
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.platformValue == rhs.platformValue
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(platformValue.hashCode())
     }
 
     public static var current: Locale {
@@ -40,20 +49,89 @@ public struct Locale : Hashable {
         return Locale(platformValue: java.util.Locale.getDefault()) // FIXME: not the same as .system: “Use the system locale when you don’t want any localizations”
     }
 
-    public var identifier: String {
-        return platformValue.toString()
+    /// Returns an array of tags to search for a locale identifier, from most specific to least specific
+    var localeSearchTags: [String] {
+        // for an identifier like "fr_FR", seek "fr-FR.lproj" and "fr.lproj"
+        // for an identifier like "zh_Hant", seek "zh-Hant.lproj" and "zh.lproj"
+        // for an identifier like "fr_CA_QC", seek "fr-QC-CA.lproj" and "fr-CA.lproj" and "fr.lproj"
+        var identifiers = [self.canonicalIdentifier]
+        let languageCode = self.languageCode ?? ""
+        if let regionCode = self.regionCode, !regionCode.isEmpty {
+            if let variantCode = self.variantCode, !variantCode.isEmpty {
+                identifiers.append(languageCode + "-" + variantCode + "-" + regionCode)
+                identifiers.append(languageCode + "-" + variantCode)
+                identifiers.append(languageCode + "-" + regionCode)
+            } else {
+                identifiers.append(languageCode + "-" + regionCode)
+            }
+        } else if let variantCode = self.variantCode, !variantCode.isEmpty {
+            identifiers.append(languageCode + "-" + variantCode)
+        }
+        identifiers.append(languageCode)
+
+        return identifiers
+    }
+
+    /// The identifier that matches the default ID used for xcstrings dictionary keys
+    public var canonicalIdentifier: String {
+        return platformValue.toLanguageTag()
+
+        let languageCode = languageCode ?? "en"
+        if let regionCode = regionCode, !regionCode.isEmpty {
+            if let variantCode = variantCode, !variantCode.isEmpty {
+                return languageCode + "-" + variantCode + "-" + regionCode
+            } else {
+                return languageCode + "-" + regionCode
+            }
+        } else if let variantCode = variantCode, !variantCode.isEmpty {
+            return languageCode + "-" + variantCode
+        } else {
+            return languageCode
+        }
     }
 
     public var languageCode: String? {
         return platformValue.getLanguage()
     }
 
-    public func localizedString(forLanguageCode languageCode: String) -> String? {
-        return java.util.Locale(languageCode).getDisplayLanguage(platformValue)
+    public var variantCode: String? {
+        return platformValue.getVariant()
+    }
+
+    public var regionCode: String? {
+        return platformValue.getCountry()
+    }
+
+    public var scriptCode: String? {
+        return platformValue.getScript()
+    }
+
+    public func localizedString(forIdentifier targetIdentifier: String) -> String? {
+        return Locale(identifier: targetIdentifier).platformValue.getDisplayName(platformValue)
+    }
+
+    public func localizedString(forLanguageCode: String) -> String? {
+        // malformed languages like "en-AU" throw an exception in Java, but no in Cocoa; so we ignore exceptions and fallback to attempting to create the Locale directly
+        let locale = try? java.util.Locale.Builder().setLanguage(forLanguageCode).build()
+        return (locale ?? Locale(identifier: forLanguageCode).platformValue).getDisplayLanguage(platformValue)
+    }
+
+    public func localizedString(forRegionCode: String) -> String? {
+        let locale = try? java.util.Locale.Builder().setRegion(forRegionCode).build()
+        return (locale ?? Locale(identifier: forRegionCode).platformValue).getDisplayCountry(platformValue)
+    }
+
+    public func localizedString(forScriptCode: String) -> String? {
+        let locale = try? java.util.Locale.Builder().setScript(forScriptCode).build()
+        return (locale ?? Locale(identifier: forScriptCode).platformValue).getDisplayScript(platformValue)
     }
 
     public var currencySymbol: String? {
-        java.text.NumberFormat.getCurrencyInstance(platformValue).currency?.symbol
+        return java.text.NumberFormat.getCurrencyInstance(platformValue).currency?.symbol
+    }
+
+    public func localize(key: String, value: String?, bundle: Bundle?, tableName: String?) -> String? {
+        return bundle?.localizedBundle(locale: self).localizedString(forKey: key, value: value, table: tableName)
     }
 }
 
