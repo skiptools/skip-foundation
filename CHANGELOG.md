@@ -1,3 +1,14 @@
+## 0.4.1
+
+Released 2024-01-12
+
+  - Update Locale API tests
+  - Update Locale API tests
+  - Update Locale API tests
+  - Update Locale API tests
+  - Update Locale API tests
+  - Add more Locale API
+
 ## 0.3.15
 
 Released 2024-01-07
