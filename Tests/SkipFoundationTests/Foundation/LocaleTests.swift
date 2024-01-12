@@ -258,7 +258,7 @@ final class LocaleTests: XCTestCase {
     }
 
     func testLocalizedBundles() throws {
-        let frURL = try XCTUnwrap(Bundle.module.url(forResource: "fr.lproj/Localizable.strings", withExtension: ""), "could not locate fr.lproj in Bundle.module: \(String(describing: Bundle.module.resourceURL))")
+        let frURL = try XCTUnwrap(Bundle.module.url(forResource: "fr.lproj/Localizable.strings", withExtension: nil), "could not locate fr.lproj in Bundle.module: \(String(describing: Bundle.module.resourceURL))")
 
         let frBundle = try XCTUnwrap(Bundle(url: frURL.deletingLastPathComponent()), "cannot locate fr.lproj bundle resource")
 
