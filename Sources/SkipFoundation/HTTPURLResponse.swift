@@ -72,6 +72,36 @@ public class HTTPURLResponse : URLResponse {
         return super.suggestedFilename // fallback to super impl
     }
 
+    // Example header values for Android URL Response:
+    //
+    // key=Accept-Ranges value=bytes
+    // key=Access-Control-Allow-Origin value=*
+    // key=Cache-Control value=max-age=300
+    // key=Connection value=keep-alive
+    // key=Content-Security-Policy value=default-src 'none'; style-src 'unsafe-inline'; sandbox
+    // key=Content-Type value=text/plain; charset=utf-8
+    // key=Cross-Origin-Resource-Policy value=cross-origin
+    // key=Date value=Sat, 13 Jan 2024 14:03:42 GMT
+    // key=ETag value=W/"d69486342fbd7db32562c4849947566401ee7f77a8dbf5e2f761924a83a3c0de"
+    // key=Expires value=Sat, 13 Jan 2024 14:08:42 GMT
+    // key=Source-Age value=29
+    // key=Strict-Transport-Security value=max-age=31536000
+    // key=Vary value=Authorization,Accept-Encoding,Origin
+    // key=Via value=1.1 varnish
+    // key=X-Android-Received-Millis value=1705154621063
+    // key=X-Android-Response-Source value=NETWORK 200
+    // key=X-Android-Selected-Protocol value=http/1.1
+    // key=X-Android-Sent-Millis value=1705154621051
+    // key=X-Cache value=HIT
+    // key=X-Cache-Hits value=2
+    // key=X-Content-Type-Options value=nosniff
+    // key=X-Fastly-Request-ID value=0214e6d01962c3ecfb30dbdaec69541b877d796c
+    // key=X-Frame-Options value=deny
+    // key=X-GitHub-Request-Id value=7E2E:10C2:6AF926:81DBA9:65A29255
+    // key=X-Served-By value=cache-bos4691-BOS
+    // key=X-Timer value=S1705154623.865697,VS0,VE0
+    // key=X-XSS-Protection value=1; mode=block
+
     public func value(forHTTPHeaderField field: String) -> String? {
         return URLRequest.value(forHTTPHeaderField: field, in: allHeaderFields)
     }

@@ -62,15 +62,19 @@ final class URLTests: XCTestCase {
     let testURL = URL(string: "https://raw.githubusercontent.com/w3c/activitypub/1a6e82e77da5f36a17e3ebd4be3f7b42a33f82da/w3c.json")!
 
     func testFetchURLAsync() async throws {
-        try failOnAndroid()
         let (data, response) = try await URLSession.shared.data(from: testURL)
 
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
         XCTAssertEqual("text/plain", HTTPResponse.mimeType)
         XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
-        XCTAssertEqual(104, HTTPResponse.expectedContentLength)
 
         XCTAssertEqual(104, data.count)
+        if isAndroidEmulator { // Android seems not to include the content-length
+            XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
+        } else {
+            XCTAssertEqual(104, HTTPResponse.expectedContentLength)
+        }
+
         XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
         {
           "group": 72531,
@@ -89,10 +93,14 @@ final class URLTests: XCTestCase {
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
         XCTAssertEqual("text/plain", HTTPResponse.mimeType)
         XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
-        XCTAssertEqual(104, HTTPResponse.expectedContentLength)
 
         let data = try Data(contentsOf: localURL)
         XCTAssertEqual(104, data.count)
+        if isAndroidEmulator { // Android seems not to include the Content-Length
+            XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
+        } else {
+            XCTAssertEqual(104, HTTPResponse.expectedContentLength)
+        }
         XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
         {
           "group": 72531,

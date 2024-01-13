@@ -122,7 +122,8 @@ public final class URLSession {
         // seems to be the typical way of converting from java.net.URL into android.net.Uri (which is needed by the DownloadManager)
         let uri = android.net.Uri.parse(url.description)
 
-        let downloadManager = ProcessInfo.processInfo.androidContext.getSystemService(android.content.Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
+        let ctx = ProcessInfo.processInfo.androidContext
+        let downloadManager = ctx.getSystemService(android.content.Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
 
         let downloadRequest = android.app.DownloadManager.Request(uri)
             .setAllowedOverMetered(self.configuration.allowsExpensiveNetworkAccess)
@@ -163,7 +164,10 @@ public final class URLSession {
             //let desc = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_DESCRIPTION)) // The client-supplied description of this download // NPE
             //let id = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_ID)) // An identifier for a particular download, unique across the system. // NPE
             // let lastModified = cursor.getLong(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_LAST_MODIFIED_TIMESTAMP)) // Timestamp when the download was last modified, in System.currentTimeMillis() (wall clock time in UTC).
-            let localFilename = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_LOCAL_FILENAME)) // Path to the downloaded file on disk.
+
+            // Error: java.lang.SecurityException: COLUMN_LOCAL_FILENAME is deprecated; use ContentResolver.openFileDescriptor() instead
+            // let localFilename = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_LOCAL_FILENAME)) // Path to the downloaded file on disk.
+
             //let localURI = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_LOCAL_URI)) // Uri where downloaded file will be stored. // NPE
             // let mediaproviderURI = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_MEDIAPROVIDER_URI)) // The URI to the corresponding entry in MediaProvider for this downloaded entry. // NPE
             //let mediaType = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_MEDIA_TYPE)) // Internet Media Type of the downloaded file.
@@ -184,8 +188,18 @@ public final class URLSession {
                 headers["Content-Length"] = totalSizeBytes?.description
                 //headers["Last-Modified"] = lastModified // TODO: convert to Date
                 let response = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: httpVersion, headerFields: headers)
-                let localURL = URL(fileURLWithPath: localFilename)
-                return Result.success((localURL as URL, response as URLResponse))
+                //let localURL = URL(fileURLWithPath: localFilename)
+
+                // Type mismatch: inferred type is String! but Uri was expected
+//                guard let pfd = ctx.getContentResolver().openFileDescriptor(uri, "r") else {
+//                    // TODO: create error from error
+//                    let error = FailedToDownloadURLError()
+//                    return Result.failure(error)
+//                }
+
+                // unfortunately we cannot get a file path from a descriptor, so we need to copy the contents to a temporary file, and then return that one
+                return Result.failure(DownloadUnimplentedError())
+                // TODO: return Result.success((localURL as URL, response as URLResponse))
             } else if status == android.app.DownloadManager.STATUS_FAILED {
                 // File download failed
                 // TODO: create error from error
@@ -311,6 +325,9 @@ public struct NoURLInRequestError : Error {
 }
 
 public struct FailedToDownloadURLError : Error {
+}
+
+public struct DownloadUnimplentedError : Error {
 }
 
 public struct UnableToStartDownload : Error {
