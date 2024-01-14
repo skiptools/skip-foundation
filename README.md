@@ -87,7 +87,7 @@ Swift uses the `Encodable` and `Decodable` protocols to convert objects to and f
 
 - JSON is currently the only supported format. SkipFoundation includes Foundation's `JSONEncoder` and `JSONDecoder` classes.
 - Not all JSON formatting options are supported.
-- `Array`, `Set`, and `Dictionary` **are** supported, but nesting of these types is limited to arrays-of-arrays and dictionaries-of-array-values. Skip does not yet support e.g. an array of dictionaries, or a dictionary with array keys.
+- `Array`, `Set`, and `Dictionary` are fully supported, but nesting of these types is limited. So for example Skip can encode and decode `Array<MyCodableType>` and `Dictionary<String, MyCodableType>`, but not `Array<Dictionary<String, MyCodableType>>`. Two forms of container nesting **are** currently supported: arrays-of-arrays - e.g. `Array<Array<MyCodableType>>` - and dictionaries-of-array-values - e.g. `Dictionary<String, Array<MyCodableType>>`. In practice, other nesting patters are rare.
 - When implementing your own `init(from: Decoder)` decoding, your `decode` calls must supply a concrete type literal to decode. The following will work:
 
     ```swift
