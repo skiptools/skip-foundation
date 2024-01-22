@@ -1,3 +1,11 @@
+## 0.4.2
+
+Released 2024-01-22
+
+  - Implement httpBody (fixes https://github.com/skiptools/skip-foundation/issues/7)
+  - Update README.md
+  - Fix or disable tests failing on Android emulator
+
 ## 0.4.1
 
 Released 2024-01-12
