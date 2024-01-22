@@ -53,6 +53,14 @@ public final class URLSession {
                 httpConnection.setRequestMethod(httpMethod)
             }
 
+            if let httpBody = request.httpBody {
+                httpConnection.setDoOutput(true)
+                let os = httpConnection.getOutputStream()
+                os.write(httpBody.platformValue)
+                os.flush()
+                os.close()
+            }
+
             httpConnection.connectTimeout = request.timeoutInterval > 0 ? (request.timeoutInterval * 1000.0).toInt() : (config.timeoutIntervalForRequest * 1000.0).toInt()
             httpConnection.readTimeout = config.timeoutIntervalForResource.toInt()
         }
