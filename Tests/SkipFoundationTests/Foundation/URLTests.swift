@@ -151,4 +151,45 @@ final class URLTests: XCTestCase {
         XCTAssertEqual(55, sum)
         #endif
     }
+
+    func testPostURL() async throws {
+        // curl -v -d 'ab=xyz' https://httpbin.org/post
+        /*
+         {
+           "args": {},
+           "data": "",
+           "files": {},
+           "form": {
+             "ab": "xyz"
+           },
+           "headers": {
+             "Accept": "* / *",
+             "Content-Length": "6",
+             "Content-Type": "application/x-www-form-urlencoded",
+             "Host": "httpbin.org",
+             "User-Agent": "curl/8.4.0"
+           },
+           "json": null,
+           "origin": "14.104.46.232",
+           "url": "https://httpbin.org/post"
+         }
+         */
+
+        let url = try XCTUnwrap(URL(string: "https://httpbin.org/post")) // this service just echos back the form data
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Some User Agent", forHTTPHeaderField: "User-Agent")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (key, value) = ("abc", "xyz")
+        request.httpBody = Data("\(key)=\(value)".utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
+        XCTAssertEqual("application/json", HTTPResponse.mimeType)
+        let JSONResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        XCTAssertEqual([key: value], JSONResponse?["form"] as? [String: String])
+    }
 }

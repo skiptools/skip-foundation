@@ -45,7 +45,7 @@ extension TestJSONSerialization {
         let subject = Data(bytes)
 
         // SKIP NOWARN
-        var object: [String: Any]? = try JSONSerialization.jsonObject(with: subject, options: []) as? [String:Any]
+        let object: [String: Any]? = try JSONSerialization.jsonObject(with: subject, options: []) as? [String:Any]
         XCTAssertEqual(object?.count, 0)
     }
     
