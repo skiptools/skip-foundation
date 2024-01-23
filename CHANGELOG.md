@@ -1,3 +1,9 @@
+## 0.4.3
+
+Released 2024-01-23
+
+  - URLSession httpBody to be sent after requests (fixes https://github.com/skiptools/skip-foundation/issues/7)
+
 ## 0.4.2
 
 Released 2024-01-22
