@@ -46,11 +46,9 @@ public class Bundle : Hashable {
     public var bundleURL: URL {
         let loc: SkipLocalizedStringResource.BundleDescription = location
         switch loc {
-        case .main:
-            fatalError("Skip does not support .main bundle")
         case .atURL(let url):
             return url
-        case .forClass(let cls):
+        case.main, .forClass:
             return relativeBundleURL(Self.resourceIndexFileName)!
                 .deletingLastPathComponent()
         }
@@ -60,39 +58,46 @@ public class Bundle : Hashable {
         return bundleURL // FIXME: this is probably not correct
     }
 
-    private static let _bundleModule = Bundle(for: Bundle.self)
-
+    /// Each package will generate its own `Bundle.module` extension to access the local bundle.
     static var module: Bundle {
         _bundleModule
     }
+    private static let _bundleModule = Bundle(for: Bundle.self)
 
     /// Creates a relative path to the given bundle URL
     private func relativeBundleURL(path: String) -> URL? {
         let loc: SkipLocalizedStringResource.BundleDescription = location
         switch loc {
         case .main:
-            fatalError("Skip does not yet support .main bundle; use Bundle.module instead to load local assets")
+            let appContext = ProcessInfo.processInfo.androidContext
+            let appClass = Class.forName(appContext.getApplicationInfo().className, true, appContext.getClassLoader())
+            return relativeBundleURL(path: path, forClass: appClass)
         case .atURL(let url):
             return url.appendingPathComponent(path)
         case .forClass(let cls):
-            do {
-                let rpath = "Resources/" + path
-                let resURL = try cls.java.getResource(rpath)
-                return URL(platformValue: resURL)
-            } catch {
-                // getResource throws when it cannot find the resource, but it doesn't handle directories
-                // such as .lproj folders; so manually scan the resources.lst elements, and if any
-                // appear to be a directory, then just return that relative URL without validating its existance
+            return relativeBundleURL(path: path, forClass: cls.java)
+        }
+    }
 
-                if path == Self.resourceIndexFileName {
-                    return nil // if the resources index itself is not found (which will be the case when the project has no resources), then do not try to load it
-                }
+    // SKIP DECLARE: private fun relativeBundleURL(path: String, forClass: Class<*>): URL?
+    private func relativeBundleURL(path: String, forClass: Class<Any>) -> URL? {
+        do {
+            let rpath = "Resources/" + path
+            let resURL = try forClass.getResource(rpath)
+            return URL(platformValue: resURL)
+        } catch {
+            // getResource throws when it cannot find the resource, but it doesn't handle directories
+            // such as .lproj folders; so manually scan the resources.lst elements, and if any
+            // appear to be a directory, then just return that relative URL without validating its existance
 
-                if self.resourcesIndex.contains(where: { $0.hasPrefix(path + "/") }) {
-                    return resourcesFolderURL?.appendingPathComponent(path, isDirectory: true)
-                }
-                return nil
+            if path == Self.resourceIndexFileName {
+                return nil // if the resources index itself is not found (which will be the case when the project has no resources), then do not try to load it
             }
+
+            if self.resourcesIndex.contains(where: { $0.hasPrefix(path + "/") }) {
+                return resourcesFolderURL?.appendingPathComponent(path, isDirectory: true)
+            }
+            return nil
         }
     }
 
