@@ -93,7 +93,7 @@ Swift uses the `Encodable` and `Decodable` protocols to convert objects to and f
     ```swift
     init(from decoder: Decoder) throws {
         var container = try decoder.container(keyedBy: CodingKeys.self)
-        self.array = try container.decode([Int].self, forKey: CodingKeys.array) 
+        self.array = try container.decode([Int].self, forKey: .array) 
     }
     ```
 
@@ -103,17 +103,15 @@ Swift uses the `Encodable` and `Decodable` protocols to convert objects to and f
     init(from decoder: Decoder) throws {
         var container = try decoder.container(keyedBy: CodingKeys.self)
         let arrayType = [Int].self
-        self.array = try container.decode(arrayType, forKey: CodingKeys.array) 
+        self.array = try container.decode(arrayType, forKey: .array) 
     }
 
     init(from decoder: Decoder) throws {
         var container = try decoder.container(keyedBy: CodingKeys.self)
         // T is a generic type of this class
-        self.array = try container.decode([T].self, forKey: CodingKeys.array) 
+        self.array = try container.decode([T].self, forKey: .array) 
     }
     ```
-
-- As in the examples above, you must fully qualify your `CodingKeys` cases when calling `decode(_:forKey:)`.
 
 ## Tests
 

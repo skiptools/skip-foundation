@@ -135,14 +135,25 @@ class TestJSON : XCTestCase {
         var departmentMembers: [String: [Person]]
     }
 
-    struct ManualPerson: Encodable {
+    struct ManualPerson: Codable {
         let name: String
         let age: Int
 
+        init(name: String, age: Int) {
+            self.name = name
+            self.age = age
+        }
+
+        init(from decoder: Decoder) throws {
+            var container = try decoder.container(keyedBy: CodingKeys.self)
+            name = try container.decode(String.self, forKey: .nameX)
+            age = try container.decode(Int.self, forKey: .ageX)
+        }
+
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            try container.encode(name, forKey: CodingKeys.nameX)
-            try container.encode(age, forKey: CodingKeys.ageX)
+            try container.encode(name, forKey: .nameX)
+            try container.encode(age, forKey: .ageX)
         }
 
         enum CodingKeys: String, CodingKey {

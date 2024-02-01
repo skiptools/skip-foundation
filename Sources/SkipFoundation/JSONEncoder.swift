@@ -529,11 +529,15 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
         try encodeFixedWidthInteger(value, key: self._converted(key))
     }
 
-    // SKIP DECLARE: override fun <T> encode(value: T, forKey: CodingKey) where T: Any
-    mutating func encode<T>(_ value: T, forKey key: JSONEncoderKey) throws where T: Encodable {
+    // SKIP DECLARE: override fun <T> encode(value: T?, forKey: CodingKey) where T: Any
+    mutating func encode<T>(_ value: T?, forKey key: JSONEncoderKey) throws where T: Encodable {
         let convertedKey = self._converted(key)
-        let encoded = try self.wrapEncodable(value, for: convertedKey)
-        self.object.set(encoded ?? .object([:]), for: convertedKey.stringValue)
+        if value == nil {
+            self.object.set(JSONValue.null, for: convertedKey.stringValue)
+        } else {
+            let encoded = try self.wrapEncodable(value, for: convertedKey)
+            self.object.set(encoded ?? .object([:]), for: convertedKey.stringValue)
+        }
     }
 
     mutating func nestedContainer<NestedKey>(keyedBy nestedKeyType: NestedKey.Type, forKey key: JSONEncoderKey) ->
