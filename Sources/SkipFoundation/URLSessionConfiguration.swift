@@ -9,7 +9,7 @@
 open class URLSessionConfiguration {
     private static let _default = URLSessionConfiguration()
 
-    static var `default`: URLSessionConfiguration {
+    open class var `default`: URLSessionConfiguration {
         return _default
     }
 
