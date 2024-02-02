@@ -152,7 +152,7 @@ final class LocaleTests: XCTestCase {
         XCTAssertEqual("Bonjour，%@", locStrings.strings["Hello, %@"]?.localizations?["fr"]?.stringUnit?.value)
         XCTAssertEqual("你好，%@", locStrings.strings["Hello, %@"]?.localizations?["zh-Hans"]?.stringUnit?.value)
 
-        //XCTAssertEqual("Done", String(localized: "Done", table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil)) // Type mismatch: inferred type is String but StringLocalizationValue was expected
+        XCTAssertEqual("Done", String(localized: "Done", table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil)) // Type mismatch: inferred type is String but StringLocalizationValue was expected
 
         XCTAssertEqual("Done", String(localized: String.LocalizationValue(stringLiteral: "Done"), table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil))
 

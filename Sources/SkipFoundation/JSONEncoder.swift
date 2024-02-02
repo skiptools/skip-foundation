@@ -536,6 +536,7 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
             self.object.set(JSONValue.null, for: convertedKey.stringValue)
         } else {
             let encoded = try self.wrapEncodable(value, for: convertedKey)
+            // SKIP NOWARN
             self.object.set(encoded ?? .object([:]), for: convertedKey.stringValue)
         }
     }
