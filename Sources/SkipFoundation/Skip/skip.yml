@@ -3,9 +3,34 @@
 #skip:
 #  package: 'skip.foundation'
 
+# the blocks to add to the settings.gradle.kts
+settings:
+  contents:
+    - block: 'dependencyResolutionManagement'
+      contents:
+        - block: 'versionCatalogs'
+          contents:
+            - block: 'create("testLibs")'
+              contents:
+                - 'version("robolectric", "4.11.1")'
+                - 'library("robolectric", "org.robolectric", "robolectric").versionRef("robolectric")'
+                - 'library("json", "org.json", "json").version("20231013")'
+
 # the blocks to add to the build.gradle.kts
 build:
   contents:
     - block: 'dependencies'
       contents:
-        - 'testImplementation("org.json:json:20180813")'
+        # needed to run local tests that use the JSON parser with a full Robolectric shadow environment
+        - 'testImplementation(testLibs.json)'
+        - 'testImplementation(testLibs.robolectric)'
+        - 'testImplementation(testLibs.androidx.test.ext.junit)'
+        - 'androidTestImplementation(testLibs.androidx.test.ext.junit)'
+
+    - block: 'tasks.withType<Test>().configureEach'
+      contents:
+        - 'systemProperties.put("robolectric.logging", "stdout")'
+        - 'systemProperties.put("robolectric.graphicsMode", "NATIVE")'
+        - block: 'testLogging'
+          contents:
+            - 'this.showStandardStreams = true'
