@@ -88,7 +88,7 @@ final class URLTests: XCTestCase {
     }
 
     func testDownloadURLAsync() async throws {
-        try failOnAndroid()
+        try failOnAndroid() // needs android.permission.INTERNET
         let (localURL, response) = try await URLSession.shared.download(from: testURL)
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
         XCTAssertEqual("text/plain", HTTPResponse.mimeType)
@@ -96,7 +96,7 @@ final class URLTests: XCTestCase {
 
         let data = try Data(contentsOf: localURL)
         XCTAssertEqual(104, data.count)
-        if isAndroidEmulator { // Android seems not to include the Content-Length
+        if isAndroidEmulator { // Android seems not to include the Content-Length in its response
             XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
         } else {
             XCTAssertEqual(104, HTTPResponse.expectedContentLength)
@@ -114,13 +114,26 @@ final class URLTests: XCTestCase {
     }
 
     func testAsyncBytes() async throws {
-        try failOnAndroid()
-        let (bytes, response) = try await URLSession.shared.bytes(from: testURL)
-        _ = bytes
-        let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
-        XCTAssertEqual("text/plain", HTTPResponse.mimeType)
-        XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
-        XCTAssertEqual(104, HTTPResponse.expectedContentLength)
+        try failOnAndroid() // needs android.permission.INTERNET
+        var lastContentLength: Int64 = 0
+        for _ in 1...5 {
+            let (bytes, response) = try await URLSession.shared.bytes(from: testURL)
+            _ = bytes
+            let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
+            XCTAssertEqual("text/plain", HTTPResponse.mimeType)
+            XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
+            lastContentLength = HTTPResponse.expectedContentLength
+            if lastContentLength != 104 {
+                // wait a bit and then try again, to handle intermittent network failures
+                try await Task.sleep(nanoseconds: 100_000_000)
+                continue
+            } else {
+                XCTAssertEqual(104, lastContentLength)
+                break
+            }
+        }
+
+        XCTAssertEqual(104, lastContentLength)
 
         //let data = try await bytes.reduce(into: Data(), { dat, byte in
         //    var d: Data = dat // Unresolved reference with inout
