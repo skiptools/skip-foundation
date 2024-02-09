@@ -123,7 +123,7 @@ final class URLTests: XCTestCase {
             XCTAssertEqual("text/plain", HTTPResponse.mimeType)
             XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
             lastContentLength = HTTPResponse.expectedContentLength
-            if lastContentLength != 104 {
+            if lastContentLength != Int64(104) {
                 // wait a bit and then try again, to handle intermittent network failures
                 try await Task.sleep(nanoseconds: 100_000_000)
                 continue
