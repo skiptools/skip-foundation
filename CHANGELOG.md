@@ -1,3 +1,12 @@
+## 0.5.1
+
+Released 2024-02-10
+
+  - Remove calls to UserDefaults.object()
+  - Rename object calls to obj
+  - Fix Int64 for URLTests.testAsyncBytes
+  - Retry URLSession.shared.bytes test case to handle intermittent network failures
+
 ## 0.5.0
 
 Released 2024-02-05
