@@ -173,9 +173,7 @@ class TestUserDefaults : XCTestCase {
 
         defaults.set(date, forKey: "test_setValue_Date")
 
-        #if !SKIP // FIXME: object is escaped as object_
         XCTAssertEqual(defaults.object(forKey: "test_setValue_Date") as? Date, date)
-        #endif
     }
 
     func test_getObject_Date() {
@@ -231,9 +229,7 @@ class TestUserDefaults : XCTestCase {
         // Set a Data value. UserDefaults.data(forKey:) is supposed to return the Data
         defaults.set(Data(bytes), forKey: "test_setValue_Data")
 
-        #if !SKIP // FIXME: object is escaped as object_
         XCTAssertEqual(defaults.object(forKey: "test_setValue_Data") as? Data, Data(bytes))
-        #endif
     }
 
 	func test_setValue_BoolFromString() {

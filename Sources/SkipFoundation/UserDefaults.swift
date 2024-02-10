@@ -113,8 +113,7 @@ public class UserDefaults {
     }
 
     /// Returns the value from the current defaults.
-    /// Called `object_` since `object` is an unescapable keyword in Kotin.
-    public func object_(forKey defaultName: String) -> Any? {
+    public func object(forKey defaultName: String) -> Any? {
         obj(forKey: defaultName)
     }
 
