@@ -98,7 +98,7 @@ public class UserDefaults {
         prefs.apply()
     }
 
-    private func obj(forKey defaultName: String) -> Any? {
+    public func obj(forKey defaultName: String) -> Any? {
         let value = platformValue.getAll()[defaultName] ?? registrationDictionary[defaultName] ?? nil
         guard let string = value as? String else {
             return value
