@@ -6,34 +6,6 @@
 
 #if SKIP
 
-public func String(bytes: [UInt8], encoding: StringEncoding) -> String? {
-    let byteArray = ByteArray(size: bytes.count) {
-         return bytes[$0].toByte()
-     }
-     return byteArray.toString(encoding.rawValue)
-}
-
-extension String {
-    public typealias Encoding = StringEncoding
-    
-    public func data(using: StringEncoding, allowLossyConversion: Bool = true) -> Data? {
-        return try? Data(platformValue: toByteArray(using.rawValue))
-    }
-
-    public var utf8: [UInt8] {
-        // TODO: there should be a faster way to convert a string to a UInt8 array
-        return Array(toByteArray(StringEncoding.utf8.rawValue).map { it.toUByte() })
-    }
-
-    public var utf16: [UInt8] {
-        return Array(toByteArray(StringEncoding.utf16.rawValue).map { it.toUByte() })
-    }
-
-    public var unicodeScalars: [UInt8] {
-        return Array(toByteArray(StringEncoding.utf8.rawValue).map { it.toUByte() })
-    }
-}
-
 public struct StringEncoding : RawRepresentable, Hashable {
     public static let utf8 = StringEncoding(rawValue: Charsets.UTF_8)
     public static let utf16 = StringEncoding(rawValue: Charsets.UTF_16)

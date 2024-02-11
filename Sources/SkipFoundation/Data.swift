@@ -14,11 +14,7 @@ public protocol DataProtocol {
 }
 
 public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
-    internal var platformValue: PlatformData
-
-    public var platformData: PlatformData {
-        return platformValue
-    }
+    var platformValue: PlatformData
 
     public init(platformValue: PlatformData) {
         self.platformValue = platformValue
@@ -34,11 +30,71 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
         })
     }
 
-    public init?(base64Encoded: String) {
+    public init?(base64Encoded: String, options: Data.Base64DecodingOptions = []) {
         guard let data = try? java.util.Base64.getDecoder().decode(base64Encoded) else {
             return nil
         }
         self.platformValue = data
+    }
+
+    @available(*, unavailable)
+    public init?(base64Encoded base64Data: Data, options: Data.Base64DecodingOptions = []) {
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    public init() {
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    public init(count: Int) {
+        self.platformValue = PlatformData(size: count)
+    }
+
+    public init(capacity: Int) {
+        // No equivalent kotlin.ByteArray(capacity:), so allocate with zero
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    @available(*, unavailable)
+    public init(bytes: Any /* UnsafeRawPointer */, count: Int) {
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    @available(*, unavailable)
+    public init(buffer: Any /* UnsafeBufferPointer<SourceType> UnsafeMutableBufferPointer<SourceType> */) {
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    @available(*, unavailable)
+    public init(repeating repeatedValue: UInt8, count: Int) {
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    @available(*, unavailable)
+    public init(bytesNoCopy bytes: Any /* UnsafeMutableRawPointer */, count: Int, deallocator: Data.Deallocator) {
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    @available(*, unavailable)
+    public init(_ elements: any Sequence<UInt8>) {
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    @available(*, unavailable)
+    public init(referencing reference: Data) {
+        self.platformValue = PlatformData(size: 0)
+    }
+
+    public init(contentsOfFile filePath: String) throws {
+        self.platformValue = java.io.File(filePath).readBytes()
+    }
+
+    public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
+        self.platformValue = url.platformValue.readBytes()
+    }
+
+    public init(_ checksum: Digest) {
+        self.init(checksum.bytes)
     }
 
     public init(from decoder: Decoder) throws {
@@ -59,8 +115,20 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
         }
     }
 
+    public var platformData: PlatformData {
+        return platformValue
+    }
+
+    public var description: String {
+        return platformValue.description
+    }
+
     public var count: Int {
         return platformValue.size
+    }
+
+    public var isEmpty: Bool {
+        return count == 0
     }
 
     public var bytes: [UInt8] {
@@ -74,37 +142,112 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
     //    })
     //}
 
-    public var description: String {
-        return platformValue.description
-    }
-
     public var utf8String: String? {
         String(data: self, encoding: String.Encoding.utf8)
     }
 
-    public init() {
-        self.platformValue = PlatformData(size: 0)
+    public func base64EncodedString() -> String {
+        return java.util.Base64.getEncoder().encodeToString(platformValue)
     }
 
-    public init(count: Int) {
-        self.platformValue = PlatformData(size: count)
+    @available(*, unavailable)
+    public func base64EncodedData(options: Data.Base64EncodingOptions = []) -> Data {
+        fatalError()
     }
 
-    public init(capacity: Int) {
-        // No equivalent kotlin.ByteArray(capacity:), so allocate with zero
-        self.platformValue = PlatformData(size: 0)
+    public func sha256() -> Data {
+        return Data(SHA256.hash(data: self).bytes)
+    }
+
+    public func hex() -> String {
+        return platformValue.hex()
+    }
+
+    public mutating func reserveCapacity(_ minimumCapacity: Int) {
+    }
+
+    @available(*, unavailable)
+    public var regions: Collection<Data> {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func withUnsafeBytes(_ body: (Any /*UnsafeRawBufferPointer */) throws -> Any /* ResultType */) rethrows -> Any /*ResultType */ {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public mutating func withUnsafeMutableBytes(_ body: (Any /* UnsafeMutableRawBufferPointer */) throws -> Any /* ResultType */) rethrows -> Any /* ResultType */ {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func copyBytes(to pointer: Any /* UnsafeMutablePointer<UInt8> */, count: Int) {
+    }
+
+    @available(*, unavailable)
+    public func copyBytes(to pointer: Any /* UnsafeMutablePointer<UInt8> */, from range: Range<Int>) {
+    }
+
+    // public func copyBytes<DestinationType>(to buffer: UnsafeMutableBufferPointer<DestinationType>, from range: Range<Data.Index>? = nil) -> Int
+
+    @available(*, unavailable)
+    public mutating func append(_ bytes: Any /* UnsafePointer<UInt8> */, count: Int) {
+    }
+
+    public mutating func append(_ other: Data) {
+        append(contentsOf: other)
     }
 
     public mutating func append(contentsOf bytes: [UInt8]) {
         self.platformValue += Data(bytes).platformValue
     }
 
+    // This should be append(contentsOf: any Sequence<UInt8>), but Data does not yet conform to Sequence
     public mutating func append(contentsOf data: Data) {
         self.platformValue += data.platformValue
     }
 
-    public static func ==(lhs: Data, rhs: Data) -> Bool {
-        return lhs.platformValue.contentEquals(rhs.platformValue)
+    // public mutating func append<SourceType>(_ buffer: UnsafeBufferPointer<SourceType>)
+
+    @available(*, unavailable)
+    public mutating func resetBytes(in range: Range<Int>) {
+    }
+
+    @available(*, unavailable)
+    public mutating func replaceSubrange(_ subrange: Range<Int>, with data: Data) {
+    }
+
+    // public mutating func replaceSubrange<SourceType>(_ subrange: Range<Data.Index>, with buffer: UnsafeBufferPointer<SourceType>)
+
+    // public mutating func replaceSubrange<ByteCollection>(_ subrange: Range<Data.Index>, with newElements: ByteCollection) where ByteCollection : Collection, ByteCollection.Element == UInt8
+
+    @available(*, unavailable)
+    public mutating func replaceSubrange(_ subrange: Range<Int>, with bytes: Any /* UnsafeRawPointer */, count: Int) {
+    }
+
+    @available(*, unavailable)
+    public func subdata(in range: Range<Int>) -> Data {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func range(of dataToFind: Data, options: Data.SearchOptions = [], in range: Range<Int>? = nil) -> Range<Int>? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func advanced(by amount: Int) -> Data {
+        fatalError()
+    }
+
+    public subscript(index: Int) -> UInt8 {
+        return UInt8(platformValue.get(index))
+    }
+
+    @available(*, unavailable)
+    public subscript(bounds: Range<Int>) -> Data {
+        fatalError()
     }
 
     public func write(to url: URL, options: Data.WritingOptions = []) throws {
@@ -114,58 +257,115 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
         if options.contains(Data.WritingOptions.atomic) {
             opts.append(java.nio.file.StandardOpenOption.DSYNC)
         }
-
         java.nio.file.Files.write(url.toPath(), platformValue, *(opts.toList().toTypedArray()))
     }
 
-    public struct WritingOptions : OptionSet, Sendable {
-        public let rawValue: UInt
-        public init(rawValue: UInt) {
+    public static func ==(lhs: Data, rhs: Data) -> Bool {
+        return lhs.platformValue.contentEquals(rhs.platformValue)
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(platformValue.hashCode())
+    }
+
+    public typealias Index = Int
+    public typealias Indices = Range<Int>
+    public typealias Element = UInt8
+
+    public enum Deallocator {
+        case virtualMemory
+        case unmap
+        case free
+        case none
+        case custom((Any /*UnsafeMutableRawPointer*/, Int) -> Void)
+    }
+
+    public struct ReadingOptions : OptionSet, Sendable {
+        public let rawValue: Int
+        public init(rawValue: Int) {
             self.rawValue = rawValue
         }
 
-        public static let atomic = WritingOptions(rawValue: UInt(1 << 0))
+        @available(*, unavailable)
+        public static let mappedIfSafe = ReadingOptions(rawValue: 1)
+
+        @available(*, unavailable)
+        public static let uncached = ReadingOptions(rawValue: 2)
+        
+        @available(*, unavailable)
+        public static let alwaysMapped = ReadingOptions(rawValue: 4)
+    }
+
+    public struct WritingOptions : OptionSet, Sendable {
+        public let rawValue: Int
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        public static let atomic = WritingOptions(rawValue: 1)
+
+        @available(*, unavailable)
+        public static let withoutOverwriting = WritingOptions(rawValue: 2)
+
+        @available(*, unavailable)
+        public static let noFileProtection = WritingOptions(rawValue: 4)
+
+        @available(*, unavailable)
+        public static let completeFileProtection = WritingOptions(rawValue: 8)
+
+        @available(*, unavailable)
+        public static let completeFileProtectionUnlessOpen = WritingOptions(rawValue: 16)
+
+        @available(*, unavailable)
+        public static let completeFileProtectionUntilFirstUserAuthentication = WritingOptions(rawValue: 32)
+    }
+
+    public struct SearchOptions : OptionSet, Sendable {
+        public let rawValue: Int
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        @available(*, unavailable)
+        public static let backwards = SearchOptions(rawValue: 1)
+
+        @available(*, unavailable)
+        public static let anchored = SearchOptions(rawValue: 2)
+    }
+
+    public struct Base64EncodingOptions : OptionSet, Sendable {
+        public let rawValue: Int
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        @available(*, unavailable)
+        public static let lineLength64Characters = Base64EncodingOptions(rawValue: 1)
+
+        @available(*, unavailable)
+        public static let lineLength76Characters = Base64EncodingOptions(rawValue: 2)
+
+        @available(*, unavailable)
+        public static let endLineWithCarriageReturn = Base64EncodingOptions(rawValue: 4)
+
+        @available(*, unavailable)
+        public static let endLineWithLineFeed = Base64EncodingOptions(rawValue: 8)
+    }
+
+    public struct Base64DecodingOptions : OptionSet, Sendable {
+        public let rawValue: Int
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        @available(*, unavailable)
+        public static let ignoreUnknownCharacters = Base64DecodingOptions(rawValue: 1)
     }
 }
 
 extension Data: KotlinConverting<PlatformData> {
     public override func kotlin(nocopy: Bool = false) -> PlatformData {
         return nocopy ? platformValue : platformValue.copyOf()
-    }
-}
-
-// Mimic a String constructor.
-public func String(data: Data, encoding: StringEncoding) -> String? {
-    return java.lang.String(data.platformValue, encoding.rawValue) as kotlin.String?
-}
-
-extension String {
-    /// The UTF8-encoded data for this string
-    public var utf8Data: Data {
-        data(using: String.Encoding.utf8) ?? Data()
-    }
-}
-
-// SKIP INSERT: public operator fun String.Companion.invoke(contentsOf: URL): String { return contentsOf.platformValue.readText() }
-
-// SKIP INSERT: public operator fun Data.Companion.invoke(contentsOf: URL): Data { return Data.contentsOfURL(url = contentsOf) }
-
-extension Data {
-    // Static init until constructor overload works.
-    public static func contentsOfFile(filePath: String) throws -> Data {
-        return Data(platformValue: java.io.File(filePath).readBytes())
-    }
-
-    // Static init until constructor overload works.
-    public static func contentsOfURL(url: URL) throws -> Data {
-        //if url.isFileURL {
-        //    return Data(java.io.File(url.path).readBytes())
-        //} else {
-        //    return Data(url.platformValue.openConnection().getInputStream().readBytes())
-        //}
-
-        // this seems to work for both file URLs and network URLs
-        return Data(platformValue: url.platformValue.readBytes())
     }
 }
 

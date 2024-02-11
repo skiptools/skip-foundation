@@ -8,24 +8,6 @@
 
 public typealias MessageDigest = java.security.MessageDigest
 
-extension Data {
-    public func base64EncodedString() -> String {
-        return java.util.Base64.getEncoder().encodeToString(platformValue)
-    }
-
-    public func sha256() -> Data {
-        return Data(SHA256.hash(data: self).bytes)
-    }
-
-    public func hex() -> String {
-        return platformValue.hex()
-    }
-
-    public init(_ checksum: Digest) {
-        self.init(checksum.bytes)
-    }
-}
-
 public protocol Digest {
     var bytes: PlatformData { get }
 }

@@ -6,19 +6,26 @@
 
 #if SKIP
 
-public struct CharacterSet : Hashable {
-    internal var platformValue: Set<Character>
+// SKIP DECLARE: class CharacterSet : SetAlgebra<CharacterSet, Unicode.Scalar>, MutableStruct
+public struct CharacterSet : SetAlgebra, Hashable {
+    internal var platformValue: Set<UInt32>
 
-    internal init(platformValue: Set<Character>) {
+    private static func toPlatformValue(_ value: [String]) -> Set<UInt32> {
+        var set = LinkedHashSet<UInt32>()
+        for str in value {
+            for c in str.toCharArray() {
+                set.add(UInt32(c.code))
+            }
+        }
+        return Set(collection: set, nocopy: true)
+    }
+
+    internal init(platformValue: Set<UInt32>) {
         self.platformValue = platformValue
     }
 
     public init() {
-        self.platformValue = Set<Character>()
-    }
-
-    public var description: String {
-        return platformValue.description
+        self.platformValue = Set<UInt32>()
     }
 
     @available(*, unavailable)
@@ -46,6 +53,10 @@ public struct CharacterSet : Hashable {
         self.platformValue = SkipCrash("SKIP TODO: CharacterSet")
     }
 
+    public var description: String {
+        return platformValue.description
+    }
+
     @available(*, unavailable)
     public static var controlCharacters: CharacterSet {
         fatalError("SKIP TODO: CharacterSet")
@@ -53,12 +64,12 @@ public struct CharacterSet : Hashable {
 
     public static var whitespaces: CharacterSet {
         // TODO: Actual values
-        return CharacterSet(platformValue: [" ", "\t"])
+        return CharacterSet(platformValue: toPlatformValue([" ", "\t"]))
     }
 
     public static var whitespacesAndNewlines: CharacterSet {
         // TODO: Actual values
-        return CharacterSet(platformValue: [" ", "\t", "\n", "\r"])
+        return CharacterSet(platformValue: toPlatformValue([" ", "\t", "\n", "\r"]))
     }
 
     @available(*, unavailable)
@@ -118,7 +129,7 @@ public struct CharacterSet : Hashable {
 
     public static var newlines: CharacterSet {
         // TODO: Actual values
-        return CharacterSet(platformValue: ["\n", "\r"])
+        return CharacterSet(platformValue: toPlatformValue(["\n", "\r"]))
     }
 
     @available(*, unavailable)
@@ -201,72 +212,80 @@ public struct CharacterSet : Hashable {
         fatalError("SKIP TODO: CharacterSet")
     }
 
-    @available(*, unavailable)
     @discardableResult
     public mutating func insert(_ character: Unicode.Scalar) -> (inserted: Bool, memberAfterInsert: Unicode.Scalar) {
-        fatalError("SKIP TODO: CharacterSet")
+        let (inserted, _) = platformValue.insert(character.rawValue)
+        return (inserted, character)
     }
 
-    @available(*, unavailable)
     @discardableResult
     public mutating func update(with character: Unicode.Scalar) -> Unicode.Scalar? {
-        fatalError("SKIP TODO: CharacterSet")
+        return platformValue.update(with: character.rawValue) == nil ? nil : character
     }
 
-    @available(*, unavailable)
     @discardableResult
     public mutating func remove(_ character: Unicode.Scalar) -> Unicode.Scalar? {
-        fatalError("SKIP TODO: CharacterSet")
+        return platformValue.remove(character.rawValue) == nil ? nil : character
     }
 
-    @available(*, unavailable)
     public func contains(_ member: Unicode.Scalar) -> Bool {
-        fatalError("SKIP TODO: CharacterSet")
+        return platformValue.contains(member.rawValue)
     }
 
-    @available(*, unavailable)
     public func union(_ other: CharacterSet) -> CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
+        return CharacterSet(platformValue: self.platformValue.union(other.platformValue))
     }
 
-    @available(*, unavailable)
     public mutating func formUnion(_ other: CharacterSet) {
-        fatalError("SKIP TODO: CharacterSet")
+        platformValue.formUnion(other.platformValue)
     }
 
-    @available(*, unavailable)
     public func intersection(_ other: CharacterSet) -> CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
+        return CharacterSet(platformValue: self.platformValue.intersection(other.platformValue))
     }
 
-    @available(*, unavailable)
     public mutating func formIntersection(_ other: CharacterSet) {
-        fatalError("SKIP TODO: CharacterSet")
+        platformValue.formIntersection(other.platformValue)
     }
 
-    @available(*, unavailable)
     public func subtracting(_ other: CharacterSet) -> CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
+        return CharacterSet(platformValue: self.platformValue.subtracting(other.platformValue))
     }
 
-    @available(*, unavailable)
     public mutating func subtract(_ other: CharacterSet) {
-        fatalError("SKIP TODO: CharacterSet")
+        platformValue.subtract(other.platformValue)
     }
 
-    @available(*, unavailable)
     public func symmetricDifference(_ other: CharacterSet) -> CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
+        return CharacterSet(platformValue: self.platformValue.symmetricDifference(other.platformValue))
     }
 
-    @available(*, unavailable)
     public mutating func formSymmetricDifference(_ other: CharacterSet) {
-        fatalError("SKIP TODO: CharacterSet")
+        platformValue.formSymmetricDifference(other.platformValue)
     }
 
-    @available(*, unavailable)
     public func isSuperset(of other: CharacterSet) -> Bool {
-        fatalError("SKIP TODO: CharacterSet")
+        return platformValue.isSuperset(of: other.platformValue)
+    }
+
+    public func isSubset(of other: CharacterSet) -> Bool {
+        return platformValue.isSubset(of: other.platformValue)
+    }
+
+    public func isDisjoint(with other: CharacterSet) -> Bool {
+        return platformValue.isDisjoint(with: other.platformValue)
+    }
+
+    public func isStrictSubset(of other: CharacterSet) -> Bool {
+        return platformValue.isStrictSuperset(of: other.platformValue)
+    }
+
+    public func isStrictSuperset(of other: CharacterSet) -> Bool {
+        return platformValue.isStrictSuperset(of: other.platformValue)
+    }
+
+    public var isEmpty: Bool {
+        return platformValue.isEmpty
     }
 }
 

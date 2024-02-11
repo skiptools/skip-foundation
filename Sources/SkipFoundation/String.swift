@@ -48,8 +48,46 @@ extension String {
     }
 
     public func trimmingCharacters(in set: CharacterSet) -> String {
-        return trim { set.platformValue.contains($0) }
+        return trim { set.platformValue.contains(UInt32($0.code)) }
     }
+
+    public typealias Encoding = StringEncoding
+
+    public var utf8Data: Data {
+        data(using: String.Encoding.utf8) ?? Data()
+    }
+
+    public func data(using: StringEncoding, allowLossyConversion: Bool = true) -> Data? {
+        return try? Data(platformValue: toByteArray(using.rawValue))
+    }
+
+    public var utf8: [UInt8] {
+        // TODO: there should be a faster way to convert a string to a UInt8 array
+        return Array(toByteArray(StringEncoding.utf8.rawValue).map { it.toUByte() })
+    }
+
+    public var utf16: [UInt8] {
+        return Array(toByteArray(StringEncoding.utf16.rawValue).map { it.toUByte() })
+    }
+
+    public var unicodeScalars: [UInt8] {
+        return Array(toByteArray(StringEncoding.utf8.rawValue).map { it.toUByte() })
+    }
+}
+
+public func String(data: Data, encoding: StringEncoding) -> String? {
+    return java.lang.String(data.platformValue, encoding.rawValue) as kotlin.String?
+}
+
+public func String(bytes: [UInt8], encoding: StringEncoding) -> String? {
+    let byteArray = ByteArray(size: bytes.count) {
+         return bytes[$0].toByte()
+     }
+     return byteArray.toString(encoding.rawValue)
+}
+
+public func String(contentsOf: URL) -> String {
+    return contentsOf.platformValue.readText()
 }
 
 #endif

@@ -8,12 +8,6 @@
 
 // This code is adapted from https://github.com/apple/swift-corelibs-foundation/blob/main/Tests/Foundation/Tests which has the following license:
 
-public typealias UnicodeScalarValue = UInt32
-
-public func String(_ scalar: Unicode.Scalar) -> String {
-    fatalError("SKIP TODO")
-}
-
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift.org open source project
@@ -25,6 +19,12 @@ public func String(_ scalar: Unicode.Scalar) -> String {
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 //===----------------------------------------------------------------------===//
+
+public typealias UnicodeScalarValue = UInt32
+
+public func String(_ scalar: Unicode.Scalar) -> String {
+    fatalError("SKIP TODO")
+}
 
 public struct Unicode {
     public struct ASCII {

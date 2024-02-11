@@ -10,22 +10,28 @@
 // SKIP INSERT: fun java.util.Calendar.clone(): java.util.Calendar { return this.clone() as java.util.Calendar }
 
 public struct Calendar : Hashable, CustomStringConvertible {
-    public var locale: Locale
     internal var platformValue: java.util.Calendar
 
     public static var current: Calendar {
         return Calendar(platformValue: java.util.Calendar.getInstance())
     }
 
-    internal init(_ platformValue: java.util.Calendar) {
+    @available(*, unavailable)
+    public static var autoupdatingCurrent: Calendar {
+        fatalError()
+    }
+
+    public init(_ platformValue: java.util.Calendar) {
         self.platformValue = platformValue
         self.locale = Locale.current
     }
 
-    internal init(identifier: Calendar.Identifier) {
+    public init(identifier: Calendar.Identifier) {
         switch identifier {
         case .gregorian:
             self.platformValue = java.util.GregorianCalendar()
+        case .iso8601:
+            self.platformValue = java.util.Calendar.getInstance()
         default:
             // TODO: how to support the other calendars?
             fatalError("Skip: unsupported calendar identifier \(identifier)")
@@ -33,7 +39,22 @@ public struct Calendar : Hashable, CustomStringConvertible {
         self.locale = Locale.current
     }
 
-    internal var identifier: Calendar.Identifier {
+    public var locale: Locale
+
+    public var timeZone: TimeZone {
+        get {
+            return TimeZone(platformValue.getTimeZone())
+        }
+        set {
+            platformValue.setTimeZone(newValue.platformValue)
+        }
+    }
+
+    public var description: String {
+        return platformValue.description
+    }
+
+    public var identifier: Calendar.Identifier {
         // TODO: non-gregorian calendar
         if gregorianCalendar != nil {
             return Calendar.Identifier.gregorian
@@ -54,16 +75,23 @@ public struct Calendar : Hashable, CustomStringConvertible {
         return platformValue as? java.util.GregorianCalendar
     }
 
-    public var amSymbol: String {
-        return dateFormatSymbols.getAmPmStrings()[0]
+    @available(*, unavailable)
+    public var firstWeekday: Int {
+        fatalError()
     }
 
-    public var pmSymbol: String {
-        return dateFormatSymbols.getAmPmStrings()[1]
+    @available(*, unavailable)
+    public var minimumDaysInFirstWeek: Int {
+        fatalError()
     }
 
     public var eraSymbols: [String] {
         return Array(dateFormatSymbols.getEras().toList())
+    }
+
+    @available(*, unavailable)
+    public var longEraSymbols: [String] {
+        fatalError()
     }
 
     public var monthSymbols: [String] {
@@ -76,12 +104,110 @@ public struct Calendar : Hashable, CustomStringConvertible {
         return Array(dateFormatSymbols.getShortMonths().toList()).filter({ $0?.isEmpty == false })
     }
 
+    @available(*, unavailable)
+    public var veryShortMonthSymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var standaloneMonthSymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var shortStandaloneMonthSymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var veryShortStandaloneMonthSymbols: [String] {
+        fatalError()
+    }
+
     public var weekdaySymbols: [String] {
         return Array(dateFormatSymbols.getWeekdays().toList()).filter({ $0?.isEmpty == false })
     }
 
     public var shortWeekdaySymbols: [String] {
         return Array(dateFormatSymbols.getShortWeekdays().toList()).filter({ $0?.isEmpty == false })
+    }
+
+    @available(*, unavailable)
+    public var veryShortWeekdaySymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var standaloneWeekdaySymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var shortStandaloneWeekdaySymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var veryShortStandaloneWeekdaySymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var quarterSymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var shortQuarterSymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var standaloneQuarterSymbols: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var shortStandaloneQuarterSymbols: [String] {
+        fatalError()
+    }
+
+    public var amSymbol: String {
+        return dateFormatSymbols.getAmPmStrings()[0]
+    }
+
+    public var pmSymbol: String {
+        return dateFormatSymbols.getAmPmStrings()[1]
+    }
+
+    @available(*, unavailable)
+    public func minimumRange(of component: Calendar.Component) -> Range<Int>? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func maximumRange(of component: Calendar.Component) -> Range<Int>? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func range(of smaller: Calendar.Component, in larger: Calendar.Component, for date: Date) -> Range<Int>? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func dateInterval(of component: Calendar.Component, start: inout Date, interval: inout TimeInterval, for date: Date) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func dateInterval(of component: Calendar.Component, for date: Date) -> DateInterval? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func ordinality(of smaller: Calendar.Component, in larger: Calendar.Component, for date: Date) -> Int? {
+        fatalError()
     }
 
     public func date(from components: DateComponents) -> Date? {
@@ -113,51 +239,94 @@ public struct Calendar : Hashable, CustomStringConvertible {
         return date(from: comps)
     }
 
+    @available(*, unavailable)
+    public func component(_ component: Calendar.Component, from date: Date) -> Int {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func startOfDay(for date: Date) -> Date {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func compare(_ date1: Date, to date2: Date, toGranularity component: Calendar.Component) -> ComparisonResult {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func isDate(_ date1: Date, equalTo date2: Date, toGranularity component: Calendar.Component) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func isDate(_ date1: Date, inSameDayAs date2: Date) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func isDateInToday(_ date: Date) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func isDateInYesterday(_ date: Date) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func isDateInTomorrow(_ date: Date) -> Bool {
+        fatalError()
+    }
+
     public func isDateInWeekend(_ date: Date) -> Bool {
         let components = dateComponents(from: date)
         return components.weekday == java.util.Calendar.SATURDAY || components.weekday == java.util.Calendar.SUNDAY
     }
 
     @available(*, unavailable)
-    public func isDate(_ date1: Date, inSameDayAs date2: Date) -> Bool {
-        fatalError("TODO: Skip Calendar.isDate(:inSameDayAs:)")
+    public func dateIntervalOfWeekend(containing date: Date, start: inout Date, interval: inout TimeInterval) -> Bool {
+        fatalError()
     }
 
-    public func isDateInToday(_ date: Date) -> Bool {
-        // return isDate(date, inSameDayAs: Date())
-        fatalError("TODO: Skip Calendar.isDate(:inSameDayAs:)")
+    @available(*, unavailable)
+    public func dateIntervalOfWeekend(containing date: Date) -> DateInterval? {
+        fatalError()
     }
 
-    public func isDateInTomorrow(_ date: Date) -> Bool {
-        if let tomorrow = date(byAdding: DateComponents(day: -1), to: Date()) {
-            // return isDate(date, inSameDayAs: tomorrow)
-            fatalError("TODO: Skip Calendar.isDate(:inSameDayAs:)")
-        } else {
-            return false
-        }
+    @available(*, unavailable)
+    public func nextWeekend(startingAfter date: Date, start: inout Date, interval: inout TimeInterval, direction: Calendar.SearchDirection = .forward) -> Bool {
+        fatalError()
     }
 
-    public func isDateInYesterday(_ date: Date) -> Bool {
-        if let yesterday = date(byAdding: DateComponents(day: -1), to: Date()) {
-            // return isDate(date, inSameDayAs: yesterday)
-            fatalError("TODO: Skip Calendar.isDate(:inSameDayAs:)")
-        } else {
-            return false
-        }
+    @available(*, unavailable)
+    public func nextWeekend(startingAfter date: Date, direction: Calendar.SearchDirection = .forward) -> DateInterval? {
+        fatalError()
     }
 
-    public var timeZone: TimeZone {
-        get {
-            return TimeZone(platformValue.getTimeZone())
-        }
-
-        set {
-            platformValue.setTimeZone(newValue.platformValue)
-        }
+    @available(*, unavailable)
+    public func enumerateDates(startingAfter start: Date, matching components: DateComponents, matchingPolicy: Calendar.MatchingPolicy, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward, using block: (_ result: Date?, _ exactMatch: Bool, _ stop: inout Bool) -> Void) {
+        fatalError()
     }
 
-    public var description: String {
-        return platformValue.description
+    @available(*, unavailable)
+    public func nextDate(after date: Date, matching components: DateComponents, matchingPolicy: Calendar.MatchingPolicy, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func date(bySetting component: Calendar.Component, value: Int, of date: Date) -> Date? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: Calendar.MatchingPolicy = .nextTime, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
+        fatalError()
     }
 
     public enum Component: Sendable {
@@ -198,6 +367,23 @@ public struct Calendar : Hashable, CustomStringConvertible {
         case republicOfChina
         case islamicTabular
         case islamicUmmAlQura
+    }
+
+    public enum SearchDirection : Sendable {
+        case forward
+        case backward
+    }
+
+    public enum RepeatedTimePolicy : Sendable {
+        case first
+        case last
+    }
+
+    public enum MatchingPolicy : Sendable {
+        case nextTime
+        case nextTimePreservingSmallerComponents
+        case previousTimePreservingSmallerComponents
+        case strict
     }
 }
 

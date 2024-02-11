@@ -9,6 +9,12 @@
 public class Bundle : Hashable {
     public static let main = Bundle(location: .main)
 
+    /// Each package will generate its own `Bundle.module` extension to access the local bundle.
+    static var module: Bundle {
+        _bundleModule
+    }
+    private static let _bundleModule = Bundle(for: Bundle.self)
+
     private let location: SkipLocalizedStringResource.BundleDescription
 
     public init(location: SkipLocalizedStringResource.BundleDescription) {
@@ -23,12 +29,17 @@ public class Bundle : Hashable {
         self.init(location: .atURL(url))
     }
 
+    public convenience init(for forClass: AnyClass) {
+        self.init(location: .forClass(forClass))
+    }
+
     public init() {
         self.init(location: .forClass(Bundle.self))
     }
 
-    public convenience init(for forClass: AnyClass) {
-        self.init(location: .forClass(forClass))
+    @available(*, unavailable)
+    public convenience init?(identifier: String) {
+        self.init(location: .main)
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
@@ -43,6 +54,39 @@ public class Bundle : Hashable {
         return location.description
     }
 
+    @available(*, unavailable)
+    public static var allBundles: [Bundle] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static var allFrameworks: [Bundle] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func load() -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var isLoaded: Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func unload() -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func preflight() throws {
+    }
+
+    @available(*, unavailable)
+    public func loadAndReturnError() throws {
+    }
+
     public var bundleURL: URL {
         let loc: SkipLocalizedStringResource.BundleDescription = location
         switch loc {
@@ -53,16 +97,6 @@ public class Bundle : Hashable {
                 .deletingLastPathComponent()
         }
     }
-
-    public var resourceURL: URL? {
-        return bundleURL // FIXME: this is probably not correct
-    }
-
-    /// Each package will generate its own `Bundle.module` extension to access the local bundle.
-    static var module: Bundle {
-        _bundleModule
-    }
-    private static let _bundleModule = Bundle(for: Bundle.self)
 
     /// Creates a relative path to the given bundle URL
     private func relativeBundleURL(path: String) -> URL? {
@@ -101,11 +135,136 @@ public class Bundle : Hashable {
         }
     }
 
+    public var resourceURL: URL? {
+        return bundleURL // FIXME: this is probably not correct
+    }
+
+    @available(*, unavailable)
+    public var executableURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open func url(forAuxiliaryExecutable executableName: String) -> URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var privateFrameworksURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var sharedFrameworksURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var sharedSupportURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var builtInPlugInsURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var appStoreReceiptURL: URL? {
+        fatalError()
+    }
+
     public var bundlePath: String {
         bundleURL.path
     }
 
-    static let resourceIndexFileName = "resources.lst"
+    public var resourcePath: String? {
+        resourceURL?.path
+    }
+
+    @available(*, unavailable)
+    public var executablePath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func path(forAuxiliaryExecutable executableName: String) -> String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var privateFrameworksPath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var sharedFrameworksPath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var sharedSupportPath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var builtInPlugInsPath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func url(forResource name: String?, withExtension ext: String? = nil, subdirectory subpath: String? = nil, in bundleURL: URL) -> URL? {
+        fatalError()
+    }
+
+    public func url(forResource: String? = nil, withExtension: String? = nil, subdirectory: String? = nil, localization: String? = nil) -> URL? {
+        // similar behavior to: https://github.com/apple/swift-corelibs-foundation/blob/69ab3975ea636d1322ad19bbcea38ce78b65b26a/CoreFoundation/PlugIn.subproj/CFBundle_Resources.c#L1114
+        var res = forResource ?? ""
+        if let withExtension = withExtension, !withExtension.isEmpty {
+            // TODO: If `forResource` is nil, we are expected to find the first file in the bundle whose extension matches
+            res += "." + withExtension
+        } else {
+            if res.isEmpty {
+                return nil
+            }
+        }
+        if let localization = localization {
+            //let lprojExtension = "lproj" // _CFBundleLprojExtension
+            var lprojExtensionWithDot = ".lproj" // _CFBundleLprojExtensionWithDot
+            res = localization + lprojExtensionWithDot + "/" + res
+        }
+        if let subdirectory = subdirectory {
+            res = subdirectory + "/" + res
+        }
+
+        return relativeBundleURL(path: res)
+    }
+
+    @available(*, unavailable)
+    public func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String? = nil, localization localizationName: String? = nil) -> [URL]? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func path(forResource name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func paths(forResourcesOfType ext: String?, inDirectory bundlePath: String) -> [String] {
+        fatalError()
+    }
+
+    public func path(forResource: String? = nil, ofType: String? = nil, inDirectory: String? = nil, forLocalization: String? = nil) -> String? {
+        url(forResource: forResource, withExtension: ofType, subdirectory: inDirectory, localization: forLocalization)?.path
+    }
+
+    @available(*, unavailable)
+    public func paths(forResourcesOfType ext: String?, inDirectory subpath: String? = nil, forLocalization localizationName: String? = nil) -> [String] {
+        fatalError()
+    }
+
+    private static let resourceIndexFileName = "resources.lst"
 
     /// The URL for the `resources.lst` resources index file that is created by the transpiler when converting resources files.
     private var resourcesIndexURL: URL? {
@@ -144,34 +303,6 @@ public class Bundle : Hashable {
             .filter({ $0.hasSuffix(".lproj") })
             .map({ $0.dropLast(".lproj".count) })
     }()
-
-    public func path(forResource: String? = nil, ofType: String? = nil, inDirectory: String? = nil, forLocalization: String? = nil) -> String? {
-        url(forResource: forResource, withExtension: ofType, subdirectory: inDirectory, localization: forLocalization)?.path
-    }
-
-    public func url(forResource: String? = nil, withExtension: String? = nil, subdirectory: String? = nil, localization: String? = nil) -> URL? {
-        // similar behavior to: https://github.com/apple/swift-corelibs-foundation/blob/69ab3975ea636d1322ad19bbcea38ce78b65b26a/CoreFoundation/PlugIn.subproj/CFBundle_Resources.c#L1114
-        var res = forResource ?? ""
-        if let withExtension = withExtension, !withExtension.isEmpty {
-            // TODO: If `forResource` is nil, we are expected to find the first file in the bundle whose extension matches
-            res += "." + withExtension
-        } else {
-            if res.isEmpty {
-                return nil
-            }
-        }
-        if let localization = localization {
-            //let lprojExtension = "lproj" // _CFBundleLprojExtension
-            var lprojExtensionWithDot = ".lproj" // _CFBundleLprojExtensionWithDot
-            res = localization + lprojExtensionWithDot + "/" + res
-        }
-        if let subdirectory = subdirectory {
-            res = subdirectory + "/" + res
-        }
-
-        return relativeBundleURL(path: res)
-    }
-
 
     /// The localized strings tables for this bundle
     private var localizedTables: [String: [String: String]?] = [:]
@@ -217,6 +348,51 @@ public class Bundle : Hashable {
             // fall back to the top-level bundle, if available
             return locBundle ?? self
         }
+    }
+
+    @available(*, unavailable)
+    public var preferredLocalizations: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func preferredLocalizations(from localizationsArray: [String], forPreferences preferencesArray: [String]? = nil) -> [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var bundleIdentifier: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var infoDictionary: [String : Any]? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var localizedInfoDictionary: [String : Any]? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func object(forInfoDictionaryKey key: String) -> Any? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func classNamed(_ className: String) -> AnyClass? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var principalClass: AnyClass? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var executableArchitectures: [NSNumber]? {
+        fatalError()
     }
 }
 

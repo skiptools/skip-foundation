@@ -98,7 +98,7 @@ public class UserDefaults {
         prefs.apply()
     }
 
-    public func obj(forKey defaultName: String) -> Any? {
+    public func object(forKey defaultName: String) -> Any? {
         let value = platformValue.getAll()[defaultName] ?? registrationDictionary[defaultName] ?? nil
         guard let string = value as? String else {
             return value
@@ -112,13 +112,8 @@ public class UserDefaults {
         }
     }
 
-    /// Returns the value from the current defaults.
-    public func object(forKey defaultName: String) -> Any? {
-        obj(forKey: defaultName)
-    }
-
     public func string(forKey defaultName: String) -> String? {
-        guard let value = obj(forKey: defaultName) else {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let number = value as? Number {
@@ -139,7 +134,7 @@ public class UserDefaults {
     }
 
     public func double(forKey defaultName: String) -> Double? {
-        guard let value = obj(forKey: defaultName) else {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let number = value as? Number {
@@ -154,7 +149,7 @@ public class UserDefaults {
     }
 
     public func integer(forKey defaultName: String) -> Int? {
-        guard let value = obj(forKey: defaultName) else {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let number = value as? Number {
@@ -169,7 +164,7 @@ public class UserDefaults {
     }
 
     public func bool(forKey defaultName: String) -> Bool? {
-        guard let value = obj(forKey: defaultName) else {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let number = value as? Number {
@@ -185,7 +180,7 @@ public class UserDefaults {
     }
 
     public func url(forKey defaultName: String) -> URL? {
-        guard let value = obj(forKey: defaultName) else {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let url = value as? URL {
@@ -198,7 +193,7 @@ public class UserDefaults {
     }
 
     public func data(forKey defaultName: String) -> Data? {
-        guard let value = obj(forKey: defaultName) else {
+        guard let value = object(forKey: defaultName) else {
             return nil
         }
         if let data = value as? Data {
