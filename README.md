@@ -2,7 +2,7 @@
 
 Foundation support for [Skip](https://skip.tools) apps.
 
-See what API is currently implemented [here](#supported-foundation).
+See what API is currently implemented [here](#foundation-support).
 
 ## About 
 
@@ -17,7 +17,7 @@ The module is transparently adopted through the translation of `import Foundatio
 
 ## Status
 
-SkipFoundation supports many of the Foundation framework's most common APIs, but there are many more that are not yet ported. The best way to monitor SkipFoundation's status is through its comprehensive set of [Tests](#tests). A skipped test generally means the API has not been implemented.
+SkipFoundation supports many of the Foundation framework's most common APIs, but there are many more that are not yet ported. See [Foundation Support](#foundation-support).
 
 When you want to use a Foundation API that has not been implemented, you have options. You can try to find a workaround using only supported API, embed Kotlin code directly as described in the [Skip docs](https://skip.tools/docs), or [add support to SkipFoundation](#contributing). If you choose to enhance SkipFoundation itself, please consider [contributing](#contributing) your code back for inclusion in the official release.
 
@@ -28,7 +28,7 @@ We welcome contributions to SkipFoundation. The Skip product [documentation](htt
 The most pressing need is to implement more of the most-used Foundation APIs.
 To help fill in unimplemented API in SkipFoundation:
 
-1. Find unimplemented API. Unimplemented API will generally be commented out or have TODO comments in the source. The set of skipped [tests](#tests) also gives a high-level view of what is not yet ported to Skip.
+1. Find unimplemented API.
 1. Write an appropriate Kotlin implementation. See [Implementation Strategy](#implementation-strategy) below.
 1. Edit the corresponding tests to make sure they are no longer skipped, and that they pass. If there aren't existing tests, write some. See [Tests](#tests).
 1. [Submit a PR.](https://github.com/skiptools/skip-foundation/pulls)
@@ -77,22 +77,22 @@ Support levels:
         <details>
           <summary><code>Bundle</code></summary>
           <ul>
-            <li><code>static var main: Bundle</code></li>
-            <li><code>static var module: Bundle</code></li>
-            <li><code>init?(path: String)</code></li>
-            <li><code>init?(url: URL)</code></li>
-            <li><code>init(for forClass: AnyClass)</code></li>
-            <li><code>init()</code></li>
-            <li><code>var bundleURL: URL</code></li>
-            <li><code>var resourceURL: URL?</code></li>
-            <li><code>var bundlePath: String</code></li>
-            <li><code>var resourcePath: String?</code></li>
-            <li><code>func url(forResource: String? = nil, withExtension: String? = nil, subdirectory: String? = nil, localization: String? = nil) -> URL?</code></li>
-            <li><code>func path(forResource: String? = nil, ofType: String? = nil, inDirectory: String? = nil, forLocalization: String? = nil) -> String?</code></li>
-            <li><code>var developmentLocalization: String</code></li>
-            <li><code>var localizations: [String]</code></li>
-            <li><code>func localizedString(forKey key: String, value: String?, table tableName: String?) -> String</code></li>
-            <li><code>var localizations: [String]</code></li>
+<li><code>static var main: Bundle</code></li>
+<li><code>static var module: Bundle</code></li>
+<li><code>init?(path: String)</code></li>
+<li><code>init?(url: URL)</code></li>
+<li><code>init(for forClass: AnyClass)</code></li>
+<li><code>init()</code></li>
+<li><code>var bundleURL: URL</code></li>
+<li><code>var resourceURL: URL?</code></li>
+<li><code>var bundlePath: String</code></li>
+<li><code>var resourcePath: String?</code></li>
+<li><code>func url(forResource: String? = nil, withExtension: String? = nil, subdirectory: String? = nil, localization: String? = nil) -> URL?</code></li>
+<li><code>func path(forResource: String? = nil, ofType: String? = nil, inDirectory: String? = nil, forLocalization: String? = nil) -> String?</code></li>
+<li><code>var developmentLocalization: String</code></li>
+<li><code>var localizations: [String]</code></li>
+<li><code>func localizedString(forKey key: String, value: String?, table tableName: String?) -> String</code></li>
+<li><code>var localizations: [String]</code></li>
           </ul>
         </details> 
       </td>
@@ -104,25 +104,25 @@ Support levels:
           <summary><code>Calendar</code></summary>
           <ul>
             <li>Only <code>.gregorian</code> and <code>.iso8601</code> identifiers are supported</li>           
-            <li><code>init(identifier: Calendar.Identifier)</code></li>
-	    <li><code>static var current: Calendar</code></li>
-            <li><code>var locale: Locale</code></li>
-            <li><code>var timeZone: TimeZone</code></li>
-            <li><code>var identifier: Calendar.Identifier</code></li>
-            <li><code>var eraSymbols: [String]</code></li>
-            <li><code>var monthSymbols: [String]</code></li>
-            <li><code>var shortMonthSymbols: [String]</code></li>
-            <li><code>var weekdaySymbols: [String]</code></li>
-            <li><code>var shortWeekdaySymbols: [String]</code></li>
-            <li><code>var amSymbol: String</code></li>
-            <li><code>var pmSymbol: String</code></li>
-            <li><code>func date(from components: DateComponents) -> Date?</code></li>
-            <li><code>func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents</code></li>
-            <li><code>func dateComponents(_ components: Set<Calendar.Component>, from start: Date, to end: Date) -> DateComponents</code></li>
-            <li><code>func dateComponents(_ components: Set<Calendar.Component>, from date: Date) -> DateComponents</code></li>
-            <li><code>func date(byAdding components: DateComponents, to date: Date, wrappingComponents: Bool = false) -> Date?</code></li>
-            <li><code>func date(byAdding component: Calendar.Component, value: Int, to date: Date, wrappingComponents: Bool = false) -> Date?</code></li>
-            <li><code>func isDateInWeekend(_ date: Date) -> Bool</code></li>
+<li><code>init(identifier: Calendar.Identifier)</code></li>
+<li><code>static var current: Calendar</code></li>
+<li><code>var locale: Locale</code></li>
+<li><code>var timeZone: TimeZone</code></li>
+<li><code>var identifier: Calendar.Identifier</code></li>
+<li><code>var eraSymbols: [String]</code></li>
+<li><code>var monthSymbols: [String]</code></li>
+<li><code>var shortMonthSymbols: [String]</code></li>
+<li><code>var weekdaySymbols: [String]</code></li>
+<li><code>var shortWeekdaySymbols: [String]</code></li>
+<li><code>var amSymbol: String</code></li>
+<li><code>var pmSymbol: String</code></li>
+<li><code>func date(from components: DateComponents) -> Date?</code></li>
+<li><code>func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents</code></li>
+<li><code>func dateComponents(_ components: Set<Calendar.Component>, from start: Date, to end: Date) -> DateComponents</code></li>
+<li><code>func dateComponents(_ components: Set<Calendar.Component>, from date: Date) -> DateComponents</code></li>
+<li><code>func date(byAdding components: DateComponents, to date: Date, wrappingComponents: Bool = false) -> Date?</code></li>
+<li><code>func date(byAdding component: Calendar.Component, value: Int, to date: Date, wrappingComponents: Bool = false) -> Date?</code></li>
+<li><code>func isDateInWeekend(_ date: Date) -> Bool</code></li>
           </ul>
         </details> 
       </td>
@@ -134,28 +134,28 @@ Support levels:
           <summary><code>CharacterSet</code></summary>
           <ul>
             <li>Vended character sets are not complete</li>
-            <li><code>static var whitespaces: CharacterSet</code></li>
-            <li><code>static var whitespacesAndNewlines: CharacterSet</code></li>
-            <li><code>static var newlines: CharacterSet</code></li>
-            <li><code>init()</code></li>
-            <li><code>func insert(_ character: Unicode.Scalar) -> (inserted: Bool, memberAfterInsert: Unicode.Scalar)</code></li>
-            <li><code>func update(with character: Unicode.Scalar) -> Unicode.Scalar?</code></li>
-            <li><code>func remove(_ character: Unicode.Scalar) -> Unicode.Scalar?</code></li>
-            <li><code>func contains(_ member: Unicode.Scalar) -> Bool</code></li>
-            <li><code>func union(_ other: CharacterSet) -> CharacterSet</code></li>
-            <li><code>mutating func formUnion(_ other: CharacterSet)</code></li>
-            <li><code>func intersection(_ other: CharacterSet) -> CharacterSet</code></li>
-            <li><code>mutating func formIntersection(_ other: CharacterSet)</code></li>
-            <li><code>func subtracting(_ other: CharacterSet)</code></li>
-            <li><code>mutating func subtract(_ other: CharacterSet)</code></li>
-            <li><code>func symmetricDifference(_ other: CharacterSet) -> CharacterSet</code></li>
-            <li><code>mutating func formSymmetricDifference(_ other: CharacterSet)</code></li>
-            <li><code>func isSuperset(of other: CharacterSet) -> Bool</code></li>
-            <li><code>func isSubset(of other: CharacterSet) -> Bool</code></li>
-            <li><code>func isDisjoint(with other: CharacterSet) -> Bool</code></li>
-            <li><code>func isStrictSubset(of other: CharacterSet) -> Bool</code></li>
-            <li><code>func isStrictSuperset(of other: CharacterSet) -> Bool</code></li>
-            <li><code>var isEmpty: Bool</code></li>
+<li><code>static var whitespaces: CharacterSet</code></li>
+<li><code>static var whitespacesAndNewlines: CharacterSet</code></li>
+<li><code>static var newlines: CharacterSet</code></li>
+<li><code>init()</code></li>
+<li><code>func insert(_ character: Unicode.Scalar) -> (inserted: Bool, memberAfterInsert: Unicode.Scalar)</code></li>
+<li><code>func update(with character: Unicode.Scalar) -> Unicode.Scalar?</code></li>
+<li><code>func remove(_ character: Unicode.Scalar) -> Unicode.Scalar?</code></li>
+<li><code>func contains(_ member: Unicode.Scalar) -> Bool</code></li>
+<li><code>func union(_ other: CharacterSet) -> CharacterSet</code></li>
+<li><code>mutating func formUnion(_ other: CharacterSet)</code></li>
+<li><code>func intersection(_ other: CharacterSet) -> CharacterSet</code></li>
+<li><code>mutating func formIntersection(_ other: CharacterSet)</code></li>
+<li><code>func subtracting(_ other: CharacterSet)</code></li>
+<li><code>mutating func subtract(_ other: CharacterSet)</code></li>
+<li><code>func symmetricDifference(_ other: CharacterSet) -> CharacterSet</code></li>
+<li><code>mutating func formSymmetricDifference(_ other: CharacterSet)</code></li>
+<li><code>func isSuperset(of other: CharacterSet) -> Bool</code></li>
+<li><code>func isSubset(of other: CharacterSet) -> Bool</code></li>
+<li><code>func isDisjoint(with other: CharacterSet) -> Bool</code></li>
+<li><code>func isStrictSubset(of other: CharacterSet) -> Bool</code></li>
+<li><code>func isStrictSuperset(of other: CharacterSet) -> Bool</code></li>
+<li><code>var isEmpty: Bool</code></li>
           </ul>
         </details> 
       </td>
@@ -170,29 +170,29 @@ Support levels:
         <details>
           <summary><code>Data</code></summary>
           <ul>
-            <li><code>Data</code> does <strong>not</strong> conform to <code>Collection</code> protocols</li>
-            <li><code>init()</code></li>
-            <li><code>init(count: Int)</code></li>
-            <li><code>init(capacity: Int)</code></li>
-            <li><code>init(_ data: Data)</code></li>
-            <li><code>init(_ bytes: [UInt8], length: Int? = nil)</code></li>
-            <li><code>init(_ checksum: Digest)</code></li>
-            <li><code>init?(base64Encoded: String, options: Data.Base64DecodingOptions = [])</code></li>
-            <li><code>init(contentsOfFile filePath: String) throws</code></li>
-            <li><code>init(contentsOf url: URL, options: Data.ReadingOptions = [])</code></li>
-            <li><code>var count: Int</code></li>
-            <li><code>var isEmpty: Bool</code></li>
-            <li><code>var bytes: [UInt8]</code></li>
-            <li><code>var utf8String: String?</code></li>
-            <li><code>func base64EncodedString() -> String</code></li>
-            <li><code>func sha256() -> Data</code></li>
-            <li><code>func hex() -> String</code></li>
-            <li><code>mutating func reserveCapacity(_ minimumCapacity: Int)</code></li>
-            <li><code>mutating func append(_ other: Data)</code></li>
-            <li><code>mutating func append(contentsOf bytes: [UInt8])</code></li>
-            <li><code>mutating func append(contentsOf data: Data)</code></li>
-            <li><code>subscript(index: Int) -> UInt8</code></li>
-            <li><code>func write(to url: URL, options: Data.WritingOptions = []) throws</code></li>
+<li><code>Data</code> does <strong>not</strong> conform to <code>Collection</code> protocols</li>
+<li><code>init()</code></li>
+<li><code>init(count: Int)</code></li>
+<li><code>init(capacity: Int)</code></li>
+<li><code>init(_ data: Data)</code></li>
+<li><code>init(_ bytes: [UInt8], length: Int? = nil)</code></li>
+<li><code>init(_ checksum: Digest)</code></li>
+<li><code>init?(base64Encoded: String, options: Data.Base64DecodingOptions = [])</code></li>
+<li><code>init(contentsOfFile filePath: String) throws</code></li>
+<li><code>init(contentsOf url: URL, options: Data.ReadingOptions = [])</code></li>
+<li><code>var count: Int</code></li>
+<li><code>var isEmpty: Bool</code></li>
+<li><code>var bytes: [UInt8]</code></li>
+<li><code>var utf8String: String?</code></li>
+<li><code>func base64EncodedString() -> String</code></li>
+<li><code>func sha256() -> Data</code></li>
+<li><code>func hex() -> String</code></li>
+<li><code>mutating func reserveCapacity(_ minimumCapacity: Int)</code></li>
+<li><code>mutating func append(_ other: Data)</code></li>
+<li><code>mutating func append(contentsOf bytes: [UInt8])</code></li>
+<li><code>mutating func append(contentsOf data: Data)</code></li>
+<li><code>subscript(index: Int) -> UInt8</code></li>
+<li><code>func write(to url: URL, options: Data.WritingOptions = []) throws</code></li>
           </ul>
         </details> 
       </td>
@@ -357,7 +357,7 @@ Support levels:
   <td>?</td>
   <td><code>XMLParser // Not yet documented</code></td>
 </tr>
-  </body>
+  </tbody>
 </table>
 
 ## Topics
@@ -390,37 +390,4 @@ let tmpdir = NSTemporaryDirectory()
 None of the other `FileManager.SearchPathDirectory` enumerations are implemented in Skip.
 
 Both `Data` and `String` have the ability to read and write to and from URLs and path strings.
-
-
-### Codable
-
-Swift uses the `Encodable` and `Decodable` protocols to convert objects to and from various data formats. In keeping with its philosophy of *transparent adoption*, Skip supports `Encodable`, `Decodable`, and the combined `Codable` protocols for object serialization and deserialization. This includes automatic synthesis of default encoding and decoding as well as support for custom encoding and decoding using Swift's `Encodable` and `Decodable` APIs. Skip does, however, have some restrictions:
-
-- JSON is currently the only supported format. SkipFoundation includes Foundation's `JSONEncoder` and `JSONDecoder` classes.
-- Not all JSON formatting options are supported.
-- `Array`, `Set`, and `Dictionary` are fully supported, but nesting of these types is limited. So for example Skip can encode and decode `Array<MyCodableType>` and `Dictionary<String, MyCodableType>`, but not `Array<Dictionary<String, MyCodableType>>`. Two forms of container nesting **are** currently supported: arrays-of-arrays - e.g. `Array<Array<MyCodableType>>` - and dictionaries-of-array-values - e.g. `Dictionary<String, Array<MyCodableType>>`. In practice, other nesting patters are rare.
-- When implementing your own `init(from: Decoder)` decoding, your `decode` calls must supply a concrete type literal to decode. The following will work:
-
-    ```swift
-    init(from decoder: Decoder) throws {
-        var container = try decoder.container(keyedBy: CodingKeys.self)
-        self.array = try container.decode([Int].self, forKey: .array) 
-    }
-    ```
-
-    But these examples will not work:
-
-    ```swift
-    init(from decoder: Decoder) throws {
-        var container = try decoder.container(keyedBy: CodingKeys.self)
-        let arrayType = [Int].self
-        self.array = try container.decode(arrayType, forKey: .array) 
-    }
-
-    init(from decoder: Decoder) throws {
-        var container = try decoder.container(keyedBy: CodingKeys.self)
-        // T is a generic type of this class
-        self.array = try container.decode([T].self, forKey: .array) 
-    }
-    ```
 
