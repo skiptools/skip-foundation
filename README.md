@@ -57,6 +57,37 @@ SkipFoundation's `Tests/` folder contains the entire set of official Foundation 
 
 It is SkipFoundation's goal to include - and pass - as much of the official test suite as possible.
 
+## Topics
+
+### Files
+
+Skip implements much of `Foundation.FileManager`, which should be
+the primary interface for interacting with the file system.
+
+The app-specific folder can be accessed like:
+
+```swift
+// on Android, this is Context.getFilesDir()
+let folder = try FileManager.default.url(for: FileManager.SearchPathDirectory.documentDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
+```
+
+And to read and write to the cache folders:
+
+```swift
+// on Android, this is Context.getCachesDir()
+let caches = try FileManager.default.url(for: FileManager.SearchPathDirectory.cachesDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
+```
+
+And the system temporary folder can be accessed with:
+
+```swift
+let tmpdir = NSTemporaryDirectory()
+```
+
+None of the other `FileManager.SearchPathDirectory` enumerations are implemented in Skip.
+
+Both `Data` and `String` have the ability to read and write to and from URLs and path strings.
+
 ## Foundation Support
 
 The following table summarizes SkipFoundation's Foundation API support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any Foundation API you want.
@@ -359,35 +390,3 @@ Support levels:
 </tr>
   </tbody>
 </table>
-
-## Topics
-
-### Files
-
-Skip implements much of `Foundation.FileManager`, which should be
-the primary interface for interacting with the file system.
-
-The app-specific folder can be accessed like:
-
-```swift
-// on Android, this is Context.getFilesDir()
-let folder = try FileManager.default.url(for: FileManager.SearchPathDirectory.documentDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
-```
-
-And to read and write to the cache folders:
-
-```swift
-// on Android, this is Context.getCachesDir()
-let caches = try FileManager.default.url(for: FileManager.SearchPathDirectory.cachesDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
-```
-
-And the system temporary folder can be accessed with:
-
-```swift
-let tmpdir = NSTemporaryDirectory()
-```
-
-None of the other `FileManager.SearchPathDirectory` enumerations are implemented in Skip.
-
-Both `Data` and `String` have the ability to read and write to and from URLs and path strings.
-
