@@ -283,8 +283,12 @@ public final class URLSession {
             return Iterator(inputStream: connection.getInputStream())
         }
 
-        public struct Iterator: AsyncIteratorProtocol {
-            let inputStream: java.io.InputStream?
+        public final class Iterator: AsyncIteratorProtocol {
+            private var inputStream: java.io.InputStream?
+
+            init(inputStream: java.io.InputStream) {
+                self.inputStream = inputStream
+            }
 
             deinit {
                 close()
@@ -300,6 +304,7 @@ public final class URLSession {
 
             private func close() {
                 do { inputStream?.close() } catch {}
+                inputStream = nil
             }
         }
     }
