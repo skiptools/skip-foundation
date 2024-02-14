@@ -1,3 +1,9 @@
+## 0.5.2
+
+Released 2024-02-10
+
+  - Fix declaration of UserDefaults.object()
+
 ## 0.5.1
 
 Released 2024-02-10
