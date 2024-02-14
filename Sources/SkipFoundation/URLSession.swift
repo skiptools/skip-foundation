@@ -9,17 +9,13 @@
 fileprivate let logger: Logger = Logger(subsystem: "skip", category: "URLSession")
 
 public final class URLSession {
-    private static let _shared = URLSession(configuration: URLSessionConfiguration.default)
-
     public var configuration: URLSessionConfiguration
 
     public init(configuration: URLSessionConfiguration) {
         self.configuration = configuration
     }
 
-    public static var shared: URLSession {
-        return _shared
-    }
+    public static let shared = URLSession(configuration: URLSessionConfiguration.default)
 
     private func openConnection(request: URLRequest) -> java.net.URLConnection {
         let config = self.configuration
@@ -258,35 +254,53 @@ public final class URLSession {
 
     @available(*, unavailable)
     public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
-        fatalError("TODO: URLSession.data")
+        fatalError("TODO: URLSession.upload")
     }
 
     @available(*, unavailable)
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
-        fatalError("TODO: URLSession.data")
+        fatalError("TODO: URLSession.upload")
     }
 
-    public func bytes(from url: URL) async throws -> (URLSessionAsyncBytes, URLResponse) {
+    public func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse) {
         return bytes(for: URLRequest(url: url))
     }
 
-    public func bytes(for request: URLRequest) async throws -> (URLSessionAsyncBytes, URLResponse) {
+    public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
         return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             let (connection, response) = try connect(request: request)
-            let stream: kotlinx.coroutines.flow.Flow<UByte> = kotlinx.coroutines.flow.flow {
-                connection.getInputStream().use { inputStream in
-                    while true {
-                        let byte = inputStream.read()
-                        if byte == -1 {
-                            break
-                        } else {
-                            emit(byte.toUByte())
-                        }
-                    }
-                }
+            let stream = AsyncBytes(connection: connection)
+            return (stream, response)
+        }
+    }
+
+    public struct AsyncBytes: AsyncSequence {
+        typealias Element = UInt8
+        
+        let connection: java.net.URLConnection
+
+        override func makeAsyncIterator() -> Iterator {
+            return Iterator(inputStream: connection.getInputStream())
+        }
+
+        public struct Iterator: AsyncIteratorProtocol {
+            let inputStream: java.io.InputStream?
+
+            deinit {
+                close()
             }
 
-            return (URLSessionAsyncBytes(stream: stream), response)
+            override func next() async -> UInt8? {
+                guard let byte = try? inputStream?.read(), byte != -1 else {
+                    close()
+                    return nil
+                }
+                return UInt8(byte)
+            }
+
+            private func close() {
+                do { inputStream?.close() } catch {}
+            }
         }
     }
 
@@ -340,117 +354,6 @@ public struct UnableToStartDownload : Error {
 
 public struct DownloadUnsupportedWithRobolectric : Error {
     let status: Int
-}
-
-// -------------------------------
-// TODO: add Flow support to SkipLib.AsyncSequence and combine implementations
-// -------------------------------
-
-public protocol SkipAsyncSequence {
-    associatedtype Element
-
-    /// The underlying `AsyncStream` or `kotlinx.coroutines.flow.Flow` for this element
-    var stream: kotlinx.coroutines.flow.Flow<Element> { get }
-}
-
-public extension SkipAsyncSequence {
-
-    // Skip FIXME: Cannot declare both forms of `reduce` due to JVM signature clash:
-    // The following declarations have the same JVM signature (reduce(Ljava/lang/Object;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;):
-    //func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (_ partialResult: Result, Element) async throws -> Result) async rethrows -> Result {
-    //    fatalError("TODO: SkipAsyncSequence extension functions")
-    //}
-
-    func reduce<Result>(into initialResult: Result, _ updateAccumulatingResult: (_ partialResult: inout Result, Element) async throws -> Void) async rethrows -> Result {
-        var result = initialResult
-        stream.collect { element in
-            updateAccumulatingResult(&result, element)
-        }
-        return result
-    }
-
-    func contains(where predicate: (Element) async throws -> Bool) async rethrows -> Bool {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func allSatisfy(_ predicate: (Element) async throws -> Bool) async rethrows -> Bool {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func contains(_ search: Element) async -> Bool {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func first(where predicate: (Element) async throws -> Bool) async rethrows -> Element? {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func min(by areInIncreasingOrder: (Element, Element) async throws -> Bool) async rethrows -> Element? {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func max(by areInIncreasingOrder: (Element, Element) async throws -> Bool) async rethrows -> Element? {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func min() async -> Element? {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    func max() async -> Element? {
-        fatalError("TODO: SkipAsyncSequence extension functions")
-    }
-
-    // TODO: Missing API
-}
-
-/// An asynchronous sequence generated from a closure that calls a continuation
-/// to produce new elements.
-///
-/// `AsyncStream` conforms to `AsyncSequence`, providing a convenient way to
-/// create an asynchronous sequence without manually implementing an
-/// asynchronous iterator. In particular, an asynchronous stream is well-suited
-/// to adapt callback- or delegation-based APIs to participate with
-/// `async`-`await`.
-/// You initialize an `AsyncStream` with a closure that receives an
-/// `AsyncStream.Continuation`. Produce elements in this closure, then provide
-/// them to the stream by calling the continuation's `yield(_:)` method. When
-/// there are no further elements to produce, call the continuation's
-/// `finish()` method. This causes the sequence iterator to produce a `nil`,
-/// which terminates the sequence. The continuation conforms to `Sendable`, which permits
-/// calling it from concurrent contexts external to the iteration of the
-/// `AsyncStream`.
-public struct SkipAsyncStream<Element> : SkipAsyncSequence {
-    // Swift and Kotlin treat types nested within generic types in incompatible ways, and Skip cannot translate between the two. Consider moving this type out of its generic outer type
-    //public struct Continuation : Sendable {
-    //}
-
-    public let stream: kotlinx.coroutines.flow.Flow<Element>
-    public init(stream: kotlinx.coroutines.flow.Flow<Element>) {
-        self.stream = stream
-    }
-}
-
-// Wrap a kotlinx.coroutines.flow.Flow and provide an async interface
-// Mirrors the interface of Foundation.AsyncBytes, which extends AsyncSequence
-// Note that there could also be `URLAsyncBytes` and `SkipFileHandleAsyncBytes` for `URL.bytes` and `FileHandle.bytes`.
-public struct URLSessionAsyncBytes : SkipAsyncSequence {
-    //public typealias Element = UInt8
-    public let stream: kotlinx.coroutines.flow.Flow<UInt8>
-
-    //#if !SKIP
-    //public var lines: SkipAsyncLineSequence<URLSessionAsyncBytes> {
-    //    return SkipAsyncLineSequence(stream: self)
-    //}
-    //#endif
-
-    public func allSatisfy(_ condition: (UInt8) async throws -> (Bool)) async rethrows -> Bool {
-        var satisfied = false
-        stream.collect { b in
-            satisfied = condition(b) && satisfied
-        }
-        return satisfied
-    }
 }
 
 #endif
