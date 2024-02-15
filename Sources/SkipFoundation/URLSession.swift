@@ -253,19 +253,24 @@ public final class URLSession {
     }
 
     public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
-        let data = Data(contentsOfFile: fileURL.absoluteString)
-        return try await upload(for: request, from: data)
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            let data = Data(contentsOfFile: fileURL.absoluteString)
+            return uploadSync(for: request, from: data)
+        }
     }
 
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
         return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            request.httpBody = bodyData
-            let (connection, response) = connect(request: request)
-            let httpURLConnection = connection as java.net.HttpURLConnection
-            let responseData = java.io.BufferedInputStream(httpURLConnection.inputStream).readBytes()
-            httpURLConnection.disconnect()
-            return (Data(platformValue: responseData), response as URLResponse)
+            return uploadSync(for: request, from: bodyData)
         }
+    }
+
+    private func uploadSync(for request: URLRequest, from bodyData: Data) -> (Data, URLResponse) {
+        request.httpBody = bodyData
+        let (connection, response) = connect(request: request)
+        let responseData = java.io.BufferedInputStream(connection.inputStream).readBytes()
+        (connection as? java.net.HttpURLConnection)?.disconnect()
+        return (Data(platformValue: responseData), response as URLResponse)
     }
 
     public func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse) {
