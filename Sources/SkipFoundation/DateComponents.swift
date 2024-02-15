@@ -8,7 +8,7 @@
 
 public typealias NSDateComponents = DateComponents
 
-public struct DateComponents : Hashable, CustomStringConvertible {
+public struct DateComponents : Codable, Hashable, CustomStringConvertible {
     // There is no direct analogue to DateComponents in Java (other then java.util.Calendar), so we store the individual properties here
 
     public var calendar: Calendar? = nil

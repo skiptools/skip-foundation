@@ -197,18 +197,29 @@ Support levels:
         </details> 
       </td>
     </tr>
-    <tr>
-      <td>✅</td>
-      <td><code>NSLocalizedString</code></td>
+   <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>Date</code></summary>
+          <ul>
+<li>Formatting functions not supported with the exception of:</li>
+<li><code>func ISO8601Format(_ style: Date.ISO8601FormatStyle = .iso8601) -> String</code></li>
+          </ul>
+        </details> 
+      </td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>Date // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>DateComponents // Not yet documented</code></td>
-</tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>DateComponents</code></summary>
+          <ul>
+            <li><code>nanosecond</code>, <code>weekdayOrdinal</code>, <code>quarter</code>, <code>yearForWeekOfYear</code> are not supported</li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>DateFormatter // Not yet documented</code></td>
@@ -281,6 +292,10 @@ Support levels:
   <td>?</td>
   <td><code>NSError // Not yet documented</code></td>
 </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>NSLocalizedString</code></td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>Number // Not yet documented</code></td>

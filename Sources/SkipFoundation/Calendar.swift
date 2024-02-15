@@ -9,7 +9,7 @@
 // Needed to expose `clone`:
 // SKIP INSERT: fun java.util.Calendar.clone(): java.util.Calendar { return this.clone() as java.util.Calendar }
 
-public struct Calendar : Hashable, CustomStringConvertible {
+public struct Calendar : Hashable, Codable, CustomStringConvertible {
     internal var platformValue: java.util.Calendar
 
     public static var current: Calendar {
@@ -21,22 +21,38 @@ public struct Calendar : Hashable, CustomStringConvertible {
         fatalError()
     }
 
+    private static func platformValue(for identifier: Calendar.Identifier) -> java.util.Calendar {
+        switch identifier {
+        case .gregorian:
+            return java.util.GregorianCalendar()
+        case .iso8601:
+            return java.util.Calendar.getInstance()
+        default:
+            // TODO: how to support the other calendars?
+            return java.util.Calendar.getInstance()
+        }
+    }
+
     public init(_ platformValue: java.util.Calendar) {
         self.platformValue = platformValue
         self.locale = Locale.current
     }
 
     public init(identifier: Calendar.Identifier) {
-        switch identifier {
-        case .gregorian:
-            self.platformValue = java.util.GregorianCalendar()
-        case .iso8601:
-            self.platformValue = java.util.Calendar.getInstance()
-        default:
-            // TODO: how to support the other calendars?
-            fatalError("Skip: unsupported calendar identifier \(identifier)")
-        }
+        self.platformValue = Self.platformValue(for: identifier)
         self.locale = Locale.current
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let identifier = try container.decode(Calendar.Identifier.self)
+        self.platformValue = Self.platformValue(for: identifier)
+        self.locale = Locale.current
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(identifier)
     }
 
     public var locale: Locale
@@ -349,7 +365,7 @@ public struct Calendar : Hashable, CustomStringConvertible {
     }
 
     /// Calendar supports many different kinds of calendars. Each is identified by an identifier here.
-    public enum Identifier : Sendable {
+    public enum Identifier : Int, Codable, Sendable {
         /// The common calendar in Europe, the Western Hemisphere, and elsewhere.
         case gregorian
         case buddhist

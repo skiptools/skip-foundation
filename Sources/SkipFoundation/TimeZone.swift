@@ -8,7 +8,7 @@
 
 public typealias NSTimeZone = TimeZone
 
-public struct TimeZone : Hashable, CustomStringConvertible, Sendable {
+public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable {
     internal var platformValue: java.util.TimeZone
 
     public static var current: TimeZone {
@@ -73,6 +73,17 @@ public struct TimeZone : Hashable, CustomStringConvertible, Sendable {
         //}
 
         self.platformValue = java.util.SimpleTimeZone(seconds, "GMT")
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let identifier = try container.decode(String.self)
+        self.platformValue = java.util.TimeZone.getTimeZone(identifier)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(identifier)
     }
 
     public var identifier: String {

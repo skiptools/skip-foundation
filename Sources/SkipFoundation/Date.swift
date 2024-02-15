@@ -54,26 +54,36 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
         try container.encode(self.timeIntervalSinceReferenceDate)
     }
 
-    // We don't support initializing doubles from int literals in Kotlin, so add a constructor that lets people do things like `Date(timeIntervalSince1970: 1449332351)`.
-    public init(timeIntervalSince1970: Int) {
-        self.platformValue = java.util.Date((Double(timeIntervalSince1970) * 1000.0).toLong())
-    }
-
-    // We don't support initializing doubles from int literals in Kotlin, so add a constructor that lets people do things like `Date(timeIntervalSince1970: 1449332351)`.
-    public init(timeIntervalSinceReferenceDate: Int) {
-        self.platformValue = java.util.Date(((Double(timeIntervalSinceReferenceDate) + Date.timeIntervalBetween1970AndReferenceDate) * 1000.0).toLong())
-    }
-
     public init(timeIntervalSince1970: TimeInterval) {
         self.platformValue = java.util.Date((timeIntervalSince1970 * 1000.0).toLong())
+    }
+
+    public init(timeIntervalSince1970: Int) {
+        self.init(timeIntervalSince1970: TimeInterval(timeIntervalSince1970))
     }
 
     public init(timeIntervalSinceReferenceDate: TimeInterval) {
         self.platformValue = java.util.Date(((timeIntervalSinceReferenceDate + Date.timeIntervalBetween1970AndReferenceDate) * 1000.0).toLong())
     }
 
+    public init(timeIntervalSinceReferenceDate: Int) {
+        self.init(timeIntervalSinceReferenceDate: TimeInterval(timeIntervalSinceReferenceDate))
+    }
+
     public init(timeInterval: TimeInterval, since: Date) {
         self.init(timeIntervalSince1970: timeInterval + since.timeIntervalSince1970)
+    }
+
+    public init(timeInterval: Int, since: Date) {
+        self.init(timeInterval: TimeInterval(timeInterval), since: since)
+    }
+
+    public init(timeIntervalSinceNow: TimeInterval) {
+        self.init(timeInterval: timeIntervalSinceNow, since: Date())
+    }
+
+    public init(timeIntervalSinceNow: Int) {
+        self.init(timeIntervalSinceNow: TimeInterval(timeIntervalSinceNow))
     }
 
     /// Useful for converting to Java's `long` time representation
@@ -85,10 +95,22 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
         return description(with: nil)
     }
 
-    func description(with locale: Locale?) -> String {
+    public func description(with locale: Locale?) -> String {
         let fmt = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", (locale ?? Locale.current).platformValue)
         fmt.setTimeZone(TimeZone.gmt.platformValue)
         return fmt.format(platformValue)
+    }
+
+    public static func <(lhs: Date, rhs: Date) -> Bool {
+        lhs.platformValue < rhs.platformValue
+    }
+
+    public static func ==(lhs: Date, rhs: Date) -> Bool {
+        return lhs.platformValue == rhs.platformValue
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(platformValue)
     }
 
     public var timeIntervalSince1970: TimeInterval {
@@ -99,15 +121,19 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
         return timeIntervalSince1970 - Date.timeIntervalBetween1970AndReferenceDate
     }
 
-    public static func < (lhs: Date, rhs: Date) -> Bool {
-        lhs.timeIntervalSince1970 < rhs.timeIntervalSince1970
+    public func timeIntervalSince(_ date: Date) -> TimeInterval {
+        return timeIntervalSince1970 - date.timeIntervalSince1970
     }
 
-    public func timeIntervalSince(_ date: Date) -> TimeInterval {
-        return self.timeIntervalSinceReferenceDate - date.timeIntervalSinceReferenceDate
+    public var timeIntervalSinceNow: TimeInterval {
+        return timeIntervalSince1970 - Date().timeIntervalSince1970
     }
 
     public func addingTimeInterval(_ timeInterval: TimeInterval) -> Date {
+        return Date(timeInterval: timeInterval, since: self)
+    }
+
+    public func addingTimeInterval(_ timeInterval: Int) -> Date {
         return Date(timeInterval: timeInterval, since: self)
     }
 
@@ -115,9 +141,11 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
         self = addingTimeInterval(timeInterval)
     }
 
-    @available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
-    public func ISO8601Format(_ style: Date.ISO8601FormatStyle = .iso8601) -> String {
+    public mutating func addTimeInterval(_ timeInterval: Int) {
+        self = addingTimeInterval(timeInterval)
+    }
 
+    public func ISO8601Format(_ style: Date.ISO8601FormatStyle = .iso8601) -> String {
         // TODO: use the style parameters
         // local time zone specific
         // return java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", java.util.Locale.getDefault()).format(platformValue)
@@ -126,7 +154,6 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
         return dateFormat.format(platformValue)
     }
 
-    @available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
     public struct ISO8601FormatStyle : Sendable {
         public static let iso8601 = ISO8601FormatStyle()
 

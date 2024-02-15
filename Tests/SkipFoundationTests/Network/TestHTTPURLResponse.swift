@@ -214,6 +214,7 @@ class TestHTTPURLResponse: XCTestCase {
         XCTAssertEqual(sut.mimeType, "text/plain")
         XCTAssertEqual(sut.textEncodingName, "iso-8891-1")
 
+        // SKIP NOWARN
         guard let ahf = sut.allHeaderFields as? [String: String] else {
             XCTFail("Cant read .allheaderFields")
             return

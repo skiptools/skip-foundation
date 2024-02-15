@@ -429,7 +429,7 @@ class TestBundle : XCTestCase {
         let testPlist = try XCTUnwrap(bundle.url(forResource: "Test", withExtension: "plist"))
         XCTAssertNotNil(testPlist)
         XCTAssertEqual("Test.plist", testPlist.lastPathComponent)
-        // SKIP NOTE: bundle paths not necessarily files on disk, but in the case of these test cases they are
+        // NOTE: bundle paths not necessarily files on disk, but in the case of these test cases they are
         XCTAssert(FileManager.default.fileExists(atPath: testPlist.path))
         XCTAssertEqual(true, try? testPlist.checkResourceIsReachable())
 
