@@ -1,3 +1,12 @@
+## 0.5.4
+
+Released 2024-02-15
+
+  - Merge pull request #9 from iankoex/URLSession-upload
+  - added implementation for URLSession.upload
+  - Fill in some missing Date-related API. Make Calendar, DateComponents, TimeZone Codable
+  - docs: update README table
+
 ## 0.5.2
 
 Released 2024-02-10
