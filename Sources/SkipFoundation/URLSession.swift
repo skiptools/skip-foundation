@@ -252,14 +252,20 @@ public final class URLSession {
         return self.download(for: URLRequest(url: url))
     }
 
-    @available(*, unavailable)
     public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
-        fatalError("TODO: URLSession.upload")
+        let data = Data(contentsOfFile: fileURL.absoluteString)
+        return try await upload(for: request, from: data)
     }
 
-    @available(*, unavailable)
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
-        fatalError("TODO: URLSession.upload")
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            request.httpBody = bodyData
+            let (connection, response) = connect(request: request)
+            let httpURLConnection = connection as java.net.HttpURLConnection
+            let responseData = java.io.BufferedInputStream(httpURLConnection.inputStream).readBytes()
+            httpURLConnection.disconnect()
+            return (Data(platformValue: responseData), response as URLResponse)
+        }
     }
 
     public func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse) {
