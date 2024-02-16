@@ -91,6 +91,7 @@ public final class URLSession {
         return (connection, response!)
     }
 
+    // SKIP ATTRIBUTES: nodispatch
     public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         let (data, response) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             let (connection, response) = try connect(request: request)
@@ -110,6 +111,7 @@ public final class URLSession {
         return (data, response)
     }
 
+    // SKIP ATTRIBUTES: nodispatch
     public func data(from url: URL) async throws -> (Data, URLResponse) {
         return self.data(for: URLRequest(url: url))
     }
@@ -248,10 +250,12 @@ public final class URLSession {
         }
     }
 
+    // SKIP ATTRIBUTES: nodispatch
     public func download(from url: URL) async throws -> (URL, URLResponse) {
         return self.download(for: URLRequest(url: url))
     }
 
+    // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
         return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             let data = Data(contentsOfFile: fileURL.absoluteString)
@@ -259,6 +263,7 @@ public final class URLSession {
         }
     }
 
+    // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
         return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             return uploadSync(for: request, from: bodyData)
@@ -273,10 +278,12 @@ public final class URLSession {
         return (Data(platformValue: responseData), response as URLResponse)
     }
 
+    // SKIP ATTRIBUTES: nodispatch
     public func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse) {
         return bytes(for: URLRequest(url: url))
     }
 
+    // SKIP ATTRIBUTES: nodispatch
     public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
         return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             let (connection, response) = try connect(request: request)
