@@ -67,9 +67,49 @@ public class NotificationCenter {
         post(Notification(name: name, object: object, userInfo: userInfo))
     }
 
-    @available(*, unavailable)
-    public func notifications(named: Notification.Name, object: AnyObject? = nil) -> Any {
-        fatalError()
+    public func notifications(named: Notification.Name, object: AnyObject? = nil) -> Notifications {
+        let (stream, continuation) = AsyncStream.makeStream(of: Notification.self)
+        let token = addObserver(forName: named, object: object, queue: nil) { notification in
+            continuation.yield(notification)
+        }
+        return Notifications(center: self, stream: stream, token: token)
+    }
+
+    public final class Notifications: AsyncSequence {
+        typealias Element = Notification
+
+        let center: NotificationCenter
+        let stream: AsyncStream<Notification>
+        let token: Any
+
+        init(center: NotificationCenter, stream: AsyncStream<Notification>, token: Any) {
+            self.center = center
+            self.stream = stream
+            self.token = token
+        }
+
+        deinit {
+            center.removeObserver(token)
+        }
+
+        public override func makeAsyncIterator() -> Iterator {
+            return Iterator(notifications: self)
+        }
+
+        public final class Iterator: AsyncIteratorProtocol {
+            // Keep a reference to the owning Notifications to prevent it from GC during iteration, because it unregisters on GC
+            private let notifications: Notifications
+            private let iterator: AsyncStream.Iterator<Notification>
+
+            init(notifications: Notifications) {
+                self.notifications = notifications
+                self.iterator = notifications.stream.makeAsyncIterator()
+            }
+
+            public func next() async throws -> Notification? {
+                return iterator.next()
+            }
+        }
     }
 
     private struct Observer {
@@ -83,7 +123,7 @@ public class NotificationCenter {
         let id: Int
     }
 
-    private class Registry {
+    private final class Registry {
         let name: String?
         let observers: LinkedHashMap<Int, Observer> = LinkedHashMap<Int, Observer>()
         var nextId = 0

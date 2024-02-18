@@ -135,7 +135,50 @@ class TestNotificationCenter : XCTestCase {
         notificationCenter.post(name: notificationName, object: nil)
         XCTAssertTrue(flag)
     }
-    
+
+    func test_notificationsSequence() async {
+        let notificationCenter = NotificationCenter()
+        let notificationName = Notification.Name(rawValue: "test_notificationsSequence_name")
+        var count = 0
+
+        let sequence = notificationCenter.notifications(named: notificationName)
+        Task {
+            notificationCenter.post(name: notificationName, object: nil)
+            notificationCenter.post(name: notificationName, object: nil)
+        }
+        for await notification in sequence {
+            XCTAssertEqual(notificationName, notification.name)
+            count += 1
+            if count == 2 {
+                break
+            }
+        }
+        XCTAssertEqual(count, 2)
+    }
+
+    func test_cancelNotificationsSequence() async {
+        let notificationCenter = NotificationCenter()
+        let notificationName = Notification.Name(rawValue: "test_cancelNotificationsSequence_name")
+
+        let sequence = notificationCenter.notifications(named: notificationName)
+        let task = Task {
+            var count = 0
+            for await notification in sequence {
+                XCTAssertEqual(notificationName, notification.name)
+                count += 1
+            }
+            return count
+        }
+        Task {
+            notificationCenter.post(name: notificationName, object: nil)
+            notificationCenter.post(name: notificationName, object: nil)
+            try await Task.sleep(nanoseconds: 200_000_000)
+            task.cancel()
+        }
+        let count = await task.value
+        XCTAssertEqual(count, 2)
+    }
+
     func test_observeOnPostingQueue() {
         #if SKIP
         throw XCTSkip("TODO")
