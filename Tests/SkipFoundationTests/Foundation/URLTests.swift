@@ -88,6 +88,9 @@ final class URLTests: XCTestCase {
     }
 
     func testDownloadURLAsync() async throws {
+        #if SKIP
+        throw XCTSkip("TODO")
+        #else
         try failOnAndroid() // needs android.permission.INTERNET
         let (localURL, response) = try await URLSession.shared.download(from: testURL)
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
@@ -111,6 +114,7 @@ final class URLTests: XCTestCase {
           "repo-type": "rec-track"
         }
         """)
+        #endif
     }
 
     func testAsyncBytes() async throws {

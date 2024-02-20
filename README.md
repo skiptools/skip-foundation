@@ -220,30 +220,85 @@ Support levels:
         </details> 
       </td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>DateFormatter // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>DateInterval // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>DateIntervalFormatter // Not yet documented</code></td>
-</tr>
+   <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>DateFormatter</code></summary>
+          <ul>
+<li><code>var dateStyle: DateFormatter.Style</code></li>
+<li><code>var timeStyle: DateFormatter.Style</code></li>
+<li><code>var isLenient: Bool</code></li>
+<li><code>var dateFormat: String</code></li>
+<li><code>func setLocalizedDateFormatFromTemplate(dateFormatTemplate: String)</code></li>
+<li><code>static func dateFormat(fromTemplate: String, options: Int, locale: Locale?) -> String?</code></li>
+<li><code>static func localizedString(from date: Date, dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style) -> String</code></li>
+<li><code>var timeZone: TimeZone?</code></li>
+<li><code>var locale: Locale?</code></li>
+<li><code>var calendar: Calendar?</code></li>
+<li><code>func date(from string: String) -> Date?</code></li>
+<li><code>func string(from date: Date) -> String</code></li>
+<li><code>func string(for obj: Any?) -> String?</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>DateInterval</code></td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>Digest // Not yet documented</code></td>
 </tr>
-<tr>
-  <td>?</td>
-  <td><code>Dispatch // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>FileManager // Not yet documented</code></td>
-</tr>
+    <tr>
+      <td>🔴</td>
+      <td>
+        <details>
+          <summary><code>DispatchQueue</code></summary>
+          <ul>
+<li><code>static let main: DispatchQueue</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>FileManager</code></summary>
+          <ul>
+<li><code>static let `default`: FileManager</code></li>
+<li><code>let temporaryDirectory: URL</code></li>
+<li><code>let currentDirectoryPath: String</code></li>
+<li><code>func createSymbolicLink(at url: URL, withDestinationURL destinationURL: URL) throws</code></li>
+<li><code>func createSymbolicLink(atPath path: String, withDestinationPath destinationPath: String) throws</code></li>
+<li><code>func createDirectory(at url: URL, withIntermediateDirectories: Bool, attributes: [FileAttributeKey : Any]? = nil) throws</code></li>
+<li><code>func createDirectory(atPath path: String, withIntermediateDirectories: Bool, attributes: [FileAttributeKey : Any]? = nil) throws</code></li>
+<li><code>func destinationOfSymbolicLink(atPath path: String) throws</code></li>
+<li><code>func attributesOfItem(atPath path: String) throws -> [FileAttributeKey: Any]</code></li>
+<li><code>func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAtPath path: String) throws</code></li>
+<li><code>func createFile(atPath path: String, contents: Data? = nil, attributes: [FileAttributeKey : Any]? = nil) -> Bool</code></li>
+<li><code>func copyItem(atPath path: String, toPath: String) throws</code></li>
+<li><code>func copyItem(at url: URL, to: URL) throws</code></li>
+<li><code>func moveItem(atPath path: String, toPath: String) throws</code></li>
+<li><code>func moveItem(at path: URL, to: URL) throws</code></li>
+<li><code>func subpathsOfDirectory(atPath path: String) throws -> [String]</code></li>
+<li><code>func subpaths(atPath path: String) -> [String]?</code></li>
+<li><code>func removeItem(atPath path: String) throws</code></li>
+<li><code>func removeItem(at url: URL) throws</code></li>
+<li><code>func fileExists(atPath path: String) -> Bool</code></li>
+<li><code>func isReadableFile(atPath path: String) -> Bool</code></li>
+<li><code>func isExecutableFile(atPath path: String) -> Bool</code></li>
+<li><code>func isDeletableFile(atPath path: String) -> Bool</code></li>
+<li><code>func isWritableFile(atPath path: String) -> Bool</code></li>
+<li><code>func contentsOfDirectory(at url: URL, includingPropertiesForKeys: [URLResourceKey]?) throws -> [URL]</code></li>
+<li><code>func contentsOfDirectory(atPath path: String) throws -> [String]</code></li>
+<li><code>func url(for directory: FileManager.SearchPathDirectory, in domain: FileManager.SearchPathDomainMask, appropriateFor url: URL?, create shouldCreate: Bool) throws -> URL</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>HTTPURLResponse // Not yet documented</code></td>
@@ -316,6 +371,17 @@ Support levels:
   <td>?</td>
   <td><code>PropertyListSerialization // Not yet documented</code></td>
 </tr>
+    <tr>
+      <td>🔴</td>
+      <td>
+        <details>
+          <summary><code>RunLoop</code></summary>
+          <ul>
+<li><code>static let main: RunLoop</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>Scanner // Not yet documented</code></td>

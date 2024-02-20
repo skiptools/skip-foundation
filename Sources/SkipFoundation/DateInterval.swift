@@ -6,73 +6,51 @@
 
 #if SKIP
 
-public struct DateInterval : Hashable, Comparable, CustomStringConvertible {
-    internal var platformValue: java.time.Duration
+public struct DateInterval : Hashable, Comparable, Codable {
+    public let start: Date
 
-    internal init(platformValue: java.time.Duration) {
-        self.platformValue = platformValue
-    }
-
-    public var description: String {
-        return platformValue.description
-    }
-
-    @available(*, unavailable)
-    public var start: Date {
-        fatalError("SKIP TODO")
-    }
-
-    @available(*, unavailable)
     public var end: Date {
-        fatalError("SKIP TODO")
+        return start.addingTimeInterval(duration)
     }
 
-    @available(*, unavailable)
-    public var duration: TimeInterval {
-        fatalError("SKIP TODO")
-    }
+    public let duration: TimeInterval
 
-    @available(*, unavailable)
     public init() {
-        self.platformValue = SkipCrash("TODO: PlatformDateInterval")
+        self.init(start: Date(), duration: 0.0)
     }
 
-    @available(*, unavailable)
     public init(start: Date, end: Date) {
-        self.platformValue = SkipCrash("TODO: PlatformDateInterval")
+        self.init(start: start, duration: end.timeIntervalSince1970 - start.timeIntervalSince1970)
     }
 
-    @available(*, unavailable)
     public init(start: Date, duration: TimeInterval) {
-        self.platformValue = SkipCrash("TODO: PlatformDateInterval")
+        self.start = start
+        self.duration = duration
     }
 
-    @available(*, unavailable)
-    public func compare(_ dateInterval: DateInterval) -> ComparisonResult {
-        fatalError("SKIP TODO")
-    }
-
-    @available(*, unavailable)
     public func intersects(_ dateInterval: DateInterval) -> Bool {
-        fatalError("SKIP TODO")
+        return intersection(with: dateInterval) != nil
     }
 
-    @available(*, unavailable)
     public func intersection(with dateInterval: DateInterval) -> DateInterval? {
-        fatalError("SKIP TODO")
+        let start = max(self.start, dateInterval.start)
+        let end = min(self.end, dateInterval.end)
+        guard start <= end else {
+            return nil
+        }
+        return DateInterval(start: start, end: end)
     }
 
-    @available(*, unavailable)
     public func contains(_ date: Date) -> Bool {
-        fatalError("SKIP TODO")
+        return start <= date && end >= date
     }
 
     public static func == (lhs: DateInterval, rhs: DateInterval) -> Bool {
-        return lhs.platformValue == rhs.platformValue
+        return lhs.start == rhs.start && lhs.duration == rhs.duration
     }
 
-    public static func < (lhs: DateInterval, rhs: DateInterval) -> Bool {
-        fatalError("SKIP TODO")
+    public static func <(lhs: DateInterval, rhs: DateInterval) -> Bool {
+        return lhs.start < rhs.start || (lhs.start == rhs.start && lhs.duration < rhs.duration)
     }
 }
 

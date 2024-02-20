@@ -88,6 +88,28 @@ extension String {
     public var unicodeScalars: [UInt8] {
         return Array(toByteArray(StringEncoding.utf8.rawValue).toUByteArray())
     }
+
+    public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: StringEncoding) throws {
+        var opts: [java.nio.file.StandardOpenOption] = []
+        opts.append(java.nio.file.StandardOpenOption.CREATE)
+        opts.append(java.nio.file.StandardOpenOption.WRITE)
+        if useAuxiliaryFile {
+            opts.append(java.nio.file.StandardOpenOption.DSYNC)
+            opts.append(java.nio.file.StandardOpenOption.SYNC)
+        }
+        java.nio.file.Files.write(platformFilePath(for: url), self.data(using: enc)?.platformValue, *(opts.toList().toTypedArray()))
+    }
+
+    public func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: StringEncoding) throws {
+        var opts: [java.nio.file.StandardOpenOption] = []
+        opts.append(java.nio.file.StandardOpenOption.CREATE)
+        opts.append(java.nio.file.StandardOpenOption.WRITE)
+        if useAuxiliaryFile {
+            opts.append(java.nio.file.StandardOpenOption.DSYNC)
+            opts.append(java.nio.file.StandardOpenOption.SYNC)
+        }
+        java.nio.file.Files.write(platformFilePath(for: path), self.data(using: enc)?.platformValue, *(opts.toList().toTypedArray()))
+    }
 }
 
 public func String(data: Data, encoding: StringEncoding) -> String? {

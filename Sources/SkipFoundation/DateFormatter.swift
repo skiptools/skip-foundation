@@ -6,7 +6,7 @@
 
 #if SKIP
 
-public class DateFormatter {
+public class DateFormatter: Formatter {
     internal var platformValue: java.text.DateFormat {
         if _platformValue == nil {
             _platformValue = createDateFormat()
@@ -124,7 +124,16 @@ public class DateFormatter {
         }
     }
 
-    public var isLenient = false{
+    public enum Behavior : Int {
+        case `default` = 0
+        case behavior10_0 = 1000
+        case behavior10_4 = 1040
+    }
+
+    @available(*, unavailable)
+    public static var defaultFormatterBehavior = Behavior.default
+
+    public var isLenient = false {
         didSet {
             _platformValue?.isLenient = isLenient
         }
@@ -163,6 +172,13 @@ public class DateFormatter {
         fmt.locale = locale
         fmt.setLocalizedDateFormatFromTemplate(fromTemplate)
         return (fmt.platformValue as? java.text.SimpleDateFormat)?.toLocalizedPattern()
+    }
+
+    public static func localizedString(from date: Date, dateStyle dstyle: DateFormatter.Style, timeStyle tstyle: DateFormatter.Style) -> String {
+        let fmt = DateFormatter()
+        fmt.dateStyle = dateStyle
+        fmt.timeStyle = timeStyle
+        return fmt.string(from: date)
     }
 
     public var timeZone: TimeZone? {
@@ -204,6 +220,84 @@ public class DateFormatter {
     }
     private var _calendar: Calendar?
 
+    @available(*, unavailable)
+    public var generatesCalendarDates = false
+
+    @available(*, unavailable)
+    public var formatterBehavior = Behavior.default
+
+    @available(*, unavailable)
+    public var twoDigitStartDate: Date?
+
+    @available(*, unavailable)
+    public var defaultDate: Date?
+
+    @available(*, unavailable)
+    public var eraSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var monthSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var shortMonthSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var weekdaySymbols: [String] = []
+
+    @available(*, unavailable)
+    public var shortWeekdaySymbols: [String] = []
+
+    @available(*, unavailable)
+    public var amSymbol: String = ""
+
+    @available(*, unavailable)
+    public var pmSymbol = ""
+
+    @available(*, unavailable)
+    public var longEraSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var veryShortMonthSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var standaloneMonthSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var shortStandaloneMonthSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var veryShortStandaloneMonthSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var veryShortWeekdaySymbols: [String] = []
+
+    @available(*, unavailable)
+    public var standaloneWeekdaySymbols: [String] = []
+
+    @available(*, unavailable)
+    public var shortStandaloneWeekdaySymbols: [String] = []
+
+    @available(*, unavailable)
+    public var veryShortStandaloneWeekdaySymbols: [String] = []
+
+    @available(*, unavailable)
+    public var quarterSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var shortQuarterSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var standaloneQuarterSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var shortStandaloneQuarterSymbols: [String] = []
+
+    @available(*, unavailable)
+    public var gregorianStartDate: Date?
+
+    @available(*, unavailable)
+    public var doesRelativeDateFormatting = false
+
     public func date(from string: String) -> Date? {
         if let date = try? platformValue.parse(string) { // DateFormat throws java.text.ParseException: Unparseable date: "2018-03-09"
             return Date(platformValue: date)
@@ -214,6 +308,13 @@ public class DateFormatter {
 
     public func string(from date: Date) -> String {
         return platformValue.format(date.platformValue)
+    }
+
+    public override func string(for obj: Any?) -> String? {
+        guard let date = obj as? Date else {
+            return nil
+        }
+        return string(from: date)
     }
 }
 

@@ -21,33 +21,21 @@ import XCTest
 class TestDateInterval: XCTestCase {
 
     func test_defaultInitializer() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let dateInterval = DateInterval()
-        XCTAssertEqual(dateInterval.duration, 0)
-        #endif // !SKIP
+        XCTAssertEqual(dateInterval.duration, 0.0)
     }
 
     func test_startEndInitializer() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2019-04-04 17:09:23 -0700")
         let date2 = dateWithString("2019-04-04 18:09:23 -0700")
         let dateInterval = DateInterval(start: date1, end: date2)
-        XCTAssertEqual(dateInterval.duration, 60 * 60)
-        #endif // !SKIP
+        XCTAssertEqual(dateInterval.duration, 60.0 * 60.0)
     }
 
     func test_startDurationInitializer() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date = dateWithString("2019-04-04 17:09:23 -0700")
-        let dateInterval = DateInterval(start: date, duration: 60)
-        XCTAssertEqual(dateInterval.duration, 60)
-        #endif // !SKIP
+        let dateInterval = DateInterval(start: date, duration: 60.0)
+        XCTAssertEqual(dateInterval.duration, 60.0)
     }
 
     func test_compareDifferentStarts() {
@@ -88,77 +76,54 @@ class TestDateInterval: XCTestCase {
     }
 
     func test_comparisonOperators() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:30:00 -0700")
-        let dateInterval1 = DateInterval(start: date1, duration: 60)
-        let dateInterval2 = DateInterval(start: date2, duration: 60)
-        let dateInterval3 = DateInterval(start: date1, duration: 90)
-        let dateInterval4 = DateInterval(start: date1, duration: 60)
+        let dateInterval1 = DateInterval(start: date1, duration: 60.0)
+        let dateInterval2 = DateInterval(start: date2, duration: 60.0)
+        let dateInterval3 = DateInterval(start: date1, duration: 90.0)
+        let dateInterval4 = DateInterval(start: date1, duration: 60.0)
         XCTAssertTrue(dateInterval1 < dateInterval2)
         XCTAssertTrue(dateInterval1 < dateInterval3)
         XCTAssertTrue(dateInterval1 == dateInterval4)
-        #endif // !SKIP
     }
 
     func test_intersects() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2019-04-04 17:09:23 -0700")
         let date2 = dateWithString("2019-04-04 17:10:20 -0700")
-        let dateInterval1 = DateInterval(start: date1, duration: 60)
-        let dateInterval2 = DateInterval(start: date2, duration: 15)
+        let dateInterval1 = DateInterval(start: date1, duration: 60.0)
+        let dateInterval2 = DateInterval(start: date2, duration: 15.0)
         XCTAssertTrue(dateInterval1.intersects(dateInterval2))
-        #endif // !SKIP
     }
 
     func test_intersection() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:15:00 -0700")
-        let dateInterval1 = DateInterval(start: date1, duration: 60 * 30)
-        let dateInterval2 = DateInterval(start: date2, duration: 60 * 30)
+        let dateInterval1 = DateInterval(start: date1, duration: 60.0 * 30.0)
+        let dateInterval2 = DateInterval(start: date2, duration: 60.0 * 30.0)
         let intersection = dateInterval1.intersection(with: dateInterval2)
         XCTAssertNotNil(intersection)
-        XCTAssertEqual(intersection!.duration, 60 * 15)
-        #endif // !SKIP
+        XCTAssertEqual(intersection!.duration, 60.0 * 15.0)
     }
 
     func test_intersectionZeroDuration() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:30:00 -0700")
-        let dateInterval1 = DateInterval(start: date1, duration: 60 * 30)
-        let dateInterval2 = DateInterval(start: date2, duration: 60 * 30)
+        let dateInterval1 = DateInterval(start: date1, duration: 60.0 * 30.0)
+        let dateInterval2 = DateInterval(start: date2, duration: 60.0 * 30.0)
         let intersection = dateInterval1.intersection(with: dateInterval2)
         XCTAssertNotNil(intersection)
-        XCTAssertEqual(intersection!.duration, 0)
-        #endif // !SKIP
+        XCTAssertEqual(intersection!.duration, 0.0)
     }
 
     func test_intersectionNil() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:30:01 -0700")
-        let dateInterval1 = DateInterval(start: date1, duration: 60 * 30)
-        let dateInterval2 = DateInterval(start: date2, duration: 60 * 30)
+        let dateInterval1 = DateInterval(start: date1, duration: 60.0 * 30.0)
+        let dateInterval2 = DateInterval(start: date2, duration: 60.0 * 30.0)
         XCTAssertNil(dateInterval1.intersection(with: dateInterval2))
-        #endif // !SKIP
     }
 
     func test_contains() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date0 = dateWithString("1964-10-01 06:00:00 +0900")
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:30:00 -0700")
@@ -169,11 +134,10 @@ class TestDateInterval: XCTestCase {
         XCTAssertTrue(DateInterval(start: .distantPast, end: date1).contains(date0))
         XCTAssertFalse(DateInterval(start: .distantPast, end: date1).contains(date2))
         XCTAssertTrue(DateInterval(start: date0, end: date4).contains(date2))
-        XCTAssertTrue(DateInterval(start: date1, duration: 60 * 45).contains(date3))
-        XCTAssertFalse(DateInterval(start: date1, duration: 60 * 45).contains(date4))
+        XCTAssertTrue(DateInterval(start: date1, duration: 60.0 * 45.0).contains(date3))
+        XCTAssertFalse(DateInterval(start: date1, duration: 60.0 * 45.0).contains(date4))
         XCTAssertTrue(DateInterval(start: date2, end: .distantFuture).contains(date2))
         XCTAssertFalse(DateInterval(start: date2, end: .distantFuture).contains(date0))
-        #endif // !SKIP
     }
 
     func test_hashing() {

@@ -17,13 +17,13 @@ public final class URLSession {
 
     public static let shared = URLSession(configuration: URLSessionConfiguration.default)
 
-    private func openConnection(request: URLRequest) -> java.net.URLConnection {
+    private func connection(for request: URLRequest) -> java.net.URLConnection {
         let config = self.configuration
         guard let url = request.url else {
             throw NoURLInRequestError()
         }
 
-        // note that `openConnection` does not actually connect(); we do that below in a Dispatchers.IO coroutine
+        // note that `openConnection` does not actually connect()
         let connection = url.platformValue.openConnection()
 
         switch request.cachePolicy {
@@ -65,9 +65,7 @@ public final class URLSession {
         return connection
     }
 
-    private func connect(request: URLRequest) -> (java.net.URLConnection, HTTPURLResponse) {
-        let connection = try openConnection(request: request)
-
+    private func response(for request: URLRequest, with connection: java.net.URLConnection) -> HTTPURLResponse {
         var statusCode = -1
         if let httpConnection = connection as? java.net.HttpURLConnection {
             statusCode = httpConnection.getResponseCode()
@@ -86,29 +84,37 @@ public final class URLSession {
                 }
             }
         }
-
         let response = HTTPURLResponse(url: request.url!, statusCode: statusCode, httpVersion: httpVersion, headerFields: headers)
-        return (connection, response!)
+        return response!
     }
 
     // SKIP ATTRIBUTES: nodispatch
     public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        let (data, response) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            let (connection, response) = try connect(request: request)
-            let inputStream = connection.getInputStream()
-            let outputStream = java.io.ByteArrayOutputStream()
-            let buffer = ByteArray(1024)
-            var bytesRead: Int
-            while (inputStream.read(buffer).also { bytesRead = $0 } != -1) {
-                outputStream.write(buffer, 0, bytesRead)
+        let job = kotlinx.coroutines.Job()
+        return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
+            let connection = connection(for: request)
+            var inputStream: java.io.InputStream? = nil
+            return withTaskCancellationHandler {
+                let response = response(for: request, with: connection)
+
+                inputStream = connection.getInputStream()
+                let outputStream = java.io.ByteArrayOutputStream()
+                let buffer = ByteArray(1024)
+                if let stableInputStream = inputStream {
+                    var bytesRead: Int
+                    while (stableInputStream.read(buffer).also { bytesRead = $0 } != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
+                    }
+                }
+                cleanup(connection: connection, inputStream: inputStream)
+
+                let bytes = outputStream.toByteArray()
+                return (data: Data(platformValue: bytes), response: response)
+            } onCancel: {
+                cleanup(connection: connection, inputStream: inputStream)
+                job.cancel()
             }
-            inputStream.close()
-
-            let bytes = outputStream.toByteArray()
-            return (data: Data(platformValue: bytes), response: response as HTTPURLResponse)
         }
-
-        return (data, response)
     }
 
     // SKIP ATTRIBUTES: nodispatch
@@ -116,8 +122,9 @@ public final class URLSession {
         return self.data(for: URLRequest(url: url))
     }
 
+    // SKIP ATTRIBUTES: nodispatch
+    @available(*, unavailable)
     public func download(for request: URLRequest) async throws -> (URL, URLResponse) {
-        // WARNING: this is untested, since Robolectric's ShadowDownloadManager is a stub
         guard let url = request.url else {
             throw NoURLInRequestError()
         }
@@ -251,31 +258,47 @@ public final class URLSession {
     }
 
     // SKIP ATTRIBUTES: nodispatch
+    @available(*, unavailable)
     public func download(from url: URL) async throws -> (URL, URLResponse) {
-        return self.download(for: URLRequest(url: url))
+        // return self.download(for: URLRequest(url: url))
+        fatalError()
     }
 
     // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
-        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        let job = kotlinx.coroutines.Job()
+        return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
             let data = Data(contentsOfFile: fileURL.absoluteString)
-            return uploadSync(for: request, from: data)
+            request.httpBody = data
+            return upload(for: request, job: job)
         }
     }
 
     // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
-        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            return uploadSync(for: request, from: bodyData)
+        let job = kotlinx.coroutines.Job()
+        return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
+            request.httpBody = bodyData
+            return upload(for: request, job: job)
         }
     }
 
-    private func uploadSync(for request: URLRequest, from bodyData: Data) -> (Data, URLResponse) {
-        request.httpBody = bodyData
-        let (connection, response) = connect(request: request)
-        let responseData = java.io.BufferedInputStream(connection.inputStream).readBytes()
-        (connection as? java.net.HttpURLConnection)?.disconnect()
-        return (Data(platformValue: responseData), response as URLResponse)
+    // SKIP ATTRIBUTES: nodispatch
+    private func upload(for request: URLRequest, job: kotlinx.coroutines.Job) async -> (Data, URLResponse) {
+        let connection = connection(for: request)
+        var inputStream: java.io.InputStream? = nil
+        return withTaskCancellationHandler {
+            let response = response(for: request, with: connection)
+
+            inputStream = connection.getInputStream()
+            let responseData = java.io.BufferedInputStream(inputStream).readBytes()
+            cleanup(connection: connection, inputStream: inputStream)
+
+            return (Data(platformValue: responseData), response as URLResponse)
+        } onCancel: {
+            cleanup(connection: connection, inputStream: inputStream)
+            job.cancel()
+        }
     }
 
     // SKIP ATTRIBUTES: nodispatch
@@ -285,10 +308,18 @@ public final class URLSession {
 
     // SKIP ATTRIBUTES: nodispatch
     public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
-        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            let (connection, response) = try connect(request: request)
-            let stream = AsyncBytes(connection: connection)
-            return (stream, response)
+        let job = kotlinx.coroutines.Job()
+        return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
+            let connection = connection(for: request)
+            withTaskCancellationHandler {
+                let response = response(for: request, with: connection)
+                let inputStream = connection.getInputStream()
+                let stream = AsyncBytes(connection: connection, inputStream: inputStream)
+                return (stream, response)
+            } onCancel: {
+                cleanup(connection: connection, inputStream: nil)
+                job.cancel()
+            }
         }
     }
 
@@ -296,33 +327,39 @@ public final class URLSession {
         typealias Element = UInt8
         
         let connection: java.net.URLConnection
+        var inputStream: java.io.InputStream?
+
+        init(connection: java.net.URLConnection, inputStream: java.io.InputStream) {
+            self.connection = connection
+            self.inputStream = inputStream
+        }
+
+        deinit {
+            close()
+        }
 
         override func makeAsyncIterator() -> Iterator {
-            return Iterator(inputStream: connection.getInputStream())
+            return Iterator(bytes: self)
+        }
+
+        func close() {
+            cleanup(connection: connection, inputStream: inputStream)
+            inputStream = nil
         }
 
         public final class Iterator: AsyncIteratorProtocol {
-            private var inputStream: java.io.InputStream?
+            private let bytes: AsyncBytes
 
-            init(inputStream: java.io.InputStream) {
-                self.inputStream = inputStream
-            }
-
-            deinit {
-                close()
+            init(bytes: AsyncBytes) {
+                self.bytes = bytes
             }
 
             override func next() async -> UInt8? {
-                guard let byte = try? inputStream?.read(), byte != -1 else {
-                    close()
+                guard let byte = try? bytes.inputStream?.read(), byte != -1 else {
+                    bytes.close()
                     return nil
                 }
                 return UInt8(byte)
-            }
-
-            private func close() {
-                do { inputStream?.close() } catch {}
-                inputStream = nil
             }
         }
     }
@@ -345,6 +382,13 @@ public final class URLSession {
         case allow = 1
         case becomeDownload = 2
         case becomeStream = 3
+    }
+}
+
+private func cleanup(connection: java.net.URLConnection, inputStream: java.io.InputStream?) {
+    do { inputStream?.close() } catch {}
+    if let httpConnection = connection as? java.net.HttpURLConnection {
+        do { httpConnection.disconnect() }
     }
 }
 

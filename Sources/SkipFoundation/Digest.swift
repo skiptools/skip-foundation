@@ -161,31 +161,31 @@ public struct SymmetricKey {
     let data: Data
 }
 
-open class HMACMD5 : DigestFunction {
+public class HMACMD5 : DigestFunction {
     public static func authenticationCode(for message: Data, using secret: SymmetricKey) -> PlatformData {
         DigestFunction.authenticationCode(for: message, using: secret, algorithm: "MD5")
     }
 }
 
-open class HMACSHA1 : DigestFunction {
+public class HMACSHA1 : DigestFunction {
     public static func authenticationCode(for message: Data, using secret: SymmetricKey) -> PlatformData {
         DigestFunction.authenticationCode(for: message, using: secret, algorithm: "SHA1")
     }
 }
 
-open class HMACSHA256 : DigestFunction {
+public class HMACSHA256 : DigestFunction {
     public static func authenticationCode(for message: Data, using secret: SymmetricKey) -> PlatformData {
         DigestFunction.authenticationCode(for: message, using: secret, algorithm: "SHA256")
     }
 }
 
-open class HMACSHA384 : DigestFunction {
+public class HMACSHA384 : DigestFunction {
     public static func authenticationCode(for message: Data, using secret: SymmetricKey) -> PlatformData {
         DigestFunction.authenticationCode(for: message, using: secret, algorithm: "SHA384")
     }
 }
 
-open class HMACSHA512 : DigestFunction {
+public class HMACSHA512 : DigestFunction {
     public static func authenticationCode(for message: Data, using secret: SymmetricKey) -> PlatformData {
         DigestFunction.authenticationCode(for: message, using: secret, algorithm: "SHA512")
     }
@@ -199,7 +199,7 @@ public extension kotlin.ByteArray {
     }
 }
 
-open class DigestFunction {
+public class DigestFunction {
     static func authenticationCode(for message: Data, using secret: SymmetricKey, algorithm hashName: String) -> PlatformData {
         let secretKeySpec = javax.crypto.spec.SecretKeySpec(secret.data.platformValue, "Hmac\(hashName)")
         let mac = javax.crypto.Mac.getInstance("Hmac\(hashName)")

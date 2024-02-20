@@ -6,55 +6,31 @@
 
 #if SKIP
 
-private func _path(_ url: URL) -> java.nio.file.Path {
+func platformFilePath(for url: URL) -> java.nio.file.Path {
     url.toPath()
 }
 
-private func _path(_ path: String) -> java.nio.file.Path {
+func platformFilePath(for path: String) -> java.nio.file.Path {
     java.nio.file.Paths.get(path)
 }
 
-public extension String {
-    func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: StringEncoding) throws {
-        var opts: [java.nio.file.StandardOpenOption] = []
-        opts.append(java.nio.file.StandardOpenOption.CREATE)
-        opts.append(java.nio.file.StandardOpenOption.WRITE)
-        if useAuxiliaryFile {
-            opts.append(java.nio.file.StandardOpenOption.DSYNC)
-            opts.append(java.nio.file.StandardOpenOption.SYNC)
-        }
-        java.nio.file.Files.write(_path(url), self.data(using: enc)?.platformValue, *(opts.toList().toTypedArray()))
-    }
-
-    func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: StringEncoding) throws {
-        var opts: [java.nio.file.StandardOpenOption] = []
-        opts.append(java.nio.file.StandardOpenOption.CREATE)
-        opts.append(java.nio.file.StandardOpenOption.WRITE)
-        if useAuxiliaryFile {
-            opts.append(java.nio.file.StandardOpenOption.DSYNC)
-            opts.append(java.nio.file.StandardOpenOption.SYNC)
-        }
-        java.nio.file.Files.write(_path(path), self.data(using: enc)?.platformValue, *(opts.toList().toTypedArray()))
-    }
-}
-
 public class FileManager {
-    public static var `default` = FileManager()
+    public static let `default` = FileManager()
 
     public var temporaryDirectory: URL {
         URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
     }
     
     public func createSymbolicLink(at url: URL, withDestinationURL destinationURL: URL) throws {
-        java.nio.file.Files.createSymbolicLink(_path(url), _path(destinationURL))
+        java.nio.file.Files.createSymbolicLink(platformFilePath(for: url), platformFilePath(for: destinationURL))
     }
 
     public func createSymbolicLink(atPath path: String, withDestinationPath destinationPath: String) throws {
-        java.nio.file.Files.createSymbolicLink(_path(path), _path(destinationPath))
+        java.nio.file.Files.createSymbolicLink(platformFilePath(for: path), platformFilePath(for: destinationPath))
     }
 
     public func createDirectory(at url: URL, withIntermediateDirectories: Bool, attributes: [FileAttributeKey : Any]? = nil) throws {
-        let p = _path(url)
+        let p = platformFilePath(for: url)
         if withIntermediateDirectories == true {
             java.nio.file.Files.createDirectories(p)
         } else {
@@ -67,9 +43,9 @@ public class FileManager {
 
     public func createDirectory(atPath path: String, withIntermediateDirectories: Bool, attributes: [FileAttributeKey : Any]? = nil) throws {
         if withIntermediateDirectories == true {
-            java.nio.file.Files.createDirectories(_path(path))
+            java.nio.file.Files.createDirectories(platformFilePath(for: path))
         } else {
-            java.nio.file.Files.createDirectory(_path(path))
+            java.nio.file.Files.createDirectory(platformFilePath(for: path))
         }
         if let attributes = attributes {
             setAttributes(attributes, ofItemAtPath: path)
@@ -77,13 +53,13 @@ public class FileManager {
     }
 
     public func destinationOfSymbolicLink(atPath path: String) throws -> String {
-        return java.nio.file.Files.readSymbolicLink(_path(path)).toString()
+        return java.nio.file.Files.readSymbolicLink(platformFilePath(for: path)).toString()
     }
 
     public func attributesOfItem(atPath path: String) throws -> [FileAttributeKey: Any] {
         // As a convenience, NSDictionary provides a set of methods (declared as a category on NSDictionary) for quickly and efficiently obtaining attribute information from the returned dictionary: fileGroupOwnerAccountName(), fileModificationDate(), fileOwnerAccountName(), filePosixPermissions(), fileSize(), fileSystemFileNumber(), fileSystemNumber(), and fileType().
 
-        let p = _path(path)
+        let p = platformFilePath(for: path)
 
         var attrs: [FileAttributeKey: Any] = [FileAttributeKey: Any]()
         let battrs = java.nio.file.Files.readAttributes(p, java.nio.file.attribute.BasicFileAttributes.self.java)
@@ -196,11 +172,11 @@ public class FileManager {
                 if ((number & 1) != 0) { // 0o1
                     permissions.insert(java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE)
                 }
-                java.nio.file.Files.setPosixFilePermissions(_path(path), permissions.toSet())
-                
+                java.nio.file.Files.setPosixFilePermissions(platformFilePath(for: path), permissions.toSet())
+
             case FileAttributeKey.modificationDate:
                 if let date = value as? Date {
-                    java.nio.file.Files.setLastModifiedTime(_path(path), java.nio.file.attribute.FileTime.fromMillis(Long(date.timeIntervalSince1970 * 1000.0)))
+                    java.nio.file.Files.setLastModifiedTime(platformFilePath(for: path), java.nio.file.attribute.FileTime.fromMillis(Long(date.timeIntervalSince1970 * 1000.0)))
                 }
 
             default:
@@ -212,7 +188,7 @@ public class FileManager {
 
     public func createFile(atPath path: String, contents: Data? = nil, attributes: [FileAttributeKey : Any]? = nil) -> Bool {
         do {
-            java.nio.file.Files.write(_path(path), (contents ?? Data(platformValue: PlatformData(size: 0))).platformValue)
+            java.nio.file.Files.write(platformFilePath(for: path), (contents ?? Data(platformValue: PlatformData(size: 0))).platformValue)
             if let attributes = attributes {
                 setAttributes(attributes, ofItemAtPath: path)
             }
@@ -223,15 +199,15 @@ public class FileManager {
     }
 
     public func copyItem(atPath path: String, toPath: String) throws {
-        try copy(from: _path(path), to: _path(toPath), recursive: true)
+        try copy(from: platformFilePath(for: path), to: platformFilePath(for: toPath), recursive: true)
     }
 
     public func copyItem(at url: URL, to: URL) throws {
-        try copy(from: _path(url), to: _path(to), recursive: true)
+        try copy(from: platformFilePath(for: url), to: platformFilePath(for: to), recursive: true)
     }
 
     public func moveItem(atPath path: String, toPath: String) throws {
-        java.nio.file.Files.move(_path(path), _path(toPath))
+        java.nio.file.Files.move(platformFilePath(for: path), platformFilePath(for: toPath))
     }
 
     public func moveItem(at path: URL, to: URL) throws {
@@ -243,7 +219,6 @@ public class FileManager {
         // TODO: recursively compare folders and files, taking into account special files; see https://github.com/apple/swift-corelibs-foundation/blob/818de4858f3c3f72f75d25fbe94d2388ca653f18/Sources/Foundation/FileManager%2BPOSIX.swift#L997
         fatalError("contentsEqual is unimplemented in Skip")
     }
-
 
     @available(*, unavailable, message: "changeCurrentDirectoryPath is unavailable in Skip: the current directory cannot be changed in the JVM")
     public func changeCurrentDirectoryPath(_ path: String) -> Bool {
@@ -312,7 +287,7 @@ public class FileManager {
 
     public func subpathsOfDirectory(atPath path: String) throws -> [String] {
         var subpaths: [String] = []
-        let p = _path(path)
+        let p = platformFilePath(for: path)
         for file in java.nio.file.Files.walk(p) {
             if file != p { // exclude root file
                 let relpath = p.relativize(file.normalize())
@@ -327,19 +302,19 @@ public class FileManager {
     }
 
     public func removeItem(atPath path: String) throws {
-        try delete(path: _path(path), recursive: true)
+        try delete(path: platformFilePath(for: path), recursive: true)
     }
 
     public func removeItem(at url: URL) throws {
-        try delete(path: _path(url), recursive: true)
+        try delete(path: platformFilePath(for: url), recursive: true)
     }
 
     public func fileExists(atPath path: String) -> Bool {
         return java.nio.file.Files.exists(java.nio.file.Paths.get(path))
     }
 
-    public func fileExists(atPath path: String, isDirectory: inout ObjCBool) -> Bool {
-        let p = _path(path)
+    public func fileExists(atPath path: String, isDirectory: inout Bool) -> Bool {
+        let p = platformFilePath(for: path)
         if java.nio.file.Files.isDirectory(p) {
             isDirectory = ObjCBool(true)
             return true
@@ -352,15 +327,15 @@ public class FileManager {
     }
 
     public func isReadableFile(atPath path: String) -> Bool {
-        return java.nio.file.Files.isReadable(_path(path))
+        return java.nio.file.Files.isReadable(platformFilePath(for: path))
     }
 
     public func isExecutableFile(atPath path: String) -> Bool {
-        return java.nio.file.Files.isExecutable(_path(path))
+        return java.nio.file.Files.isExecutable(platformFilePath(for: path))
     }
 
     public func isDeletableFile(atPath path: String) -> Bool {
-        let p = _path(path)
+        let p = platformFilePath(for: path)
         if !java.nio.file.Files.isWritable(p) {
             return false
         }
@@ -372,19 +347,19 @@ public class FileManager {
     }
 
     public func isWritableFile(atPath path: String) -> Bool {
-        return java.nio.file.Files.isWritable(_path(path))
+        return java.nio.file.Files.isWritable(platformFilePath(for: path))
     }
 
     public func contentsOfDirectory(at url: URL, includingPropertiesForKeys: [URLResourceKey]?) throws -> [URL] {
         // https://developer.android.com/reference/kotlin/java/nio/file/Files
-        let shallowFiles = java.nio.file.Files.list(_path(url)).collect(java.util.stream.Collectors.toList())
+        let shallowFiles = java.nio.file.Files.list(platformFilePath(for: url)).collect(java.util.stream.Collectors.toList())
         let contents = shallowFiles.map { URL(platformValue: $0.toUri().toURL()) }
         return Array(contents)
     }
 
     public func contentsOfDirectory(atPath path: String) throws -> [String] {
         // https://developer.android.com/reference/kotlin/java/nio/file/Files
-        let files = java.nio.file.Files.list(_path(path)).collect(java.util.stream.Collectors.toList())
+        let files = java.nio.file.Files.list(platformFilePath(for: path)).collect(java.util.stream.Collectors.toList())
         let contents = files.map { $0.toFile().getName() }
         return Array(contents)
     }
@@ -395,6 +370,160 @@ public class FileManager {
         case .documentDirectory: return URL.documentsDirectory
         case .cachesDirectory: return URL.cachesDirectory
         }
+    }
+
+    @available(*, unavailable)
+    public func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
+        return nil
+    }
+
+    @available(*, unavailable)
+    public func urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
+        return []
+    }
+
+    @available(*, unavailable)
+    public func getRelationship(_ outRelationship: Any, ofDirectoryAt directoryURL: URL, toItemAt otherURL: URL) throws {
+    }
+
+    @available(*, unavailable)
+    public func getRelationship(_ outRelationship: Any, of directory: SearchPathDirectory, in domainMask: SearchPathDomainMask, toItemAt url: URL) throws {
+    }
+
+    @available(*, unavailable)
+    public var delegate: Any? /* FileManagerDelegate? */
+
+
+    @available(*, unavailable)
+    public func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func linkItem(atPath srcPath: String, toPath dstPath: String) throws {
+    }
+
+    @available(*, unavailable)
+    public func linkItem(at srcURL: URL, to dstURL: URL) throws {
+    }
+
+    @available(*, unavailable)
+    public func trashItem(at url: URL, resultingItemURL outResultingURL: Any?) throws {
+    }
+
+    @available(*, unavailable)
+    public func displayName(atPath path: String) -> String {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func componentsToDisplay(forPath path: String) -> [String]? {
+        return nil
+    }
+
+    @available(*, unavailable)
+    public func enumerator(atPath path: String) -> Any? /* DirectoryEnumerator? */ {
+        return nil
+    }
+
+    @available(*, unavailable)
+    public func contents(atPath path: String) -> Data? {
+        return nil
+    }
+
+    @available(*, unavailable)
+    public func fileSystemRepresentation(withPath path: String) -> Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func string(withFileSystemRepresentation str: Any, length len: Int) -> String {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = [], resultingItemURL resultingURL: Any?) throws {
+    }
+
+    @available(*, unavailable)
+    public func setUbiquitous(_ flag: Bool, itemAt url: URL, destinationURL: URL) throws {
+    }
+
+    @available(*, unavailable)
+    public func isUbiquitousItem(at url: URL) -> Bool {
+        return false
+    }
+
+    @available(*, unavailable)
+    public func startDownloadingUbiquitousItem(at url: URL) throws {
+    }
+
+    @available(*, unavailable)
+    public func evictUbiquitousItem(at url: URL) throws {
+    }
+
+    @available(*, unavailable)
+    public func url(forUbiquityContainerIdentifier containerIdentifier: String?) -> URL? {
+        return nil
+    }
+
+    @available(*, unavailable)
+    public func url(forPublishingUbiquitousItemAt url: URL, expiration outDate: Any?) throws -> URL {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var ubiquityIdentityToken: Any? {
+        return nil
+    }
+
+    @available(*, unavailable)
+    public func getFileProviderServicesForItem(at url: URL, completionHandler:  ([AnyHashable: Any]? /*[NSFileProviderServiceName : NSFileProviderService]? */, Error?) -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func fileProviderServicesForItem(at url: URL) async throws -> [AnyHashable: Any] /* [NSFileProviderServiceName : NSFileProviderService] */ {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func containerURL(forSecurityApplicationGroupIdentifier groupIdentifier: String) -> URL? {
+        return nil
+    }
+
+    @available(*, unavailable)
+    public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil, options: ItemReplacementOptions = []) throws -> URL? {
+        return nil
+    }
+
+    @available(*, unavailable)
+    public func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, Error) -> Bool)? = nil) -> Any? /* DirectoryEnumerator? */ {
+        return nil
+    }
+
+    public struct DirectoryEnumerationOptions : OptionSet {
+        public let rawValue: UInt
+
+        public init(rawValue: UInt) {
+            self.rawValue = rawValue
+        }
+
+        public static var skipsSubdirectoryDescendants = DirectoryEnumerationOptions(rawValue: UInt(1))
+        public static var skipsPackageDescendants = DirectoryEnumerationOptions(rawValue: UInt(2))
+        public static var skipsHiddenFiles = DirectoryEnumerationOptions(rawValue: UInt(4))
+        public static var includesDirectoriesPostOrder = DirectoryEnumerationOptions(rawValue: UInt(8))
+        public static var producesRelativePathURLs = DirectoryEnumerationOptions(rawValue: UInt(16))
+    }
+
+    public struct ItemReplacementOptions : OptionSet {
+        public let rawValue: UInt
+
+        public init(rawValue: UInt) {
+            self.rawValue = rawValue
+        }
+
+        public static var usingNewMetadataOnly = ItemReplacementOptions(rawValue: UInt(1))
+        public static var withoutDeletingBackupItem = ItemReplacementOptions(rawValue: UInt(2))
     }
 
     public enum SearchPathDirectory : UInt {
@@ -409,8 +538,18 @@ public class FileManager {
         //case systemDomainMask = 8
         //case allDomainMask = 0x0fff
     }
-}
 
+    public struct VolumeEnumerationOptions : OptionSet {
+        public let rawValue: UInt
+
+        public init(rawValue: UInt) {
+            self.rawValue = rawValue
+        }
+
+        public static let skipHiddenVolumes = VolumeEnumerationOptions(rawValue: UInt(1))
+        public static let produceFileReferenceURLs = VolumeEnumerationOptions(rawValue: UInt(2))
+    }
+}
 
 public struct FileAttributeType : RawRepresentable, Hashable {
     public let rawValue: String
@@ -473,16 +612,23 @@ private let _NSUserName: String = java.lang.System.getProperty("user.name")
 
 public struct FileProtectionType : RawRepresentable, Hashable {
     public let rawValue: String
-    init(rawValue: String) {
+
+    public init(rawValue: String) {
         self.rawValue = rawValue
     }
+
+    public static let none = FileProtectionType(rawValue: "none")
+    public static let complete = FileProtectionType(rawValue: "complete")
+    public static let completeUnlessOpen = FileProtectionType(rawValue: "completeUnlessOpen")
+    public static let completeUntilFirstUserAuthentication = FileProtectionType(rawValue: "completeUntilFirstUserAuthentication")
+    public static let completeWhenUserInactive = FileProtectionType(rawValue: "completeWhenUserInactive")
 }
 
-struct UnableToDeleteFileError : java.io.IOException {
+struct UnableToDeleteFileError : Error {
     let path: String
 }
 
-struct UnableToCreateDirectory : java.io.IOException {
+struct UnableToCreateDirectory : Error {
     let path: String
 }
 
