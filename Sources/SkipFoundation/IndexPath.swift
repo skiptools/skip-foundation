@@ -6,66 +6,134 @@
 
 #if SKIP
 
-public struct IndexPath : Hashable, CustomStringConvertible {
+public struct IndexPath : Codable, Comparable, Hashable, CustomStringConvertible, MutableCollection, RandomAccessCollection, KotlinConverting<MutableList<Int>> {
     public typealias Element = Int
 
-    internal var array: Array<Int>
+    private let arrayList: ArrayList<Int> = ArrayList<Int>()
 
-    internal init(array: Array<Int>) {
-        self.array = array
+    override var mutableList: MutableList<Int> {
+        return arrayList
+    }
+    override func willMutateStorage() {
+        willmutate()
+    }
+    override func didMutateStorage() {
+        didmutate()
     }
 
-    public init(collection: Iterable<Int>) {
-        self.array = Array(collection)
+    public init() {
     }
 
-    public init(index: IndexPath.Element) {
-        self.array = [index]
+    public init(indexes: Sequence<Int>) {
+        arrayList.addAll(indexes)
+    }
+
+    public init(indexes: [Int]) {
+        arrayList.addAll(indexes)
+    }
+
+    public init(index: Int) {
+        arrayList.add(index)
+    }
+
+    // Override copy constructor
+    public init(from: MutableStruct) {
+        arrayList.addAll((from as! IndexPath).arrayList)
+    }
+
+    public init(from decoder: Decoder) {
+        let unkeyedContainer = decoder.unkeyedContainer()
+        while (!unkeyedContainer.isAtEnd) {
+            arrayList.add(unkeyedContainer.decode(Int.self))
+        }
+    }
+
+    public func encode(to encoder: Encoder) {
+        let unkeyedContainer = encoder.unkeyedContainer()
+        unkeyedContainer.encode(contentsOf: Array(collection: arrayList))
     }
 
     public var description: String {
-        return array.description
+        return arrayList.description
     }
 
-//    public typealias Index = Array<Int>.Index
-//    public typealias Indices = DefaultIndices<IndexPath>
-//    public init<ElementSequence>(indexes: ElementSequence) where ElementSequence : Sequence, ElementSequence.Element == Int
-//    public init(arrayLiteral indexes: IndexPath.Element...)
-//    public init(indexes: [IndexPath.Element])
-//    public init(index: IndexPath.Element)
-//    public func dropLast() -> IndexPath
-//    public mutating func append(_ other: IndexPath)
-//    public mutating func append(_ other: IndexPath.Element)
-//    public mutating func append(_ other: [IndexPath.Element])
-//    public func appending(_ other: IndexPath.Element) -> IndexPath
-//    public func appending(_ other: IndexPath) -> IndexPath
-//    public func appending(_ other: [IndexPath.Element]) -> IndexPath
-//    public subscript(index: IndexPath.Index) -> IndexPath.Element
-//    public subscript(range: Range<IndexPath.Index>) -> IndexPath
-//    public func makeIterator() -> IndexingIterator<IndexPath>
-//    public var count: Int { get }
-//    public var startIndex: IndexPath.Index { get }
-//    public var endIndex: IndexPath.Index { get }
-//    public func index(before i: IndexPath.Index) -> IndexPath.Index
-//    public func index(after i: IndexPath.Index) -> IndexPath.Index
-//    public func compare(_ other: IndexPath) -> ComparisonResult
-//    public func hash(into hasher: inout Hasher)
-//    public static func == (lhs: IndexPath, rhs: IndexPath) -> Bool
-//    public static func + (lhs: IndexPath, rhs: IndexPath) -> IndexPath
-//    public static func += (lhs: inout IndexPath, rhs: IndexPath)
-//    public static func < (lhs: IndexPath, rhs: IndexPath) -> Bool
-//    public static func <= (lhs: IndexPath, rhs: IndexPath) -> Bool
-//    public static func > (lhs: IndexPath, rhs: IndexPath) -> Bool
-//    public static func >= (lhs: IndexPath, rhs: IndexPath) -> Bool
-//    public typealias ArrayLiteralElement = IndexPath.Element
-//    public typealias Iterator = IndexingIterator<IndexPath>
-//    public typealias SubSequence = IndexPath
-//    public var hashValue: Int { get }
-}
+    // SKIP DECLARE: operator fun plus(other: IndexPath): IndexPath
+    public func plus(other: IndexPath) -> IndexPath {
+        let combined = IndexPath()
+        combined.arrayList.addAll(arrayList)
+        combined.arrayList.addAll(other.arrayList)
+        return combined
+    }
 
-extension IndexPath: KotlinConverting<MutableList<Int>> {
+    public func dropLast() -> IndexPath {
+        let dropped = IndexPath()
+        dropped.arrayList.addAll(arrayList)
+        if !dropped.arrayList.isEmpty() {
+            dropped.arrayList.removeLast()
+        }
+        return dropped
+    }
+
+    public mutating func append(_ other: IndexPath) {
+        arrayList.addAll(other.arrayList)
+    }
+
+    public mutating func append(_ other: Int) {
+        arrayList.add(other)
+    }
+
+    public mutating func append(_ other: [Int]) {
+        arrayList.addAll(other)
+    }
+
+    public func appending(_ other: IndexPath) -> IndexPath {
+        let copy = IndexPath()
+        copy.arrayList.addAll(arrayList)
+        copy.arrayList.addAll(other.arrayList)
+        return copy
+    }
+
+    public func appending(_ other: Int) -> IndexPath {
+        let copy = IndexPath()
+        copy.arrayList.addAll(arrayList)
+        copy.arrayList.add(other)
+        return copy
+    }
+
+    public func appending(_ other: [Int]) -> IndexPath {
+        let copy = IndexPath()
+        copy.arrayList.addAll(arrayList)
+        copy.arrayList.addAll(other)
+        return copy
+    }
+
+    public override subscript(range: Range<Int>) -> IndexPath {
+        let copy = IndexPath()
+        for i in range {
+            guard i < arrayList.size else {
+                break
+            }
+            copy.arrayList.add(arrayList[i])
+        }
+        return copy
+    }
+
+    public static func <(lhs: IndexPath, rhs: IndexPath) {
+        for i in 0..<lhs.count {
+            if rhs.count < i {
+                break
+            }
+            if lhs[i] < rhs[i] {
+                return true
+            } else if lhs[i] > rhs[i] {
+                return false
+            }
+        }
+        return lhs.count < rhs.count
+    }
+
     public override func kotlin(nocopy: Bool = false) -> MutableList<Int> {
-        return array.kotlin(nocopy: nocopy) as! MutableList<Int>
+        return nocopy ? arrayList : ArrayList(arrayList)
     }
 }
 

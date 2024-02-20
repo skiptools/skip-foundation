@@ -303,10 +303,18 @@ Support levels:
       <td>✅</td>
       <td><code>HTTPURLResponse</code></td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>IndexPath // Not yet documented</code></td>
-</tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>IndexPath</code></summary>
+          <ul>
+            <li>Cannot assign from an array literal</li>
+            <li>Cannot assign to a range subscript</li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>IndexSet // Not yet documented</code></td>

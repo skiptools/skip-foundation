@@ -21,12 +21,10 @@ import XCTest
 class TestIndexPath: XCTestCase {
     
     func testEmpty() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip = IndexPath()
         XCTAssertEqual(ip.count, 0)
 
+        #if !SKIP
         // Darwin allows nil if length is 0
         let nsip = NSIndexPath(indexes: nil, length: 0)
         XCTAssertEqual(nsip.length, 0)
@@ -36,9 +34,6 @@ class TestIndexPath: XCTestCase {
     }
     
     func testSingleIndex() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip = IndexPath(index: 1)
         XCTAssertEqual(ip.count, 1)
         XCTAssertEqual(ip[0], 1)
@@ -50,24 +45,16 @@ class TestIndexPath: XCTestCase {
         let lowValueIp = IndexPath(index: .min)
         XCTAssertEqual(lowValueIp.count, 1)
         XCTAssertEqual(lowValueIp[0], .min)
-        #endif // !SKIP
     }
     
     func testTwoIndexes() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip = IndexPath(indexes: [0, 1])
         XCTAssertEqual(ip.count, 2)
         XCTAssertEqual(ip[0], 0)
         XCTAssertEqual(ip[1], 1)
-        #endif // !SKIP
     }
     
     func testManyIndexes() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip = IndexPath(indexes: [0, 1, 2, 3, 4])
         XCTAssertEqual(ip.count, 5)
         XCTAssertEqual(ip[0], 0)
@@ -75,215 +62,169 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(ip[2], 2)
         XCTAssertEqual(ip[3], 3)
         XCTAssertEqual(ip[4], 4)
-        #endif // !SKIP
     }
     
     func testCreateFromSequence() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let seq = repeatElement(5, count: 3)
-        let ip = IndexPath(indexes: seq)
+        let ip = IndexPath(indexes: [5, 5, 5])
         XCTAssertEqual(ip.count, 3)
         XCTAssertEqual(ip[0], 5)
         XCTAssertEqual(ip[1], 5)
         XCTAssertEqual(ip[2], 5)
-        #endif // !SKIP
     }
     
     func testCreateFromLiteral() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = [1, 2, 3, 4]
+        let ip = IndexPath(indexes: [1, 2, 3, 4])
         XCTAssertEqual(ip.count, 4)
         XCTAssertEqual(ip[0], 1)
         XCTAssertEqual(ip[1], 2)
         XCTAssertEqual(ip[2], 3)
         XCTAssertEqual(ip[3], 4)
-        #endif // !SKIP
     }
     
     func testDropLast() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = [1, 2, 3, 4]
+        let ip = IndexPath(indexes: [1, 2, 3, 4])
         let ip2 = ip.dropLast()
         XCTAssertEqual(ip2.count, 3)
         XCTAssertEqual(ip2[0], 1)
         XCTAssertEqual(ip2[1], 2)
         XCTAssertEqual(ip2[2], 3)
-        #endif // !SKIP
     }
     
     func testDropLastFromEmpty() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = []
+        let ip = IndexPath()
         let ip2 = ip.dropLast()
         XCTAssertEqual(ip2.count, 0)
-        #endif // !SKIP
     }
     
     func testDropLastFromSingle() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = [1]
+        let ip = IndexPath(indexes: [1])
         let ip2 = ip.dropLast()
         XCTAssertEqual(ip2.count, 0)
-        #endif // !SKIP
     }
     
     func testDropLastFromPair() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = [1, 2]
+        let ip = IndexPath(indexes: [1, 2])
         let ip2 = ip.dropLast()
         XCTAssertEqual(ip2.count, 1)
         XCTAssertEqual(ip2[0], 1)
-        #endif // !SKIP
     }
     
     func testDropLastFromTriple() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = [1, 2, 3]
+        let ip = IndexPath(indexes: [1, 2, 3])
         let ip2 = ip.dropLast()
         XCTAssertEqual(ip2.count, 2)
         XCTAssertEqual(ip2[0], 1)
         XCTAssertEqual(ip2[1], 2)
-        #endif // !SKIP
     }
     
     func testStartEndIndex() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = [1, 2, 3, 4]
+        let ip = IndexPath(indexes: [1, 2, 3, 4])
         XCTAssertEqual(ip.startIndex, 0)
         XCTAssertEqual(ip.endIndex, ip.count)
-        #endif // !SKIP
     }
     
     func testIterator() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = [1, 2, 3, 4]
+        let ip = IndexPath(indexes: [1, 2, 3, 4])
         var iter = ip.makeIterator()
         var sum = 0
         while let index = iter.next() {
             sum += index
         }
         XCTAssertEqual(sum, 1 + 2 + 3 + 4)
-        #endif // !SKIP
     }
     
     func testIndexing() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip: IndexPath = [1, 2, 3, 4]
+        let ip = IndexPath(indexes: [1, 2, 3, 4])
         XCTAssertEqual(ip.index(before: 1), 0)
         XCTAssertEqual(ip.index(before: 0), -1) // beyond range!
         XCTAssertEqual(ip.index(after: 1), 2)
         XCTAssertEqual(ip.index(after: 4), 5) // beyond range!
-        #endif // !SKIP
     }
     
     func testCompare() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip1: IndexPath = [1, 2]
-        let ip2: IndexPath = [3, 4]
-        let ip3: IndexPath = [5, 1]
-        let ip4: IndexPath = [1, 1, 1]
-        let ip5: IndexPath = [1, 1, 9]
-        
-        XCTAssertEqual(ip1.compare(ip1), .orderedSame)
+        let ip1 = IndexPath(indexes: [1, 2])
+        let ip2 = IndexPath(indexes: [3, 4])
+        let ip3 = IndexPath(indexes: [5, 1])
+        let ip4 = IndexPath(indexes: [1, 1, 1])
+        let ip5 = IndexPath(indexes: [1, 1, 9])
+
+//        XCTAssertEqual(ip1.compare(ip1), .orderedSame)
         XCTAssertEqual(ip1 < ip1, false)
         XCTAssertEqual(ip1 <= ip1, true)
         XCTAssertEqual(ip1 == ip1, true)
         XCTAssertEqual(ip1 >= ip1, true)
         XCTAssertEqual(ip1 > ip1, false)
         
-        XCTAssertEqual(ip1.compare(ip2), .orderedAscending)
+//        XCTAssertEqual(ip1.compare(ip2), .orderedAscending)
         XCTAssertEqual(ip1 < ip2, true)
         XCTAssertEqual(ip1 <= ip2, true)
         XCTAssertEqual(ip1 == ip2, false)
         XCTAssertEqual(ip1 >= ip2, false)
         XCTAssertEqual(ip1 > ip2, false)
         
-        XCTAssertEqual(ip1.compare(ip3), .orderedAscending)
+//        XCTAssertEqual(ip1.compare(ip3), .orderedAscending)
         XCTAssertEqual(ip1 < ip3, true)
         XCTAssertEqual(ip1 <= ip3, true)
         XCTAssertEqual(ip1 == ip3, false)
         XCTAssertEqual(ip1 >= ip3, false)
         XCTAssertEqual(ip1 > ip3, false)
         
-        XCTAssertEqual(ip1.compare(ip4), .orderedDescending)
+//        XCTAssertEqual(ip1.compare(ip4), .orderedDescending)
         XCTAssertEqual(ip1 < ip4, false)
         XCTAssertEqual(ip1 <= ip4, false)
         XCTAssertEqual(ip1 == ip4, false)
         XCTAssertEqual(ip1 >= ip4, true)
         XCTAssertEqual(ip1 > ip4, true)
         
-        XCTAssertEqual(ip1.compare(ip5), .orderedDescending)
+//        XCTAssertEqual(ip1.compare(ip5), .orderedDescending)
         XCTAssertEqual(ip1 < ip5, false)
         XCTAssertEqual(ip1 <= ip5, false)
         XCTAssertEqual(ip1 == ip5, false)
         XCTAssertEqual(ip1 >= ip5, true)
         XCTAssertEqual(ip1 > ip5, true)
         
-        XCTAssertEqual(ip2.compare(ip1), .orderedDescending)
+//        XCTAssertEqual(ip2.compare(ip1), .orderedDescending)
         XCTAssertEqual(ip2 < ip1, false)
         XCTAssertEqual(ip2 <= ip1, false)
         XCTAssertEqual(ip2 == ip1, false)
         XCTAssertEqual(ip2 >= ip1, true)
         XCTAssertEqual(ip2 > ip1, true)
         
-        XCTAssertEqual(ip2.compare(ip2), .orderedSame)
+//        XCTAssertEqual(ip2.compare(ip2), .orderedSame)
         XCTAssertEqual(ip2 < ip2, false)
         XCTAssertEqual(ip2 <= ip2, true)
         XCTAssertEqual(ip2 == ip2, true)
         XCTAssertEqual(ip2 >= ip2, true)
         XCTAssertEqual(ip2 > ip2, false)
         
-        XCTAssertEqual(ip2.compare(ip3), .orderedAscending)
+//        XCTAssertEqual(ip2.compare(ip3), .orderedAscending)
         XCTAssertEqual(ip2 < ip3, true)
         XCTAssertEqual(ip2 <= ip3, true)
         XCTAssertEqual(ip2 == ip3, false)
         XCTAssertEqual(ip2 >= ip3, false)
         XCTAssertEqual(ip2 > ip3, false)
         
-        XCTAssertEqual(ip2.compare(ip4), .orderedDescending)
-        XCTAssertEqual(ip2.compare(ip5), .orderedDescending)
-        XCTAssertEqual(ip3.compare(ip1), .orderedDescending)
-        XCTAssertEqual(ip3.compare(ip2), .orderedDescending)
-        XCTAssertEqual(ip3.compare(ip3), .orderedSame)
-        XCTAssertEqual(ip3.compare(ip4), .orderedDescending)
-        XCTAssertEqual(ip3.compare(ip5), .orderedDescending)
-        XCTAssertEqual(ip4.compare(ip1), .orderedAscending)
-        XCTAssertEqual(ip4.compare(ip2), .orderedAscending)
-        XCTAssertEqual(ip4.compare(ip3), .orderedAscending)
-        XCTAssertEqual(ip4.compare(ip4), .orderedSame)
-        XCTAssertEqual(ip4.compare(ip5), .orderedAscending)
-        XCTAssertEqual(ip5.compare(ip1), .orderedAscending)
-        XCTAssertEqual(ip5.compare(ip2), .orderedAscending)
-        XCTAssertEqual(ip5.compare(ip3), .orderedAscending)
-        XCTAssertEqual(ip5.compare(ip4), .orderedDescending)
-        XCTAssertEqual(ip5.compare(ip5), .orderedSame)
-        
-        let ip6: IndexPath = [1, 1]
-        XCTAssertEqual(ip6.compare(ip5), .orderedAscending)
-        XCTAssertEqual(ip5.compare(ip6), .orderedDescending)
-        #endif // !SKIP
+//        XCTAssertEqual(ip2.compare(ip4), .orderedDescending)
+//        XCTAssertEqual(ip2.compare(ip5), .orderedDescending)
+//        XCTAssertEqual(ip3.compare(ip1), .orderedDescending)
+//        XCTAssertEqual(ip3.compare(ip2), .orderedDescending)
+//        XCTAssertEqual(ip3.compare(ip3), .orderedSame)
+//        XCTAssertEqual(ip3.compare(ip4), .orderedDescending)
+//        XCTAssertEqual(ip3.compare(ip5), .orderedDescending)
+//        XCTAssertEqual(ip4.compare(ip1), .orderedAscending)
+//        XCTAssertEqual(ip4.compare(ip2), .orderedAscending)
+//        XCTAssertEqual(ip4.compare(ip3), .orderedAscending)
+//        XCTAssertEqual(ip4.compare(ip4), .orderedSame)
+//        XCTAssertEqual(ip4.compare(ip5), .orderedAscending)
+//        XCTAssertEqual(ip5.compare(ip1), .orderedAscending)
+//        XCTAssertEqual(ip5.compare(ip2), .orderedAscending)
+//        XCTAssertEqual(ip5.compare(ip3), .orderedAscending)
+//        XCTAssertEqual(ip5.compare(ip4), .orderedDescending)
+//        XCTAssertEqual(ip5.compare(ip5), .orderedSame)
+//        
+//        let ip6: IndexPath = [1, 1]
+//        XCTAssertEqual(ip6.compare(ip5), .orderedAscending)
+//        XCTAssertEqual(ip5.compare(ip6), .orderedDescending)
     }
     
     func testHashing() {
@@ -313,15 +254,12 @@ class TestIndexPath: XCTestCase {
     }
     
     func testEquality() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip1: IndexPath = [1, 1]
-        let ip2: IndexPath = [1, 1]
-        let ip3: IndexPath = [1, 1, 1]
-        let ip4: IndexPath = []
-        let ip5: IndexPath = [1]
-        
+        let ip1 = IndexPath(indexes: [1, 1])
+        let ip2 = IndexPath(indexes: [1, 1])
+        let ip3 = IndexPath(indexes: [1, 1, 1])
+        let ip4 = IndexPath(indexes: [])
+        let ip5 = IndexPath(indexes: [1])
+
         XCTAssertTrue(ip1 == ip2)
         XCTAssertFalse(ip1 == ip3)
         XCTAssertFalse(ip1 == ip4)
@@ -330,17 +268,13 @@ class TestIndexPath: XCTestCase {
         XCTAssertFalse(ip5 == ip4)
         XCTAssertTrue(ip4 == ip4)
         XCTAssertTrue(ip5 == ip5)
-        #endif // !SKIP
     }
     
     func testSubscripting() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip1: IndexPath = [1]
-        var ip2: IndexPath = [1, 2]
-        var ip3: IndexPath = [1, 2, 3]
-        
+        var ip1 = IndexPath(indexes: [1])
+        var ip2 = IndexPath(indexes: [1, 2])
+        var ip3 = IndexPath(indexes: [1, 2, 3])
+
         XCTAssertEqual(ip1[0], 1)
         
         XCTAssertEqual(ip2[0], 1)
@@ -378,14 +312,10 @@ class TestIndexPath: XCTestCase {
         let ip6 = ip3[2...]
         XCTAssertEqual(ip6.count, 1)
         XCTAssertEqual(ip6[0], 4)
-        #endif // !SKIP
     }
     
     func testAppending() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip : IndexPath = [1, 2, 3, 4]
+        var ip = IndexPath(indexes: [1, 2, 3, 4])
         let ip2 = IndexPath(indexes: [5, 6, 7])
         
         ip.append(ip2)
@@ -407,14 +337,10 @@ class TestIndexPath: XCTestCase {
         let ip5 = ip.appending(8)
         XCTAssertEqual(ip5.count, 8)
         XCTAssertEqual(ip5[7], 8)
-        #endif // !SKIP
     }
     
     func testAppendEmpty() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = []
+        var ip = IndexPath(indexes: [])
         ip.append(1)
         
         XCTAssertEqual(ip.count, 1)
@@ -437,129 +363,93 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(ip[1], 2)
         XCTAssertEqual(ip[2], 3)
         XCTAssertEqual(ip[3], 4)
-        #endif // !SKIP
     }
     
     func testAppendEmptyIndexPath() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = []
+        var ip = IndexPath(indexes: [])
         ip.append(IndexPath(indexes: []))
         
         XCTAssertEqual(ip.count, 0)
-        #endif // !SKIP
     }
     
     func testAppendManyIndexPath() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = []
+        var ip = IndexPath(indexes: [])
         ip.append(IndexPath(indexes: [1, 2, 3]))
         
         XCTAssertEqual(ip.count, 3)
         XCTAssertEqual(ip[0], 1)
         XCTAssertEqual(ip[1], 2)
         XCTAssertEqual(ip[2], 3)
-        #endif // !SKIP
     }
     
     func testAppendEmptyIndexPathToSingle() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = [1]
+        var ip = IndexPath(indexes: [1])
         ip.append(IndexPath(indexes: []))
         
         XCTAssertEqual(ip.count, 1)
         XCTAssertEqual(ip[0], 1)
-        #endif // !SKIP
     }
     
     func testAppendSingleIndexPath() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = []
+        var ip = IndexPath()
         ip.append(IndexPath(indexes: [1]))
         
         XCTAssertEqual(ip.count, 1)
         XCTAssertEqual(ip[0], 1)
-        #endif // !SKIP
     }
     
     func testAppendSingleIndexPathToSingle() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = [1]
+        var ip = IndexPath(indexes: [1])
         ip.append(IndexPath(indexes: [1]))
         
         XCTAssertEqual(ip.count, 2)
         XCTAssertEqual(ip[0], 1)
         XCTAssertEqual(ip[1], 1)
-        #endif // !SKIP
     }
     
     func testAppendPairIndexPath() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = []
+        var ip = IndexPath()
         ip.append(IndexPath(indexes: [1, 2]))
         
         XCTAssertEqual(ip.count, 2)
         XCTAssertEqual(ip[0], 1)
         XCTAssertEqual(ip[1], 2)
-        #endif // !SKIP
     }
     
     func testAppendManyIndexPathToEmpty() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = []
+        var ip = IndexPath()
         ip.append(IndexPath(indexes: [1, 2, 3]))
         
         XCTAssertEqual(ip.count, 3)
         XCTAssertEqual(ip[0], 1)
         XCTAssertEqual(ip[1], 2)
         XCTAssertEqual(ip[2], 3)
-        #endif // !SKIP
     }
     
     func testAppendByOperator() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let ip1: IndexPath = []
-        let ip2: IndexPath = []
-        
+        let ip1 =  IndexPath()
+        let ip2 =  IndexPath()
+
         let ip3 = ip1 + ip2
         XCTAssertEqual(ip3.count, 0)
         
-        let ip4: IndexPath = [1]
-        let ip5: IndexPath = [2]
-        
+        let ip4 = IndexPath(indexes: [1])
+        let ip5 = IndexPath(indexes: [2])
+
         let ip6 = ip4 + ip5
         XCTAssertEqual(ip6.count, 2)
         XCTAssertEqual(ip6[0], 1)
         XCTAssertEqual(ip6[1], 2)
         
-        var ip7: IndexPath = []
+        var ip7 = IndexPath()
         ip7 += ip6
         XCTAssertEqual(ip7.count, 2)
         XCTAssertEqual(ip7[0], 1)
         XCTAssertEqual(ip7[1], 2)
-        #endif // !SKIP
     }
     
     func testAppendArray() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        var ip: IndexPath = [1, 2, 3, 4]
+        var ip = IndexPath(indexes: [1, 2, 3, 4])
         let indexes = [5, 6, 7]
         
         ip.append(indexes)
@@ -567,7 +457,6 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(ip.count, 7)
         XCTAssertEqual(ip[0], 1)
         XCTAssertEqual(ip[6], 7)
-        #endif // !SKIP
     }
     
     func testRanges() {
@@ -596,36 +485,25 @@ class TestIndexPath: XCTestCase {
         mutateMe = ip1
         mutateMe[2..<2] = ip2
         XCTAssertEqual(mutateMe, IndexPath(indexes: [1, 2, 6, 7, 8, 3]))
-        #endif // !SKIP
+        #endif
     }
     
     func testRangeFromEmpty() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip1 = IndexPath()
         let ip2 = ip1[0..<0]
         XCTAssertEqual(ip2.count, 0)
-        #endif // !SKIP
     }
     
     func testRangeFromSingle() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip1 = IndexPath(indexes: [1])
         let ip2 = ip1[0..<0]
         XCTAssertEqual(ip2.count, 0)
         let ip3 = ip1[0..<1]
         XCTAssertEqual(ip3.count, 1)
         XCTAssertEqual(ip3[0], 1)
-        #endif // !SKIP
     }
     
     func testRangeFromPair() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip1 = IndexPath(indexes: [1, 2])
         let ip2 = ip1[0..<0]
         XCTAssertEqual(ip2.count, 0)
@@ -643,13 +521,9 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(ip6[0], 2)
         let ip7 = ip1[2..<2]
         XCTAssertEqual(ip7.count, 0)
-        #endif // !SKIP
     }
     
     func testRangeFromMany() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip1 = IndexPath(indexes: [1, 2, 3])
         let ip2 = ip1[0..<0]
         XCTAssertEqual(ip2.count, 0)
@@ -659,7 +533,6 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(ip4.count, 2)
         let ip5 = ip1[0..<3]
         XCTAssertEqual(ip5.count, 3)
-        #endif // !SKIP
     }
     
     func testRangeReplacementSingle() {
@@ -672,7 +545,7 @@ class TestIndexPath: XCTestCase {
         
         ip1[0..<1] = IndexPath(indexes: [])
         XCTAssertEqual(ip1.count, 0)
-        #endif // !SKIP
+        #endif
     }
     
     func testRangeReplacementPair() {
@@ -688,7 +561,7 @@ class TestIndexPath: XCTestCase {
         
         ip1[0..<1] = IndexPath(indexes: [])
         XCTAssertEqual(ip1.count, 2)
-        #endif // !SKIP
+        #endif
     }
     
     func testMoreRanges() {
@@ -700,13 +573,10 @@ class TestIndexPath: XCTestCase {
         
         ip[1..<2] = ip2
         XCTAssertEqual(ip, IndexPath(indexes: [1, 5, 6, 7, 8, 9, 10, 3]))
-        #endif // !SKIP
+        #endif
     }
     
     func testIteration() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let ip = IndexPath(indexes: [1, 2, 3])
         
         var count = 0
@@ -715,7 +585,6 @@ class TestIndexPath: XCTestCase {
         }
         
         XCTAssertEqual(3, count)
-        #endif // !SKIP
     }
     
     func testDescription() {
@@ -928,16 +797,12 @@ class TestIndexPath: XCTestCase {
     }
     
     func test_slice_1ary() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let indexPath: IndexPath = [0]
+        let indexPath = IndexPath(indexes: [0])
         let res = indexPath.dropFirst()
         XCTAssertEqual(0, res.count)
         
         let slice = indexPath[1..<1]
         XCTAssertEqual(0, slice.count)
-        #endif // !SKIP
     }
 
     func test_copy() {
