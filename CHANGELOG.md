@@ -1,3 +1,10 @@
+## 0.5.7
+
+Released 2024-02-20
+
+  - Support Data.withUnsafeBytes when SkipFFI is imported
+  - Accommodate differences in String.Encoding.utf16 and .utf32 between Java and Darwin
+
 ## 0.5.6
 
 Released 2024-02-18
