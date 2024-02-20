@@ -299,10 +299,10 @@ Support levels:
         </details> 
       </td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>HTTPURLResponse // Not yet documented</code></td>
-</tr>
+    <tr>
+      <td>✅</td>
+      <td><code>HTTPURLResponse</code></td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>IndexPath // Not yet documented</code></td>
@@ -414,10 +414,10 @@ Support levels:
   <td>?</td>
   <td><code>URLRequest // Not yet documented</code></td>
 </tr>
-<tr>
-  <td>?</td>
-  <td><code>URLResponse // Not yet documented</code></td>
-</tr>
+    <tr>
+      <td>✅</td>
+      <td><code>URLResponse</code></td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>URLSession // Not yet documented</code></td>
