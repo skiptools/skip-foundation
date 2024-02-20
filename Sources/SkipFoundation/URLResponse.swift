@@ -6,7 +6,7 @@
 
 #if SKIP
 
-public class URLResponse : CustomStringConvertible {
+public class URLResponse : Hashable, CustomStringConvertible {
     public internal(set) var url: URL?
     public internal(set) var mimeType: String?
     public internal(set) var expectedContentLength: Int64 = -1
@@ -55,8 +55,15 @@ public class URLResponse : CustomStringConvertible {
             self.textEncodingName == other.textEncodingName
     }
 
-    public var hash: Int {
-        return hashValue
+    public static func ==(lhs: URLResponse, rhs: URLResponse) -> Bool {
+        return lhs.isEqual(rhs)
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(url)
+        hasher.combine(mimeType)
+        hasher.combine(expectedContentLength)
+        hasher.combine(textEncodingName)
     }
 }
 

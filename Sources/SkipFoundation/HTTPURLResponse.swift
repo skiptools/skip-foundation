@@ -6,7 +6,7 @@
 
 #if SKIP
 
-public class HTTPURLResponse : URLResponse {
+public class HTTPURLResponse : URLResponse, Hashable {
     override init(url: URL, mimeType: String?, expectedContentLength: Int, textEncodingName: String?) {
         super.init(url: url, mimeType: mimeType, expectedContentLength: expectedContentLength, textEncodingName: textEncodingName)
     }
@@ -181,6 +181,25 @@ public class HTTPURLResponse : URLResponse {
             // Add more cases for additional status codes if needed
             default: return "Unknown"
         }
+    }
+
+    public override func isEqual(_ other: Any?) -> Bool {
+        guard let other = other as? HTTPURLResponse else {
+            return false
+        }
+        return super.isEqual(other)
+            && statusCode == other.statusCode
+            && allHeaderFields == other.allHeaderFields
+    }
+
+    public static func ==(lhs: HTTPURLResponse, rhs: HTTPURLResponse) -> Bool {
+        return lhs.isEqual(rhs)
+    }
+
+    public override func hash(into hasher: inout Hasher) {
+        super.hash(into: &hasher)
+        hasher.combine(statusCode)
+        hasher.combine(allHeaderFields)
     }
 }
 

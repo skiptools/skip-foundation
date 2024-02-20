@@ -313,7 +313,7 @@ public class FileManager {
         return java.nio.file.Files.exists(java.nio.file.Paths.get(path))
     }
 
-    public func fileExists(atPath path: String, isDirectory: inout Bool) -> Bool {
+    public func fileExists(atPath path: String, isDirectory: inout ObjCBool) -> Bool {
         let p = platformFilePath(for: path)
         if java.nio.file.Files.isDirectory(p) {
             isDirectory = ObjCBool(true)
