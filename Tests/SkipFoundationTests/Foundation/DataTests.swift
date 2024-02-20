@@ -46,11 +46,25 @@ final class DataTests: XCTestCase {
             XCTAssertEqual("0001d11e0001d5650001d7f60002008a", str.data(using: .utf32BigEndian)?.hex())
         }
 
+        do {
+            let str = "\u{0065}\u{0301}" // eWithAcuteCombining
+
+            XCTAssertEqual("65cc81", str.data(using: .utf8)?.hex())
+
+            XCTAssertEqual("fffe65000103", str.data(using: .utf16)?.hex())
+            XCTAssertEqual("65000103", str.data(using: .utf16LittleEndian)?.hex())
+            XCTAssertEqual("00650301", str.data(using: .utf16BigEndian)?.hex())
+
+            XCTAssertEqual("fffe00006500000001030000", str.data(using: .utf32)?.hex())
+            XCTAssertEqual("6500000001030000", str.data(using: .utf32LittleEndian)?.hex())
+            XCTAssertEqual("0000006500000301", str.data(using: .utf32BigEndian)?.hex())
+        }
+
     }
 
 }
 
 extension Sequence where Element == UInt8 {
     /// Convert this sequence of bytes into a hex string
-    func hex() -> String { map { String(format: "%02x", $0) }.joined() }
+    public func hex() -> String { map { String(format: "%02x", $0) }.joined() }
 }

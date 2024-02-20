@@ -171,8 +171,8 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
         fatalError()
     }
 
-    @available(*, unavailable)
-    public func withUnsafeBytes(_ body: (Any /*UnsafeRawBufferPointer */) throws -> Any /* ResultType */) rethrows -> Any /*ResultType */ {
+    @available(*, deprecated, message: "withUnsafeBytes requires import SkipFFI")
+    internal func withUnsafeBytes(_ body: (Any /*UnsafeRawBufferPointer */) throws -> Any /* ResultType */) rethrows -> Any /*ResultType */ {
         fatalError()
     }
 

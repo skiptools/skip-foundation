@@ -76,14 +76,12 @@ extension String {
     public var utf16: [UInt8] {
         // Darwin is little-endian while Java is big-endian
         // encoding difference with UTF16: https://github.com/google/j2objc/issues/403
-        // we need to manually use utf16LittleEndian (no BOM) then add back in the byte-order mark (the first two bytes)
+        // so we manually use utf16LittleEndian (no BOM) then add back in the byte-order mark (the first two bytes)
         return [UInt8(0xFF), UInt8(0xFE)] + Array(toByteArray(StringEncoding.utf16LittleEndian.rawValue).toUByteArray())
     }
 
     public var utf32: [UInt8] {
-        // Darwin is little-endian while Java is big-endian
-        // encoding difference with UTF32: https://github.com/google/j2objc/issues/403
-        // we need to manually use utf32LittleEndian (no BOM) then add back in the byte-order mark (the first two bytes)
+        // manually use utf32LittleEndian (no BOM) then add back in the byte-order mark (the first two bytes)
         return [UInt8(0xFF), UInt8(0xFE), UInt8(0x00), UInt8(0x00)] + Array(toByteArray(StringEncoding.utf32LittleEndian.rawValue).toUByteArray())
     }
 
