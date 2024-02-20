@@ -58,20 +58,37 @@ extension String {
     }
 
     public func data(using: StringEncoding, allowLossyConversion: Bool = true) -> Data? {
-        return try? Data(platformValue: toByteArray(using.rawValue))
+        if using == StringEncoding.utf16 {
+            return Data(self.utf16) // Darwin is little-endian while Java is big-endian
+        } else if using == StringEncoding.utf32 {
+            return Data(self.utf32) // Darwin is little-endian while Java is big-endian
+        } else {
+            let bytes = toByteArray(using.rawValue)
+            return Data(platformValue: bytes)
+        }
     }
 
     public var utf8: [UInt8] {
         // TODO: there should be a faster way to convert a string to a UInt8 array
-        return Array(toByteArray(StringEncoding.utf8.rawValue).map { it.toUByte() })
+        return Array(toByteArray(StringEncoding.utf8.rawValue).toUByteArray())
     }
 
     public var utf16: [UInt8] {
-        return Array(toByteArray(StringEncoding.utf16.rawValue).map { it.toUByte() })
+        // Darwin is little-endian while Java is big-endian
+        // encoding difference with UTF16: https://github.com/google/j2objc/issues/403
+        // we need to manually use utf16LittleEndian (no BOM) then add back in the byte-order mark (the first two bytes)
+        return [UInt8(0xFF), UInt8(0xFE)] + Array(toByteArray(StringEncoding.utf16LittleEndian.rawValue).toUByteArray())
+    }
+
+    public var utf32: [UInt8] {
+        // Darwin is little-endian while Java is big-endian
+        // encoding difference with UTF32: https://github.com/google/j2objc/issues/403
+        // we need to manually use utf32LittleEndian (no BOM) then add back in the byte-order mark (the first two bytes)
+        return [UInt8(0xFF), UInt8(0xFE), UInt8(0x00), UInt8(0x00)] + Array(toByteArray(StringEncoding.utf32LittleEndian.rawValue).toUByteArray())
     }
 
     public var unicodeScalars: [UInt8] {
-        return Array(toByteArray(StringEncoding.utf8.rawValue).map { it.toUByte() })
+        return Array(toByteArray(StringEncoding.utf8.rawValue).toUByteArray())
     }
 }
 
