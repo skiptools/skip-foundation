@@ -37,7 +37,7 @@ class TestISO8601DateFormatter: XCTestCase {
         /*
          The following tests cover various cases when changing the .formatOptions property.
          */
-        isoFormatter.formatOptions = ISO8601DateFormatter.Options.withInternetDateTime
+//        isoFormatter.formatOptions = ISO8601DateFormatter.Options.withInternetDateTime
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08T22:31:00Z")
 
         #if SKIP

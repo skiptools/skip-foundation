@@ -342,10 +342,21 @@ Support levels:
         </details> 
       </td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>ISO8601DateFormatter // Not yet documented</code></td>
-</tr>
+   <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>ISO8601DateFormatter</code></summary>
+          <ul>
+<li><code>static func string(from date: Date, timeZone: TimeZone) -> String</code></li>
+<li><code>var timeZone: TimeZone?</code></li>
+<li><code>func date(from string: String) -> Date?</code></li>
+<li><code>func string(from date: Date) -> String</code></li>
+<li><code>func string(for obj: Any?) -> String?</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>JSONDecoder // Not yet documented</code></td>

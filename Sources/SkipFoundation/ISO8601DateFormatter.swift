@@ -13,7 +13,18 @@ public class ISO8601DateFormatter : DateFormatter {
         self.timeZone = TimeZone(identifier: "UTC")
     }
 
-    // TODO: handle options
+    @available(*, unavailable)
+    public static func string(from date: Date, timeZone: TimeZone, formatOptions: ISO8601DateFormatter.Options) -> String {
+        fatalError()
+    }
+
+    public static func string(from date: Date, timeZone: TimeZone) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.timeZone = timeZone
+        return formatter.string(from: date)
+    }
+
+    @available(*, unavailable)
     public var formatOptions: Options = Options(rawValue: UInt(0))
 
     public struct Options : OptionSet {
