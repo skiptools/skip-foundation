@@ -6,7 +6,7 @@
 
 #if SKIP
 
-public class NumberFormatter {
+public class NumberFormatter: Formatter {
     internal var platformValue: java.text.DecimalFormat
 
     internal init(platformValue: java.text.DecimalFormat) {
@@ -90,10 +90,6 @@ public class NumberFormatter {
     }
 
     #if os(macOS) || os(Linux) // seems to be unavailable on iOS
-    @available(macOS 10.15, macCatalyst 11, *)
-    @available(iOS, unavailable, message: "NumberFormatter.format unavailable on iOS")
-    @available(watchOS, unavailable, message: "NumberFormatter.format unavailable on watchOS")
-    @available(tvOS, unavailable, message: "NumberFormatter.format unavailable on tvOS")
     public var format: String {
         get {
             return platformValue.toPattern()
@@ -203,26 +199,8 @@ public class NumberFormatter {
         }
     }
 
-    // no plusSign in DecimalFormatSymbols
-    //public var plusSign: String? {
-    //    get {
-    //        #if !SKIP
-    //        return platformValue.plusSign
-    //        #else
-    //        return platformValue.decimalFormatSymbols.plusSign?.toString()
-    //        #endif
-    //    }
-    //
-    //    set {
-    //        #if !SKIP
-    //        platformValue.plusSign = newValue
-    //        #else
-    //        if let plusSignChar = newValue?.first {
-    //            applySymbol { $0.plusSign = plusSignChar }
-    //        }
-    //        #endif
-    //    }
-    //}
+    @available(*, unavailable)
+    public var plusSign: String? // no plusSign in DecimalFormatSymbols
 
     public var minusSign: String? {
         get {
@@ -377,7 +355,7 @@ public class NumberFormatter {
         platformValue.setDecimalFormatSymbols(dfs)
     }
 
-    public func string(for object: Any?) -> String? {
+    public override func string(for object: Any?) -> String? {
         if let number = object as? NSNumber {
             return string(from: number)
         } else if let bool = object as? Bool {

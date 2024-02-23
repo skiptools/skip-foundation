@@ -11,7 +11,7 @@ public typealias Logger = SkipLogger
 public typealias LogMessage = String
 public typealias OSLogType = SkipLogger.LogType
 
-/// Logger cover for versions before Logger was available (which coincides with Concurrency)
+/// Logger cover for versions before Logger was available (which coincides with Concurrency).
 public class SkipLogger {
     let logName: String
 

@@ -8,7 +8,6 @@
 
 public typealias Decimal = java.math.BigDecimal
 public typealias NSDecimalNumber = java.math.BigDecimal
-
 public typealias NSNumber = java.lang.Number
 
 public extension java.lang.Number {
@@ -32,6 +31,7 @@ public func NSNumber(value: UInt32) -> NSNumber { value as NSNumber }
 public func NSNumber(value: UInt64) -> NSNumber { value as NSNumber }
 public func NSNumber(value: Float) -> NSNumber { value as NSNumber }
 public func NSNumber(value: Double) -> NSNumber { value as NSNumber }
+
 // NSNumber also accepts unlabeled values. Add an additional unused argument to satisfy the Kotlin compiler that they are different functions.
 public func NSNumber(_ v: Int8, unusedp: ()? = nil) -> NSNumber { v as NSNumber }
 public func NSNumber(_ v: Int16, unusedp: ()? = nil) -> NSNumber { v as NSNumber }

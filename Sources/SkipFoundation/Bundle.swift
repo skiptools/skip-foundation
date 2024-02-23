@@ -15,9 +15,9 @@ public class Bundle : Hashable {
     }
     private static let _bundleModule = Bundle(for: Bundle.self)
 
-    private let location: SkipLocalizedStringResource.BundleDescription
+    private let location: LocalizedStringResource.BundleDescription
 
-    public init(location: SkipLocalizedStringResource.BundleDescription) {
+    public init(location: LocalizedStringResource.BundleDescription) {
         self.location = location
     }
 
@@ -88,7 +88,7 @@ public class Bundle : Hashable {
     }
 
     public var bundleURL: URL {
-        let loc: SkipLocalizedStringResource.BundleDescription = location
+        let loc: LocalizedStringResource.BundleDescription = location
         switch loc {
         case .atURL(let url):
             return url
@@ -100,7 +100,7 @@ public class Bundle : Hashable {
 
     /// Creates a relative path to the given bundle URL
     private func relativeBundleURL(path: String) -> URL? {
-        let loc: SkipLocalizedStringResource.BundleDescription = location
+        let loc: LocalizedStringResource.BundleDescription = location
         switch loc {
         case .main:
             let appContext = ProcessInfo.processInfo.androidContext

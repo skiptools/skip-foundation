@@ -8,9 +8,10 @@
 
 public typealias NSURL = URL
 
-public struct URL : Hashable, CustomStringConvertible, Codable {
+public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting<java.net.URL> {
     internal var platformValue: java.net.URL
     private let isDirectoryFlag: Bool?
+
     public let baseURL: URL?
 
     public init(platformValue: java.net.URL, isDirectory: Bool? = nil, baseURL: URL? = nil) {
@@ -38,7 +39,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
     }
 
     public static var cachesDirectory: URL {
-        return URL(ProcessInfo.processInfo.androidContext.getCacheDir().toURL(), isDirectory: true)
+        return URL(platformValue: ProcessInfo.processInfo.androidContext.getCacheDir().toURL(), isDirectory: true)
     }
 
     @available(*, unavailable)
@@ -57,7 +58,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
     }
 
     public static var documentsDirectory: URL {
-        return URL(ProcessInfo.processInfo.androidContext.getFilesDir().toURL(), isDirectory: true)
+        return URL(platformValue: ProcessInfo.processInfo.androidContext.getFilesDir().toURL(), isDirectory: true)
     }
 
     @available(*, unavailable)
@@ -80,6 +81,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
         fatalError("moviesDirectory unimplemented in Skip")
     }
 
+    @available(*, unavailable)
     public static var musicDirectory: URL {
         fatalError("musicDirectory unimplemented in Skip")
     }
@@ -99,10 +101,73 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
         fatalError("trashDirectory unimplemented in Skip")
     }
 
+    public init?(string: String, relativeTo baseURL: URL? = nil) {
+        do {
+            let url = java.net.URL(relativeTo?.platformValue, string) // throws on malformed
+            // use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
+            let isDirectory = url.`protocol` == "file" && string.hasSuffix("/")
+            self.platformValue = url
+            self.isDirectoryFlag = isDirectory
+            self.baseURL = baseURL
+        } catch {
+            // e.g., malformed URL
+            return nil
+        }
+    }
+
     public init(fileURLWithPath path: String, isDirectory: Bool? = nil, relativeTo base: URL? = nil) {
         self.platformValue = java.net.URL("file://" + path) // TODO: escaping
         self.baseURL = base // TODO: base resolution
         self.isDirectoryFlag = isDirectory ?? path.hasSuffix("/") // TODO: should we hit the file system like NSURL does?
+    }
+
+    @available(*, unavailable)
+    init(fileURLWithFileSystemRepresentation: Any, isDirectory: Bool, relativeTo: URL? = nil, unusedp: Nothing? = nil) {
+        self.platformValue = java.net.URL("")
+        self.baseURL = nil
+        self.isDirectoryFlag = false
+    }
+
+    @available(*, unavailable)
+    public init(fileReferenceLiteralResourceName: String) {
+        self.platformValue = java.net.URL("")
+        self.baseURL = nil
+        self.isDirectoryFlag = false
+    }
+
+    @available(*, unavailable)
+    init(resolvingBookmarkData: Data, options: Any? = nil, relativeTo: URL? = nil, bookmarkDataIsStale: inout Bool) {
+        self.platformValue = java.net.URL("")
+        self.baseURL = nil
+        self.isDirectoryFlag = false
+    }
+
+    @available(*, unavailable)
+    init(resolvingAliasFileAt: URL, options: Any? = nil) throws {
+        self.platformValue = java.net.URL("")
+        self.baseURL = nil
+        self.isDirectoryFlag = false
+    }
+
+    @available(*, unavailable)
+    init?(resource: URLResource) {
+        self.platformValue = java.net.URL("")
+        self.baseURL = nil
+        self.isDirectoryFlag = false
+    }
+
+    @available(*, unavailable)
+    init(_ parseInput: Any, strategy: Any, unusedp: Nothing? = nil) {
+        self.platformValue = java.net.URL("")
+        self.baseURL = nil
+        self.isDirectoryFlag = false
+    }
+
+    @available(*, unavailable)
+    public init?(dataRepresentation: Data, relativeTo: URL?, isAbsolute: Bool) {
+        self.platformValue = java.net.URL("")
+        self.baseURL = nil
+        self.isDirectoryFlag = false
     }
 
     public init(from decoder: Decoder) throws {
@@ -141,9 +206,8 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
         fatalError("TODO: implement port")
     }
 
-    @available(*, unavailable)
     public var scheme: String? {
-        fatalError("TODO: implement scheme")
+        return platformValue.`protocol`
     }
 
     @available(*, unavailable)
@@ -164,6 +228,11 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
     @available(*, unavailable)
     public var fragment: String? {
         fatalError("TODO: implement fragment")
+    }
+
+    @available(*, unavailable)
+    public var dataRepresentation: Data {
+        fatalError()
     }
 
     public var standardized: URL {
@@ -233,6 +302,44 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
         return URL(platformValue: java.net.URL(url), isDirectory: isDirectory)
     }
 
+    public mutating func appendPathComponent(_ pathComponent: String) {
+        self = appendingPathComponent(pathComponent)
+    }
+
+    public mutating func appendPathComponent(_ pathComponent: String, isDirectory: Bool) {
+        self = appendingPathComponent(pathComponent, isDirectory: isDirectory)
+    }
+
+    @available(*, unavailable)
+    public func appendingPathComponent(_ pathComponent: String, conformingTo type: Any) -> URL {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public mutating func appendPathComponent(_ pathComponent: String, conformingTo type: Any) {
+        fatalError()
+    }
+
+    public func appendingPathExtension(_ pathExtension: String) -> URL {
+        var url = self.platformValue.toExternalForm()
+        url = url + "." + pathExtension
+        return URL(platformValue: java.net.URL(url))
+    }
+
+    public mutating func appendPathExtension(_ pathExtension: String) {
+        self = appendingPathExtension(pathExtension)
+    }
+
+    @available(*, unavailable)
+    public func appendingPathExtension(for type: Any, unusedp: Nothing? = nil) -> URL {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public mutating func appendPathExtension(for type: Any, unusedp: Nothing? = nil) {
+        fatalError()
+    }
+
     public func deletingLastPathComponent() -> URL {
         var url = self.platformValue.toExternalForm()
         while url.hasSuffix("/") && !url.isEmpty {
@@ -244,10 +351,8 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
         return URL(platformValue: java.net.URL(url))
     }
 
-    public func appendingPathExtension(_ pathExtension: String) -> URL {
-        var url = self.platformValue.toExternalForm()
-        url = url + "." + pathExtension
-        return URL(platformValue: java.net.URL(url))
+    public mutating func deleteLastPathComponent() {
+        self = deletingLastPathComponent()
     }
 
     public func deletingPathExtension() -> URL {
@@ -260,6 +365,10 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
             url = url.dropLast(ext.count + 1)
         }
         return URL(platformValue: java.net.URL(url))
+    }
+
+    public mutating func deletePathExtension() {
+        self = deletingPathExtension()
     }
 
     public func resolvingSymlinksInPath() -> URL {
@@ -296,13 +405,93 @@ public struct URL : Hashable, CustomStringConvertible, Codable {
     }
 
     @available(*, unavailable)
+    public func resourceValues(forKeys: Set<URLResourceKey>) -> URLResourceValues {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func setResourceValues(_ values: URLResourceValues) {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func removeCachedResourceValue(forKey: URLResourceKey) {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func setTemporaryResourceValue(_ value: Any, forKey: URLResourceKey) {
+        fatalError()
+    }
+
+    @available(*, unavailable)
     public mutating func removeAllCachedResourceValues() {
         fatalError("TODO: implement removeAllCachedResourceValues")
     }
+
+    @available(*, unavailable)
+    public func bookmarkData(options: Any, includingResourceValuesForKeys: Set<URLResourceKey>?, relativeTo: URL?) -> Data {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func bookmarkData(withContentsOf: URL) -> Data {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func writeBookmarkData(_ data: Data, to: URL) {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var resourceBytes: Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var lines: Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func checkPromisedItemIsReachable() -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func promisedItemResourceValues(forKeys: Set<URLResourceKey>) -> URLResourceValues {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func startAccessingSecurityScopedResource() -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func stopAccessingSecurityScopedResource() {
+        fatalError()
+    }
+
+    public override func kotlin(nocopy: Bool = false) -> java.net.URL {
+        return platformValue
+    }
 }
 
+public struct URLResource: Hashable {
+    public let bundle: Bundle
+    public let name: String
+    public let subdirectory: String?
+    public let locale: Locale
 
-// MARK: Optional Constructors
+    public init(name: String, subdirectory: String? = nil, locale: Locale = Locale.current, bundle: Bundle = Bundle.main) {
+        self.bundle = bundle
+        self.name = name
+        self.subdirectory = subdirectory
+        self.locale = locale
+    }
+}
 
 public struct URLResourceKey : Hashable, Equatable, RawRepresentable {
     public let rawValue: String
@@ -318,37 +507,6 @@ public struct URLResourceKey : Hashable, Equatable, RawRepresentable {
 
 public struct URLResourceValues {
     public var allValues: [URLResourceKey : Any]
-}
-
-public func URL(string: String, relativeTo baseURL: URL? = nil) -> URL? {
-    do {
-        let url = java.net.URL(relativeTo?.platformValue, string) // throws on malformed
-        // use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
-        let isDirectory = url.`protocol` == "file" && string.hasSuffix("/")
-        return URL(url, isDirectory: isDirectory, baseURL: baseURL)
-    } catch {
-        // e.g., malformed URL
-        return nil
-    }
-}
-
-//public func URL(fileURLWithPath path: String, relativeTo: URL? = nil, isDirectory: Bool? = nil) -> URL {
-//    URL(fileURLWithPath: path, relativeTo: relativeTo, isDirectory: isDirectory)
-//}
-
-//public func URL(fileURLWithFileSystemRepresentation path: String, relativeTo: URL?, isDirectory: Bool) -> URL {
-//    // SKIP INSERT: val nil = null
-//    if (relativeTo != nil) {
-//        return URL(platformValue: PlatformURL(relativeTo?.platformValue, path))
-//    } else {
-//        return URL(platformValue: PlatformURL("file://" + path)) // TODO: isDirectory handling?
-//    }
-//}
-
-extension URL: KotlinConverting<java.net.URL> {
-    public override func kotlin(nocopy: Bool = false) -> java.net.URL {
-        return platformValue
-    }
 }
 
 #endif

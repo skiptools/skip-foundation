@@ -23,6 +23,119 @@ public struct DispatchQueue : Scheduler {
 
     private init() {
     }
+
+    @available(*, unavailable)
+    init(label: String, qos: Any, attributes: Any, autoreleaseFrequency: Any, target: DispatchQueue?) {
+    }
+
+    @available(*, unavailable)
+    public static func global(qos: Any) -> DispatchQueue {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func async(execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func asyncAfter(deadline: Any, execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func asyncAfter(deadline: Any, qos: Any, flags: Any, execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func asyncAfter(wallDeadline: Any, execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func asyncAfter(wallDeadline: Any, qos: Any, flags: Any, execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func sync(execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func sync(execute: () -> Any) -> Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func sync(flags: Any, execute: () -> Any) -> Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func asyncAndWait(execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public static func concurrentPerform(iterations: Int, execute: (Int) -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func async(group: Any, execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func async(group: Any?, qos: Any, flags: Any, execute: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public var label: String {
+        get {
+            fatalError()
+        }
+        set {
+        }
+    }
+
+    @available(*, unavailable)
+    public var qos: Any? {
+        get {
+            fatalError()
+        }
+        set {
+        }
+    }
+
+    @available(*, unavailable)
+    public func setTarget(queue: Any?) {
+    }
+
+    @available(*, unavailable)
+    public func setSpecific(key: Any, value: Any?) {
+    }
+
+    @available(*, unavailable)
+    public func getSpecific(key: Any) -> Any? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func getSpecific(key: Any) -> Any? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func dispatchMain() -> Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func schedule(options: Any?, _ operation: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func schedule(after: Any, tolerance: Any, options: Any?, _ operation: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func schedule(after: Any, interval: Any, tolerance: Any, options: Any?, _ operation: () -> Void) -> Any {
+        fatalError()
+    }
 }
 
 #endif

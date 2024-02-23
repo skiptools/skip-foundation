@@ -36,7 +36,7 @@ public class ProcessInfo {
 
     private var launchContext: android.content.Context?
 
-    open var globallyUniqueString: String {
+    public var globallyUniqueString: String {
         return UUID().description
     }
 
@@ -121,11 +121,11 @@ public class ProcessInfo {
         return dict
     }
 
-    open var environment: [String : String] {
+    public var environment: [String : String] {
         return systemProperties
     }
 
-    open var processIdentifier: Int32 {
+    public var processIdentifier: Int32 {
         do {
             return android.os.Process.myPid()
         } catch {
@@ -137,26 +137,163 @@ public class ProcessInfo {
         }
     }
 
-    open var arguments: [String] {
+    @available(*, unavailable)
+    public var processName: String {
+        fatalError()
+    }
+
+    public var arguments: [String] {
         return [] // no arguments on Android
     }
 
-    open var hostName: String {
+    public var hostName: String {
         // Android 30+: NetworkOnMainThreadException
         return java.net.InetAddress.getLocalHost().hostName
     }
 
-    @available(*, unavailable)
-    open var processName: String {
-        fatalError("TODO: ProcessInfo")
-    }
-
-    open var processorCount: Int {
+    public var processorCount: Int {
         return Runtime.getRuntime().availableProcessors()
     }
 
-    open var operatingSystemVersionString: String {
+    public var operatingSystemVersionString: String {
         return android.os.Build.VERSION.RELEASE
+    }
+
+    public var isMacCatalystApp: Bool {
+        return false
+    }
+
+    public var isiOSAppOnMac: Bool {
+        return false
+    }
+
+    @available(*, unavailable)
+    public var userName: String {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var fullUserName: String {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func disableSuddenTermination() {
+    }
+
+    @available(*, unavailable)
+    public func enableSuddenTermination() {
+    }
+
+    @available(*, unavailable)
+    public func disableAutomaticTermination(_ value: String) {
+    }
+
+    @available(*, unavailable)
+    public func enableAutomaticTermination(_ value: String) {
+    }
+
+    @available(*, unavailable)
+    public var automaticTerminationSupportEnabled: Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var operatingSystemVersion: OperatingSystemVersion {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func isOperatingSystemAtLeast(_ value: OperatingSystemVersion) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func operatingSystem() -> Int {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func operatingSystemName() -> String {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var activeProcessorCount: Int {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var physicalMemory: UInt64 {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var systemUptime: TimeInterval {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func beginActivity(options: ProcessInfo.ActivityOptions, reason: String) -> Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func endActivity(_ value: Any) {
+    }
+
+    @available(*, unavailable)
+    public func performActivity(options: ProcessInfo.ActivityOptions, reason: String, using: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func performExpiringActivity(withReason: String, using: (Bool) -> Void) {
+    }
+
+    @available(*, unavailable)
+    public var thermalState: ProcessInfo.ThermalState {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var isLowPowerModeEnabled: Bool {
+        fatalError()
+    }
+
+    public struct ActivityOptions: OptionSet, RawRepresentable {
+        public let rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        public static var idleDisplaySleepDisabled = ProcessInfo.ActivityOptions(rawValue: 1)
+        public static var idleSystemSleepDisabled = ProcessInfo.ActivityOptions(rawValue: 2)
+        public static var suddenTerminationDisabled = ProcessInfo.ActivityOptions(rawValue: 4)
+        public static var automaticTerminationDisabled = ProcessInfo.ActivityOptions(rawValue: 8)
+        public static var userInitiated = ProcessInfo.ActivityOptions(rawValue: 16)
+        public static var userInteractive = ProcessInfo.ActivityOptions(rawValue: 32)
+        public static var userInitiatedAllowingIdleSystemSleep = ProcessInfo.ActivityOptions(rawValue: 64)
+        public static var background = ProcessInfo.ActivityOptions(rawValue: 128)
+        public static var latencyCritical = ProcessInfo.ActivityOptions(rawValue: 256)
+        public static var animationTrackingEnabled = ProcessInfo.ActivityOptions(rawValue: 512)
+        public static var trackingEnabled = ProcessInfo.ActivityOptions(rawValue: 1024)
+    }
+
+    public struct OperatingSystemVersion {
+        public var majorVersion: Int
+        public var minorVersion: Int
+        public var patchVersion: Int
+
+        public init(majorVersion: Int = 0, minorVersion: Int = 0, patchVersion: Int = 0) {
+            self.majorVersion = majorVersion
+            self.minorVersion = minorVersion
+            self.patchVersion = patchVersion
+        }
+    }
+
+    public enum ThermalState: Int {
+        case nominal, fair, serious, critical
     }
 }
 

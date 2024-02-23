@@ -162,7 +162,15 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>CocoaError</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>ComparisonResult</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>CustomNSError</code></td>
     </tr>
    <tr>
       <td>🟡</td>
@@ -246,6 +254,17 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>DateInterval</code></td>
+    </tr>
+   <tr>
+      <td>🔴</td>
+      <td>
+        <details>
+          <summary><code>Decimal</code></summary>
+          <ul>
+<li>Aliased to <code>java.math.BigDecimal</code></li>
+          </ul>
+        </details> 
+      </td>
     </tr>
 <tr>
   <td>?</td>
@@ -357,62 +376,205 @@ Support levels:
         </details> 
       </td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>JSONDecoder // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>JSONEncoder // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>JSONSerialization // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>Locale // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>LocalizedStringResource // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>Logger // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>NotificationCenter // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>NSError // Not yet documented</code></td>
-</tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>JSONDecoder</code></summary>
+          <ul>
+<li>Snake case key decoding is not supported</li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>JSONEncoder</code></summary>
+          <ul>
+<li>Snake case key encoding is not supported</li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>JSONSerialization</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Locale</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>LocalizedError</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>LocalizedStringResource</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Logger</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Notification</code></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>NotificationCenter</code></summary>
+          <ul>
+<li><code>static let default: NotificationCenter</code></li>
+<li><code>func addObserver(forName name: Notification.Name?, object: Any?, queue: OperationQueue?, using block: (Notification) -> Void) -> Any</code></li>
+<li><code>func removeObserver(_ observer: Any)</code></li>
+<li><code>func post(_ notification: Notification)</code></li>
+<li><code>func post(name: Notification.Name, object: Any?, userInfo: [AnyHashable: Any]? = nil)</code></li>
+<li><code>func notifications(named: Notification.Name, object: AnyObject? = nil) -> Notifications</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>NSError</code></td>
+    </tr>
     <tr>
       <td>✅</td>
       <td><code>NSLocalizedString</code></td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>Number // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>NumberFormatter // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>OperationQueue // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>ProcessInfo // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>PropertyListSerialization // Not yet documented</code></td>
-</tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>Number</code></summary>
+          <ul>
+<li><code>init(value: Int8)</code></li>
+<li><code>init(value: Int16)</code></li>
+<li><code>init(value: Int32)</code></li>
+<li><code>init(value: Int64)</code></li>
+<li><code>init(value: UInt8)</code></li>
+<li><code>init(value: UInt16)</code></li>
+<li><code>init(value: UInt32)</code></li>
+<li><code>init(value: UInt64)</code></li>
+<li><code>init(value: Float)</code></li>
+<li><code>init(value: Double)</code></li>
+<li><code>init(_ value: Int8)</code></li>
+<li><code>init(_ value: Int16)</code></li>
+<li><code>init(_ value: Int32)</code></li>
+<li><code>init(_ value: Int64)</code></li>
+<li><code>init(_ value: UInt8)</code></li>
+<li><code>init(_ value: UInt16)</code></li>
+<li><code>init(_ value: UInt32)</code></li>
+<li><code>init(_ value: UInt64)</code></li>
+<li><code>init(_ value: Float)</code></li>
+<li><code>init(_ value: Double)</code></li>
+<li><code>var doubleValue: Double</code></li>
+<li><code>var intValue: Int</code></li>
+<li><code>var longValue: Int64</code></li>
+<li><code>var int64Value: Int64</code></li>
+<li><code>var int32Value: Int32</code></li>
+<li><code>var int16Value: Int16</code></li>
+<li><code>var int8Value: Int8</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>NumberFormatter</code></summary>
+          <ul>
+<li>The following styles are supported: <code>.none, .decimal, .currency, .percent</code></li>
+<li><code>var numberStyle: NumberFormatter.Style</code></li>
+<li><code>var locale: Locale?</code></li>
+<li><code>var format: String</code></li>
+<li><code>var groupingSize: Int</code></li>
+<li><code>var generatesDecimalNumbers: Bool</code></li>
+<li><code>var alwaysShowsDecimalSeparator: Bool</code></li>
+<li><code>var usesGroupingSeparator: Bool</code></li>
+<li><code>var multiplier: NSNumber?</code></li>
+<li><code>var groupingSeparator: String?</code></li>
+<li><code>var percentSymbol: String?</code></li>
+<li><code>var currencySymbol: String?</code></li>
+<li><code>var zeroSymbol: String?</code></li>
+<li><code>var minusSign: String?</code></li>
+<li><code>var exponentSymbol: String?</code></li>
+<li><code>var negativeInfinitySymbol: String</code></li>
+<li><code>var positiveInfinitySymbol: String</code></li>
+<li><code>var internationalCurrencySymbol: String?</code></li>
+<li><code>var decimalSeparator: String?</code></li>
+<li><code>var currencyCode: String?</code></li>
+<li><code>var currencyDecimalSeparator: String?</code></li>
+<li><code>var notANumberSymbol: String?</code></li>
+<li><code>var positiveSuffix: String?</code></li>
+<li><code>var negativeSuffix: String?</code></li>
+<li><code>var positivePrefix: String?</code></li>
+<li><code>var negativePrefix: String?</code></li>
+<li><code>var maximumFractionDigits: Int</code></li>
+<li><code>var minimumFractionDigits: Int</code></li>
+<li><code>var maximumIntegerDigits: Int</code></li>
+<li><code>var minimumIntegerDigits: Int</code></li>
+<li><code>func string(from number: NSNumber) -> String?</code></li>
+<li><code>func string(from number: Int) -> String?</code></li>
+<li><code>func string(for object: Any?) -> String?</code></li>
+<li><code>func number(from string: String) -> NSNumber?</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>🔴</td>
+      <td>
+        <details>
+          <summary><code>OperationQueue</code></summary>
+          <ul>
+<li><code>static let main: OperationQueue </code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>POSIXError</code></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>ProcessInfo</code></summary>
+          <ul>
+<li><code>static let processInfo: ProcessInfo</code></li>
+<li><code>var globallyUniqueString: String</code></li>
+<li><code>var systemProperties: [String: String]</code></li>
+<li><code>var environment: [String : String]</code></li>
+<li><code>var processIdentifier: Int32</code></li>
+<li><code>var arguments: [String]</code></li>
+<li><code>var hostName: String</code></li>
+<li><code>var processorCount: Int</code></li>
+<li><code>var operatingSystemVersionString: String</code></li>
+<li><code>var isMacCatalystApp: Bool</code></li>
+<li><code>var isiOSAppOnMac: Bool</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>🔴</td>
+      <td>
+        <details>
+          <summary><code>PropertyListSerialization</code></summary>
+          <ul>
+<li><code>static func propertyList(from: Data, options: PropertyListSerialization.ReadOptions = [], format: Any?) throws -> [String: String]?</code></li>
+<li>Ignores any given <code>options</code> and <code>format</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
     <tr>
       <td>🔴</td>
       <td>
@@ -424,34 +586,132 @@ Support levels:
         </details> 
       </td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>Scanner // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>String // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>StringEncoding // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>StringLocalizationValue // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>TimeZone // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>Unicode // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>URL // Not yet documented</code></td>
-</tr>
+    <tr>
+      <td>✅</td>
+      <td><code>RecoverableError</code></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>String</code></summary>
+          <ul>
+<li>Core <code>String</code> API is defined in <code>SkipLib</code>. These extensions are defined in <code>SkipFoundation</code></li>
+<li><code>init(data: Data, encoding: StringEncoding)</code></li>
+<li><code>init(bytes: [UInt8], encoding: StringEncoding)</code></li>
+<li><code>init(contentsOf: URL)</code></li>
+<li><code>var capitalized: String</code></li>
+<li><code>var deletingLastPathComponent: String</code></li>
+<li><code>func replacingOccurrences(of search: String, with replacement: String) -> String</code></li>
+<li><code>func components(separatedBy separator: String) -> [String]</code></li>
+<li><code>func trimmingCharacters(in set: CharacterSet) -> String</code></li>
+<li><code>var utf8Data: Data</code></li>
+<li><code>var utf8: [UInt8]</code></li>
+<li><code>var utf16: [UInt8]</code></li>
+<li><code>var utf32: [UInt8]</code></li>
+<li><code>var unicodeScalars: [UInt8]</code></li>
+<li><code>func data(using: StringEncoding, allowLossyConversion: Bool = true) -> Data?</code></li>
+<li><code>func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: StringEncoding) throws</code></li>
+<li><code>func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: StringEncoding) throws</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>StringLocalizationValue</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>func strlen(_ string: String) -> Int</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>func strncmp(_ str1: String, _ str2: String) -> Int</code></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>TimeZone</code></summary>
+          <ul>
+<li><code>static var current: TimeZone</code></li>
+<li><code>static var autoupdatingCurrent: TimeZone</code></li>
+<li><code>static var `default`: TimeZone</code></li>
+<li><code>static var system: TimeZone</code></li>
+<li><code>static var local: TimeZone</code></li>
+<li><code>static var gmt: TimeZone</code></li>
+<li><code>init?(identifier: String)</code></li>
+<li><code>init?(abbreviation: String)</code></li>
+<li><code>init?(secondsFromGMT seconds: Int)</code></li>
+<li><code>var identifier: String</code></li>
+<li><code>func abbreviation(for date: Date = Date()) -> String?</code></li>
+<li><code>func secondsFromGMT(for date: Date = Date()) -> Int</code></li>
+<li><code>func isDaylightSavingTime(for date: Date = Date()) -> Bool</code></li>
+<li><code>func daylightSavingTimeOffset(for date: Date = Date()) -> TimeInterval</code></li>
+<li><code>var nextDaylightSavingTimeTransition: Date?</code></li>
+<li><code>func nextDaylightSavingTimeTransition(after date: Date) -> Date?</code></li>
+<li><code>static var knownTimeZoneIdentifiers: [String]</code></li>
+<li><code>static var knownTimeZoneNames: [String]</code></li>
+<li><code>static var abbreviationDictionary: [String : String]</code></li>
+<li><code>func localizedName(for style: NameStyle, locale: Locale?) -> String?</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UnknownNSError</code></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>URL</code></summary>
+          <ul>
+<li><code>init(_ url: URL)</code></li>
+<li><code>init?(string: String, relativeTo baseURL: URL? = nil)</code></li>
+<li><code>init(fileURLWithPath path: String, isDirectory: Bool? = nil, relativeTo base: URL? = nil)</code></li>
+<li><code>static func currentDirectory() -> URL</code></li>
+<li><code>static var homeDirectory: URL</code></li>
+<li><code>static var temporaryDirectory: URL</code></li>
+<li><code>static var cachesDirectory: URL</code></li>
+<li><code>static var documentsDirectory: URL</code></li>
+<li><code>let baseURL: URL?</code></li>
+<li><code>var scheme: String?</code></li>
+<li><code>var host: String?</code></li>
+<li><code>var hasDirectoryPath: Bool</code></li>
+<li><code>var path: String</code></li>
+<li><code>var standardized: URL</code></li>
+<li><code>mutating func standardize()</code></li>
+<li><code>var absoluteString: String</code></li>
+<li><code>var absoluteURL: URL</code></li>
+<li><code>var pathComponents: [String]</code></li>
+<li><code>var lastPathComponent: String</code></li>
+<li><code>var pathExtension: String</code></li>
+<li><code>var isFileURL: Bool</code></li>
+<li><code>mutating func standardize()</code></li>
+<li><code>func appendingPathComponent(_ pathComponent: String) -> URL</code></li>
+<li><code>mutating func appendPathComponent(_ pathComponent: String)</code></li>
+<li><code>func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL</code></li>
+<li><code>mutating func appendPathComponent(_ pathComponent: String, isDirectory: Bool)</code></li>
+<li><code>func appendingPathExtension(_ pathExtension: String) -> URL</code></li>
+<li><code>mutating func appendPathExtension(_ pathExtension: String)</code></li>
+<li><code>func deletingLastPathComponent() -> URL</code></li>
+<li><code>mutating func deleteLastPathComponent() -> URL</code></li>
+<li><code>func deletingPathExtension() -> URL</code></li>
+<li><code>mutating func deletePathExtension()</code></li>
+<li><code>func resolvingSymlinksInPath() -> URL</code></li>
+<li><code>mutating func resolveSymlinksInPath() -> URL</code></li>
+<li><code>func checkResourceIsReachable() throws -> Bool</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>URLError</code></td>
+    </tr>
 <tr>
   <td>?</td>
   <td><code>URLRequest // Not yet documented</code></td>

@@ -6,7 +6,7 @@
 
 #if SKIP
 
-public class Scanner : CustomStringConvertible {
+public class Scanner: KotlinConverting<java.util.Scanner> {
     let platformValue: java.util.Scanner
 
     public init(platformValue: java.util.Scanner) {
@@ -21,48 +21,162 @@ public class Scanner : CustomStringConvertible {
         return platformValue.description
     }
 
+    @available(*, unavailable)
+    public var string: String {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var charactersToBeSkipped: CharacterSet? {
+        get {
+            fatalError()
+        }
+        set {
+        }
+    }
+
+    @available(*, unavailable)
+    public var caseSensitive: Bool {
+        get {
+            fatalError()
+        }
+        set {
+        }
+    }
+
+    @available(*, unavailable)
+    public var locale: Any? {
+        get {
+            fatalError()
+        }
+        set {
+        }
+    }
+
+    @available(*, unavailable)
+    public var currentIndex: Int {
+        get {
+            fatalError()
+        }
+        set {
+        }
+    }
+
+    @available(*, unavailable)
+    public func scanInt(representation: Scanner.NumberRepresentation = .decimal) -> Int? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanInt32(representation: Scanner.NumberRepresentation = .decimal) -> Int32? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanInt64(representation: Scanner.NumberRepresentation = .decimal) -> Int64? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanUInt64(representation: Scanner.NumberRepresentation = .decimal) -> UInt64? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanFloat(representation: Scanner.NumberRepresentation = .decimal) -> Float? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanDouble(representation: Scanner.NumberRepresentation = .decimal) -> Double? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanDecimal() -> Decimal? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanString(_ searchString: String) -> String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanCharacters(from set: CharacterSet) -> String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanUpToString(_ substring: String) -> String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanUpToCharacters(from set: CharacterSet) -> String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanCharacter() -> Character? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanInt(_ result: Any?) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanInt64(_ result: Any?) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanUnsignedLongLong(_ result: Any?) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanHexInt64(_ result: Any?) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanHexFloat(_ result: Any?) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanHexDouble(_ result: Any?) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanString(_ string: String, into result: Any?) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func scanCharacters(from set: CharacterSet, into result: Any?) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var isAtEnd: Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func localizedScanner(with string: String) -> Any {
+        fatalError()
+    }
+
     public enum NumberRepresentation: Hashable {
         case decimal
         case hexadecimal
     }
 
-//    open var string: String { get }
-//    open var scanLocation: Int
-//    open var charactersToBeSkipped: CharacterSet?
-//    open var caseSensitive: Bool
-//    open var locale: Any?
-//    public var currentIndex: String.Index
-//    public func scanInt(representation: Scanner.NumberRepresentation = .decimal) -> Int?
-//    public func scanInt32(representation: Scanner.NumberRepresentation = .decimal) -> Int32?
-//    public func scanInt64(representation: Scanner.NumberRepresentation = .decimal) -> Int64?
-//    public func scanUInt64(representation: Scanner.NumberRepresentation = .decimal) -> UInt64?
-//    public func scanFloat(representation: Scanner.NumberRepresentation = .decimal) -> Float?
-//    public func scanDouble(representation: Scanner.NumberRepresentation = .decimal) -> Double?
-//    public func scanDecimal() -> Decimal?
-//    public func scanString(_ searchString: String) -> String?
-//    public func scanCharacters(from set: CharacterSet) -> String?
-//    public func scanUpToString(_ substring: String) -> String?
-//    public func scanUpToCharacters(from set: CharacterSet) -> String?
-//    public func scanCharacter() -> Character?
-//    open func scanInt32(_ result: UnsafeMutablePointer<Int32>?) -> Bool
-//    open func scanInt(_ result: UnsafeMutablePointer<Int>?) -> Bool
-//    open func scanInt64(_ result: UnsafeMutablePointer<Int64>?) -> Bool
-//    open func scanUnsignedLongLong(_ result: UnsafeMutablePointer<UInt64>?) -> Bool
-//    open func scanFloat(_ result: UnsafeMutablePointer<Float>?) -> Bool
-//    open func scanDouble(_ result: UnsafeMutablePointer<Double>?) -> Bool
-//    open func scanHexInt32(_ result: UnsafeMutablePointer<UInt32>?) -> Bool // Optionally prefixed with "0x" or "0X"
-//    open func scanHexInt64(_ result: UnsafeMutablePointer<UInt64>?) -> Bool // Optionally prefixed with "0x" or "0X"
-//    open func scanHexFloat(_ result: UnsafeMutablePointer<Float>?) -> Bool // Corresponding to %a or %A formatting. Requires "0x" or "0X" prefix.
-//    open func scanHexDouble(_ result: UnsafeMutablePointer<Double>?) -> Bool // Corresponding to %a or %A formatting. Requires "0x" or "0X" prefix.
-//    open func scanString(_ string: String, into result: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool
-//    open func scanCharacters(from set: CharacterSet, into result: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool
-//    open func scanUpTo(_ string: String, into result: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool
-//    open func scanUpToCharacters(from set: CharacterSet, into result: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool
-//    open var isAtEnd: Bool { get }
-//    open class func localizedScanner(with string: String) -> Any
-}
-
-extension Scanner: KotlinConverting<java.util.Scanner> {
     public override func kotlin(nocopy: Bool = false) -> java.util.Scanner {
         return platformValue
     }

@@ -15,6 +15,7 @@ public func String(localized keyAndValue: String.LocalizationValue, table: Strin
     let replaced = String(format: localized, keyAndValue.stringInterpolation.values)
     return replaced
 }
+
 public func String(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil) -> String {
     return bundle?.localizedString(forKey: key, value: nil, table: table) ?? key
 }

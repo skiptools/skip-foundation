@@ -8,7 +8,7 @@
 
 public typealias NSTimeZone = TimeZone
 
-public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable {
+public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, KotlinConverting<java.util.TimeZone> {
     internal var platformValue: java.util.TimeZone
 
     public static var current: TimeZone {
@@ -133,6 +133,7 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable {
 
     public static var abbreviationDictionary: [String : String] = [:]
 
+    @available(*, unavailable)
     public static var timeZoneDataVersion: String {
         fatalError("TODO: TimeZone")
     }
@@ -162,9 +163,7 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable {
         case generic = 4
         case shortGeneric = 5
     }
-}
 
-extension TimeZone: KotlinConverting<java.util.TimeZone> {
     public override func kotlin(nocopy: Bool = false) -> java.util.TimeZone {
         return nocopy ? platformValue : platformValue.clone() as java.util.TimeZone
     }

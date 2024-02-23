@@ -22,18 +22,12 @@
 
 public typealias NSErrorDomain = String
 
-/// Predefined domain for errors from most Foundation APIs.
 public let NSCocoaErrorDomain: String = "NSCocoaErrorDomain"
-
-// Other predefined domains; value of "code" will correspond to preexisting values in these domains.
 public let NSPOSIXErrorDomain: String = "NSPOSIXErrorDomain"
 public let NSOSStatusErrorDomain: String = "NSOSStatusErrorDomain"
 public let NSMachErrorDomain: String = "NSMachErrorDomain"
 
-// Key in userInfo. A recommended standard way to embed NSErrors from underlying calls. The value of this key should be an NSError.
 public let NSUnderlyingErrorKey: String = "NSUnderlyingError"
-
-// Keys in userInfo, for subsystems wishing to provide their error messages up-front. Note that NSError will also consult the userInfoValueProvider for the domain when these values are not present in the userInfo dictionary.
 public let NSLocalizedDescriptionKey: String = "NSLocalizedDescription"
 public let NSLocalizedFailureReasonErrorKey: String = "NSLocalizedFailureReason"
 public let NSLocalizedRecoverySuggestionErrorKey: String = "NSLocalizedRecoverySuggestion"
@@ -41,8 +35,6 @@ public let NSLocalizedRecoveryOptionsErrorKey: String = "NSLocalizedRecoveryOpti
 public let NSRecoveryAttempterErrorKey: String = "NSRecoveryAttempter"
 public let NSHelpAnchorErrorKey: String = "NSHelpAnchor"
 public let NSDebugDescriptionErrorKey = "NSDebugDescription"
-
-// Other standard keys in userInfo, for various error codes
 public let NSStringEncodingErrorKey: String = "NSStringEncodingErrorKey"
 public let NSURLErrorKey: String = "NSURL"
 public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
@@ -51,12 +43,9 @@ open class NSError : Error, CustomStringConvertible {
     // ErrorType forbids this being internal
     open var _domain: String
     open var _code: Int
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation.
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
+
     private var _userInfo: [String : Any]?
 
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation.
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     public init(domain: String, code: Int, userInfo dict: [String : Any]? = nil) {
         _domain = domain
         _code = code
@@ -71,8 +60,6 @@ open class NSError : Error, CustomStringConvertible {
         return _code
     }
 
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation.
-    /// - Note: This API differs from Darwin because it uses [String : Any] as a type instead of [String : AnyObject]. This allows the use of Swift value types.
     open var userInfo: [String : Any] {
         if let info = _userInfo {
             return info
@@ -141,45 +128,10 @@ open class NSError : Error, CustomStringConvertible {
     }
 }
 
-//extension CFError : _NSBridgeable {
-//    typealias NSType = NSError
-//    internal var _nsObject: NSType {
-//        let userInfo = CFErrorCopyUserInfo(self)._swiftObject
-//        var newUserInfo: [String: Any] = [:]
-//        for (key, value) in userInfo {
-//            if let key = key as? String {
-//                newUserInfo[key] = value
-//            }
-//        }
-//
-//        return NSError(domain: CFErrorGetDomain(self)._swiftObject, code: CFErrorGetCode(self), userInfo: newUserInfo)
-//    }
-//}
-//
-//public struct _CFErrorSPIForFoundationXMLUseOnly {
-//    let error: AnyObject
-//    public init(unsafelyAssumingIsCFError error: AnyObject) {
-//        self.error = error
-//    }
-//
-//    public var _nsObject: NSError {
-//        return unsafeBitCast(error, to: CFError.self)._nsObject
-//    }
-//}
-
-/// Describes an error that provides localized messages describing why
-/// an error occurred and provides more information about the error.
 public protocol LocalizedError : Error {
-    /// A localized message describing what error occurred.
     var errorDescription: String? { get }
-
-    /// A localized message describing the reason for the failure.
     var failureReason: String? { get }
-
-    /// A localized message describing how one might recover from the failure.
     var recoverySuggestion: String? { get }
-
-    /// A localized message providing "help" text if the user requests help.
     var helpAnchor: String? { get }
 }
 
@@ -190,9 +142,6 @@ public extension LocalizedError {
     var helpAnchor: String? { return nil }
 }
 
-/// Class that implements the informal protocol.
-/// NSErrorRecoveryAttempting, which is used by NSError when it
-/// attempts recovery from an error.
 class _NSErrorRecoveryAttempter {
     func attemptRecovery(fromError error: Error,
         optionIndex recoveryOptionIndex: Int) -> Bool {
@@ -201,69 +150,35 @@ class _NSErrorRecoveryAttempter {
   }
 }
 
-/// Describes an error that may be recoverable by presenting several
-/// potential recovery options to the user.
 public protocol RecoverableError : Error {
-    /// Provides a set of possible recovery options to present to the user.
     var recoveryOptions: [String] { get }
-
-    /// Attempt to recover from this error when the user selected the
-    /// option at the given index. This routine must call handler and
-    /// indicate whether recovery was successful (or not).
-    ///
-    /// This entry point is used for recovery of errors handled at a
-    /// "document" granularity, that do not affect the entire
-    /// application.
     func attemptRecovery(optionIndex recoveryOptionIndex: Int, resultHandler handler: @escaping (_ recovered: Bool) -> Void)
-
-    /// Attempt to recover from this error when the user selected the
-    /// option at the given index. Returns true to indicate
-    /// successful recovery, and false otherwise.
-    ///
-    /// This entry point is used for recovery of errors handled at
-    /// the "application" granularity, where nothing else in the
-    /// application can proceed until the attempted error recovery
-    /// completes.
     func attemptRecovery(optionIndex recoveryOptionIndex: Int) -> Bool
 }
 
 public extension RecoverableError {
-    /// Default implementation that uses the application-model recovery
-    /// mechanism (``attemptRecovery(optionIndex:)``) to implement
-    /// document-modal recovery.
     func attemptRecovery(optionIndex recoveryOptionIndex: Int, resultHandler handler: @escaping (_ recovered: Bool) -> Void) {
         handler(attemptRecovery(optionIndex: recoveryOptionIndex))
     }
 }
 
-/// Describes an error type that specifically provides a domain, code,
-/// and user-info dictionary.
 public protocol CustomNSError : Error {
-    /// The domain of the error.
     //static var errorDomain: String { get } // FIXME: Kotlin does not support static members in protocols
 
-    /// The error code within the given domain.
     var errorCode: Int { get }
-
-    /// The user-info dictionary.
     var errorUserInfo: [String : Any] { get }
 }
 
 public extension CustomNSError {
-    /// The error code within the given domain.
     var errorCode: Int {
         return 0 // no equivalent for Swift._getDefaultErrorCode()
     }
 
-    /// The default user-info dictionary.
     var errorUserInfo: [String : Any] {
         return [:]
     }
 }
 
-
-
-/// Describes errors within the Cocoa error domain.
 public struct CocoaError {
     public let _nsError: NSError
 
@@ -276,10 +191,7 @@ public struct CocoaError {
 
     public static var _nsErrorDomain: String { return NSCocoaErrorDomain }
 
-    /// The error code itself.
     public struct Code : RawRepresentable, Hashable {
-        //public typealias _ErrorType = CocoaError
-
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -335,9 +247,7 @@ public struct CocoaError {
         public static var coderValueNotFound:                       CocoaError.Code { return CocoaError.Code(rawValue: 4865) }
         public static var coderInvalidValue:                        CocoaError.Code { return CocoaError.Code(rawValue: 4866) }
     }
-}
 
-internal extension CocoaError {
     static let errorMessages = [
         Code(rawValue: 4): "The file doesn’t exist.",
         Code(rawValue: 255): "The file couldn’t be locked.",
@@ -372,30 +282,23 @@ internal extension CocoaError {
         Code(rawValue: 4865): "The data is missing.",
         Code(rawValue: 4866): "The data isn’t in the correct format."
     ]
-}
 
-public extension CocoaError {
     private var _nsUserInfo: [String: Any] {
         return _nsError.userInfo
     }
 
-    /// The file path associated with the error, if any.
-    var filePath: String? {
+    public var filePath: String? {
         return _nsUserInfo[NSFilePathErrorKey] as? String
     }
 
-    /// The underlying error behind this error, if any.
-    var underlying: Error? {
+    public var underlying: Error? {
         return _nsUserInfo[NSUnderlyingErrorKey] as? Error
     }
 
-    /// The URL associated with this error, if any.
-    var url: URL? {
+    public var url: URL? {
         return _nsUserInfo[NSURLErrorKey] as? URL
     }
-}
 
-extension CocoaError {
     public static func error(_ code: CocoaError.Code, userInfo: [AnyHashable: Any]? = nil, url: URL? = nil) -> Error {
         // SKIP NOWARN
         var info: [String: Any] = userInfo as? [String: Any] ?? [:]
@@ -404,12 +307,7 @@ extension CocoaError {
         }
         return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: info)
     }
-}
 
-extension CocoaError.Code {
-}
-
-extension CocoaError {
     public static var fileNoSuchFile:                           CocoaError.Code { return .fileNoSuchFile }
     public static var fileLocking:                              CocoaError.Code { return .fileLocking }
     public static var fileReadUnknown:                          CocoaError.Code { return .fileReadUnknown }
@@ -458,9 +356,7 @@ extension CocoaError {
     public static var coderReadCorrupt:                         CocoaError.Code { return .coderReadCorrupt }
     public static var coderValueNotFound:                       CocoaError.Code { return .coderValueNotFound }
     public static var coderInvalidValue:                        CocoaError.Code { return .coderInvalidValue }
-}
 
-extension CocoaError {
     public var isCoderError: Bool {
         return code.rawValue >= 4864 && code.rawValue <= 4991
     }
@@ -498,7 +394,6 @@ extension CocoaError {
     }
 }
 
-/// Describes errors in the URL error domain.
 public struct URLError {
     public let _nsError: NSError
 
@@ -512,8 +407,6 @@ public struct URLError {
     public static var _nsErrorDomain: String { return NSURLErrorDomain }
 
     public enum Code : Int {
-        //public typealias _ErrorType = URLError
-
         case unknown = -1
         case cancelled = -999
         case badURL = -1000
@@ -563,25 +456,19 @@ public struct URLError {
         case backgroundSessionInUseByAnotherProcess = -996
         case backgroundSessionWasDisconnected = -997
     }
-}
 
-extension URLError {
     private var _nsUserInfo: [String: Any] {
         return _nsError.userInfo
     }
 
-    /// The URL which caused a load to fail.
     public var failingURL: URL? {
         return _nsUserInfo[NSURLErrorFailingURLErrorKey] as? URL
     }
 
-    /// The string for the URL which caused a load to fail.
     public var failureURLString: String? {
         return _nsUserInfo[NSURLErrorFailingURLStringErrorKey] as? String
     }
-}
 
-extension URLError {
     public static var unknown:                                  URLError.Code { return .unknown }
     public static var cancelled:                                URLError.Code { return .cancelled }
     public static var badURL:                                   URLError.Code { return .badURL }
@@ -632,9 +519,7 @@ extension URLError {
 
 public typealias POSIXErrorCode = POSIXError.Code
 
-/// Describes an error in the POSIX error domain.
 public struct POSIXError {
-
     public let _nsError: NSError
 
     public init(_nsError error: NSError) {
@@ -647,662 +532,228 @@ public struct POSIXError {
     //public typealias Code = POSIXErrorCode // FIXME: Kotlin does not support typealias declarations within functions and types. Consider moving this to a top level declaration
 
     public enum Code : Int32 {
-        //public typealias RawValue = Int32
-
-        /// Operation not permitted.
         case EPERM = 1
-
-        /// No such file or directory.
         case ENOENT = 2
-
-        /// No such process.
         case ESRCH = 3
-
-        /// Interrupted system call.
         case EINTR = 4
-
-        /// Input/output error.
         case EIO = 5
-
-        /// Device not configured.
         case ENXIO = 6
-
-        /// Argument list too long.
         case E2BIG = 7
-
-        /// Exec format error.
         case ENOEXEC = 8
-
-        /// Bad file descriptor.
         case EBADF = 9
-
-        /// No child processes.
         case ECHILD = 10
-
-        /// Resource deadlock avoided.
         case EDEADLK = 11
-
-        /// 11 was EAGAIN.
-        /// Cannot allocate memory.
         case ENOMEM = 12
-
-        /// Permission denied.
         case EACCES = 13
-
-        /// Bad address.
         case EFAULT = 14
-
-        /// Block device required.
         case ENOTBLK = 15
-
-        /// Device / Resource busy.
         case EBUSY = 16
-
-        /// File exists.
         case EEXIST = 17
-
-        /// Cross-device link.
         case EXDEV = 18
-
-        /// Operation not supported by device.
         case ENODEV = 19
-
-        /// Not a directory.
         case ENOTDIR = 20
-
-        /// Is a directory.
         case EISDIR = 21
-
-        /// Invalid argument.
         case EINVAL = 22
-
-        /// Too many open files in system.
         case ENFILE = 23
-
-        /// Too many open files.
         case EMFILE = 24
-
-        /// Inappropriate ioctl for device.
         case ENOTTY = 25
-
-        /// Text file busy.
         case ETXTBSY = 26
-
-        /// File too large.
         case EFBIG = 27
-
-        /// No space left on device.
         case ENOSPC = 28
-
-        /// Illegal seek.
         case ESPIPE = 29
-
-        /// Read-only file system.
         case EROFS = 30
-
-        /// Too many links.
         case EMLINK = 31
-
-        /// Broken pipe.
         case EPIPE = 32
-
-        /// math software.
-        /// Numerical argument out of domain.
         case EDOM = 33
-
-        /// Result too large.
         case ERANGE = 34
-
-        /// non-blocking and interrupt i/o.
-        /// Resource temporarily unavailable.
         case EAGAIN = 35
-
-        /// Operation would block.
         //public static var EWOULDBLOCK: POSIXErrorCode { get }
-
-        /// Operation now in progress.
         case EINPROGRESS = 36
-
-        /// Operation already in progress.
         case EALREADY = 37
-
-        /// ipc/network software -- argument errors.
-        /// Socket operation on non-socket.
         case ENOTSOCK = 38
-
-        /// Destination address required.
         case EDESTADDRREQ = 39
-
-        /// Message too long.
         case EMSGSIZE = 40
-
-        /// Protocol wrong type for socket.
         case EPROTOTYPE = 41
-
-        /// Protocol not available.
         case ENOPROTOOPT = 42
-
-        /// Protocol not supported.
         case EPROTONOSUPPORT = 43
-
-        /// Socket type not supported.
         case ESOCKTNOSUPPORT = 44
-
-        /// Operation not supported.
         case ENOTSUP = 45
-
-        /// Protocol family not supported.
         case EPFNOSUPPORT = 46
-
-        /// Address family not supported by protocol family.
         case EAFNOSUPPORT = 47
-
-        /// Address already in use.
         case EADDRINUSE = 48
-
-        /// Can't assign requested address.
         case EADDRNOTAVAIL = 49
-
-        /// ipc/network software -- operational errors
-        /// Network is down.
         case ENETDOWN = 50
-
-        /// Network is unreachable.
         case ENETUNREACH = 51
-
-        /// Network dropped connection on reset.
         case ENETRESET = 52
-
-        /// Software caused connection abort.
         case ECONNABORTED = 53
-
-        /// Connection reset by peer.
         case ECONNRESET = 54
-
-        /// No buffer space available.
         case ENOBUFS = 55
-
-        /// Socket is already connected.
         case EISCONN = 56
-
-        /// Socket is not connected.
         case ENOTCONN = 57
-
-        /// Can't send after socket shutdown.
         case ESHUTDOWN = 58
-
-        /// Too many references: can't splice.
         case ETOOMANYREFS = 59
-
-        /// Operation timed out.
         case ETIMEDOUT = 60
-
-        /// Connection refused.
         case ECONNREFUSED = 61
-
-        /// Too many levels of symbolic links.
         case ELOOP = 62
-
-        /// File name too long.
         case ENAMETOOLONG = 63
-
-        /// Host is down.
         case EHOSTDOWN = 64
-
-        /// No route to host.
         case EHOSTUNREACH = 65
-
-        /// Directory not empty.
         case ENOTEMPTY = 66
-
-        /// quotas & mush.
-        /// Too many processes.
         case EPROCLIM = 67
-
-        /// Too many users.
         case EUSERS = 68
-
-        /// Disc quota exceeded.
         case EDQUOT = 69
-
-        /// Network File System.
-        /// Stale NFS file handle.
         case ESTALE = 70
-
-        /// Too many levels of remote in path.
         case EREMOTE = 71
-
-        /// RPC struct is bad.
         case EBADRPC = 72
-
-        /// RPC version wrong.
         case ERPCMISMATCH = 73
-
-        /// RPC prog. not avail.
         case EPROGUNAVAIL = 74
-
-        /// Program version wrong.
         case EPROGMISMATCH = 75
-
-        /// Bad procedure for program.
         case EPROCUNAVAIL = 76
-
-        /// No locks available.
         case ENOLCK = 77
-
-        /// Function not implemented.
         case ENOSYS = 78
-
-        /// Inappropriate file type or format.
         case EFTYPE = 79
-
-        /// Authentication error.
         case EAUTH = 80
-
-        /// Need authenticator.
         case ENEEDAUTH = 81
-
-        /// Intelligent device errors.
-        /// Device power is off.
         case EPWROFF = 82
-
-        /// Device error, e.g. paper out.
         case EDEVERR = 83
-
-        /// Value too large to be stored in data type.
         case EOVERFLOW = 84
-
-        /// Bad executable.
         case EBADEXEC = 85
-
-        /// Bad CPU type in executable.
         case EBADARCH = 86
-
-        /// Shared library version mismatch.
         case ESHLIBVERS = 87
-
-        /// Malformed Macho file.
         case EBADMACHO = 88
-
-        /// Operation canceled.
         case ECANCELED = 89
-
-        /// Identifier removed.
         case EIDRM = 90
-
-        /// No message of desired type.
         case ENOMSG = 91
-
-        /// Illegal byte sequence.
         case EILSEQ = 92
-
-        /// Attribute not found.
         case ENOATTR = 93
-
-        /// Bad message.
         case EBADMSG = 94
-
-        /// Reserved.
         case EMULTIHOP = 95
-
-        /// No message available on STREAM.
         case ENODATA = 96
-
-        /// Reserved.
         case ENOLINK = 97
-
-        /// No STREAM resources.
         case ENOSR = 98
-
-        /// Not a STREAM.
         case ENOSTR = 99
-
-        /// Protocol error.
         case EPROTO = 100
-
-        /// STREAM ioctl timeout.
         case ETIME = 101
-
-        /// No such policy registered.
         case ENOPOLICY = 103
-
-        /// State not recoverable.
         case ENOTRECOVERABLE = 104
-
-        /// Previous owner died.
         case EOWNERDEAD = 105
-
-        /// Interface output queue is full.
         case EQFULL = 106
-
-        /// Must be equal largest errno.
         //public static var ELAST: POSIXErrorCode { get }
     }
-}
 
-//extension POSIXErrorCode: _ErrorCodeProtocol {
-//    public typealias _ErrorType = POSIXError
-//}
-
-extension POSIXError {
-    /// Operation not permitted.
     public static var EPERM: POSIXError.Code { return .EPERM }
-
-    /// No such file or directory.
     public static var ENOENT: POSIXError.Code { return .ENOENT }
-
-    /// No such process.
     public static var ESRCH: POSIXError.Code { return .ESRCH }
-
-    /// Interrupted system call.
     public static var EINTR: POSIXError.Code { return .EINTR }
-
-    /// Input/output error.
     public static var EIO: POSIXError.Code { return .EIO }
-
-    /// Device not configured.
     public static var ENXIO: POSIXError.Code { return .ENXIO }
-
-    /// Argument list too long.
     public static var E2BIG: POSIXError.Code { return .E2BIG }
-
-    /// Exec format error.
     public static var ENOEXEC: POSIXError.Code { return .ENOEXEC }
-
-    /// Bad file descriptor.
     public static var EBADF: POSIXError.Code { return .EBADF }
-
-    /// No child processes.
     public static var ECHILD: POSIXError.Code { return .ECHILD }
-
-    /// Resource deadlock avoided.
     public static var EDEADLK: POSIXError.Code { return .EDEADLK }
-
-    /// Cannot allocate memory.
     public static var ENOMEM: POSIXError.Code { return .ENOMEM }
-
-    /// Permission denied.
     public static var EACCES: POSIXError.Code { return .EACCES }
-
-    /// Bad address.
     public static var EFAULT: POSIXError.Code { return .EFAULT }
-
     #if !os(Windows)
-    /// Block device required.
     public static var ENOTBLK: POSIXError.Code { return .ENOTBLK }
     #endif
-
-    /// Device / Resource busy.
     public static var EBUSY: POSIXError.Code { return .EBUSY }
-
-    /// File exists.
     public static var EEXIST: POSIXError.Code { return .EEXIST }
-
-    /// Cross-device link.
     public static var EXDEV: POSIXError.Code { return .EXDEV }
-
-    /// Operation not supported by device.
     public static var ENODEV: POSIXError.Code { return .ENODEV }
-
-    /// Not a directory.
     public static var ENOTDIR: POSIXError.Code { return .ENOTDIR }
-
-    /// Is a directory.
     public static var EISDIR: POSIXError.Code { return .EISDIR }
-
-    /// Invalid argument.
     public static var EINVAL: POSIXError.Code { return .EINVAL }
-
-    /// Too many open files in system.
     public static var ENFILE: POSIXError.Code { return .ENFILE }
-
-    /// Too many open files.
     public static var EMFILE: POSIXError.Code { return .EMFILE }
-
-    /// Inappropriate ioctl for device.
     public static var ENOTTY: POSIXError.Code { return .ENOTTY }
-
     #if !os(Windows)
-    /// Text file busy.
     public static var ETXTBSY: POSIXError.Code { return .ETXTBSY }
     #endif
-
-    /// File too large.
     public static var EFBIG: POSIXError.Code { return .EFBIG }
-
-    /// No space left on device.
     public static var ENOSPC: POSIXError.Code { return .ENOSPC }
-
-    /// Illegal seek.
     public static var ESPIPE: POSIXError.Code { return .ESPIPE }
-
-    /// Read-only file system.
     public static var EROFS: POSIXError.Code { return .EROFS }
-
-    /// Too many links.
     public static var EMLINK: POSIXError.Code { return .EMLINK }
-
-    /// Broken pipe.
     public static var EPIPE: POSIXError.Code { return .EPIPE }
-
-    /// Math Software
-
-    /// Numerical argument out of domain.
     public static var EDOM: POSIXError.Code { return .EDOM }
-
-    /// Result too large.
     public static var ERANGE: POSIXError.Code { return .ERANGE }
-
-    /// Non-blocking and interrupt I/O.
-
-    /// Resource temporarily unavailable.
     public static var EAGAIN: POSIXError.Code { return .EAGAIN }
-
     #if !os(Windows)
-    /// Operation would block.
     //public static var EWOULDBLOCK: POSIXError.Code { return .EWOULDBLOCK }
-
-    /// Operation now in progress.
     public static var EINPROGRESS: POSIXError.Code { return .EINPROGRESS }
-
-    /// Operation already in progress.
     public static var EALREADY: POSIXError.Code { return .EALREADY }
-    #endif
-
-    /// IPC/Network software -- argument errors.
-
-    #if !os(Windows)
-    /// Socket operation on non-socket.
     public static var ENOTSOCK: POSIXError.Code { return .ENOTSOCK }
-
-    /// Destination address required.
     public static var EDESTADDRREQ: POSIXError.Code { return .EDESTADDRREQ }
-
-    /// Message too long.
     public static var EMSGSIZE: POSIXError.Code { return .EMSGSIZE }
-
-    /// Protocol wrong type for socket.
     public static var EPROTOTYPE: POSIXError.Code { return .EPROTOTYPE }
-
-    /// Protocol not available.
     public static var ENOPROTOOPT: POSIXError.Code { return .ENOPROTOOPT }
-
-    /// Protocol not supported.
     public static var EPROTONOSUPPORT: POSIXError.Code { return .EPROTONOSUPPORT }
-
-    /// Socket type not supported.
     public static var ESOCKTNOSUPPORT: POSIXError.Code { return .ESOCKTNOSUPPORT }
     #endif
-
     #if canImport(Darwin)
-    /// Operation not supported.
     public static var ENOTSUP: POSIXError.Code { return .ENOTSUP }
     #endif
-
     #if !os(Windows)
-    /// Protocol family not supported.
     public static var EPFNOSUPPORT: POSIXError.Code { return .EPFNOSUPPORT }
-
-    /// Address family not supported by protocol family.
     public static var EAFNOSUPPORT: POSIXError.Code { return .EAFNOSUPPORT }
-
-    /// Address already in use.
     public static var EADDRINUSE: POSIXError.Code { return .EADDRINUSE }
-
-    /// Can't assign requested address.
     public static var EADDRNOTAVAIL: POSIXError.Code { return .EADDRNOTAVAIL }
-    #endif
-
-    /// IPC/Network software -- operational errors
-
-    #if !os(Windows)
-    /// Network is down.
     public static var ENETDOWN: POSIXError.Code { return .ENETDOWN }
-
-    /// Network is unreachable.
     public static var ENETUNREACH: POSIXError.Code { return .ENETUNREACH }
-
-    /// Network dropped connection on reset.
     public static var ENETRESET: POSIXError.Code { return .ENETRESET }
-
-    /// Software caused connection abort.
     public static var ECONNABORTED: POSIXError.Code { return .ECONNABORTED }
-
-    /// Connection reset by peer.
     public static var ECONNRESET: POSIXError.Code { return .ECONNRESET }
-
-    /// No buffer space available.
     public static var ENOBUFS: POSIXError.Code { return .ENOBUFS }
-
-    /// Socket is already connected.
     public static var EISCONN: POSIXError.Code { return .EISCONN }
-
-    /// Socket is not connected.
     public static var ENOTCONN: POSIXError.Code { return .ENOTCONN }
-
-    /// Can't send after socket shutdown.
     public static var ESHUTDOWN: POSIXError.Code { return .ESHUTDOWN }
-
-    /// Too many references: can't splice.
     public static var ETOOMANYREFS: POSIXError.Code { return .ETOOMANYREFS }
-
-    /// Operation timed out.
     public static var ETIMEDOUT: POSIXError.Code { return .ETIMEDOUT }
-
-    /// Connection refused.
     public static var ECONNREFUSED: POSIXError.Code { return .ECONNREFUSED }
-
-    /// Too many levels of symbolic links.
     public static var ELOOP: POSIXError.Code { return .ELOOP }
     #endif
-
-    /// File name too long.
     public static var ENAMETOOLONG: POSIXError.Code { return .ENAMETOOLONG }
-
     #if !os(Windows)
-    /// Host is down.
     public static var EHOSTDOWN: POSIXError.Code { return .EHOSTDOWN }
-
-    /// No route to host.
     public static var EHOSTUNREACH: POSIXError.Code { return .EHOSTUNREACH }
     #endif
-
-    /// Directory not empty.
     public static var ENOTEMPTY: POSIXError.Code { return .ENOTEMPTY }
-
-    /// Quotas
-
     #if canImport(Darwin)
-    /// Too many processes.
     public static var EPROCLIM: POSIXError.Code { return .EPROCLIM }
     #endif
-
     #if !os(Windows)
-    /// Too many users.
     public static var EUSERS: POSIXError.Code { return .EUSERS }
-
-    /// Disk quota exceeded.
     public static var EDQUOT: POSIXError.Code { return .EDQUOT }
-    #endif
-
-    /// Network File System
-
-    #if !os(Windows)
-    /// Stale NFS file handle.
     public static var ESTALE: POSIXError.Code { return .ESTALE }
-
-    /// Too many levels of remote in path.
     public static var EREMOTE: POSIXError.Code { return .EREMOTE }
     #endif
-
     #if canImport(Darwin)
-    /// RPC struct is bad.
     public static var EBADRPC: POSIXError.Code { return .EBADRPC }
-
-    /// RPC version wrong.
     public static var ERPCMISMATCH: POSIXError.Code { return .ERPCMISMATCH }
-
-    /// RPC prog. not avail.
     public static var EPROGUNAVAIL: POSIXError.Code { return .EPROGUNAVAIL }
-
-    /// Program version wrong.
     public static var EPROGMISMATCH: POSIXError.Code { return .EPROGMISMATCH }
-
-    /// Bad procedure for program.
     public static var EPROCUNAVAIL: POSIXError.Code { return .EPROCUNAVAIL }
     #endif
-
-    /// No locks available.
     public static var ENOLCK: POSIXError.Code { return .ENOLCK }
-
-    /// Function not implemented.
     public static var ENOSYS: POSIXError.Code { return .ENOSYS }
-
     #if canImport(Darwin)
-    /// Inappropriate file type or format.
     public static var EFTYPE: POSIXError.Code { return .EFTYPE }
-
-    /// Authentication error.
     public static var EAUTH: POSIXError.Code { return .EAUTH }
-
-    /// Need authenticator.
     public static var ENEEDAUTH: POSIXError.Code { return .ENEEDAUTH }
-    #endif
-
-    /// Intelligent device errors.
-
-    #if canImport(Darwin)
-    /// Device power is off.
     public static var EPWROFF: POSIXError.Code { return .EPWROFF }
-
-    /// Device error, e.g. paper out.
     public static var EDEVERR: POSIXError.Code { return .EDEVERR }
     #endif
-
     #if !os(Windows)
-    /// Value too large to be stored in data type.
     public static var EOVERFLOW: POSIXError.Code { return .EOVERFLOW }
     #endif
-
-    /// Program loading errors.
-
     #if canImport(Darwin)
-    /// Bad executable.
     public static var EBADEXEC: POSIXError.Code { return .EBADEXEC }
-    #endif
-
-    #if canImport(Darwin)
-    /// Bad CPU type in executable.
     public static var EBADARCH: POSIXError.Code { return .EBADARCH }
-
-    /// Shared library version mismatch.
     public static var ESHLIBVERS: POSIXError.Code { return .ESHLIBVERS }
-
-    /// Malformed Macho file.
     public static var EBADMACHO: POSIXError.Code { return .EBADMACHO }
     #endif
-
-    /// Operation canceled.
     public static var ECANCELED: POSIXError.Code {
     #if os(Windows)
         return POSIXError.Code(rawValue: Int32(ERROR_CANCELLED))!
@@ -1310,68 +761,36 @@ extension POSIXError {
         return .ECANCELED
     #endif
     }
-
     #if !os(Windows)
-    /// Identifier removed.
     public static var EIDRM: POSIXError.Code { return .EIDRM }
-
-    /// No message of desired type.
     public static var ENOMSG: POSIXError.Code { return .ENOMSG }
     #endif
-
-    /// Illegal byte sequence.
     public static var EILSEQ: POSIXError.Code { return .EILSEQ }
-
     #if canImport(Darwin)
-    /// Attribute not found.
     public static var ENOATTR: POSIXError.Code { return .ENOATTR }
     #endif
-
     #if !os(Windows)
-    /// Bad message.
     public static var EBADMSG: POSIXError.Code { return .EBADMSG }
-
     #if !os(OpenBSD)
-    /// Reserved.
     public static var EMULTIHOP: POSIXError.Code { return .EMULTIHOP }
-
-    /// No message available on STREAM.
     public static var ENODATA: POSIXError.Code { return .ENODATA }
-
-    /// Reserved.
     public static var ENOLINK: POSIXError.Code { return .ENOLINK }
-
-    /// No STREAM resources.
     public static var ENOSR: POSIXError.Code { return .ENOSR }
-
-    /// Not a STREAM.
     public static var ENOSTR: POSIXError.Code { return .ENOSTR }
     #endif
-
-    /// Protocol error.
     public static var EPROTO: POSIXError.Code { return .EPROTO }
-
     #if !os(OpenBSD)
-    /// STREAM ioctl timeout.
     public static var ETIME: POSIXError.Code { return .ETIME }
     #endif
     #endif
-
     #if canImport(Darwin)
-    /// No such policy registered.
     public static var ENOPOLICY: POSIXError.Code { return .ENOPOLICY }
     #endif
-
     #if !os(Windows)
-    /// State not recoverable.
     public static var ENOTRECOVERABLE: POSIXError.Code { return .ENOTRECOVERABLE }
-
-    /// Previous owner died.
     public static var EOWNERDEAD: POSIXError.Code { return .EOWNERDEAD }
     #endif
-
     #if canImport(Darwin)
-    /// Interface output queue is full.
     public static var EQFULL: POSIXError.Code { return .EQFULL }
     #endif
 }
@@ -1380,44 +799,14 @@ enum UnknownNSError: Error {
     case missingError
 }
 
-// MARK: NSURLErrorDomain
-
-/// `NSURLErrorDomain` indicates an `NSURL` error.
-///
-/// Constants used by `NSError` to differentiate between "domains" of error codes,
-/// serving as a discriminator for error codes that originate from different subsystems or sources.
 public let NSURLErrorDomain: String = "NSURLErrorDomain"
-
-/// The `NSError` userInfo dictionary key used to store and retrieve the URL which
-/// caused a load to fail.
 public let NSURLErrorFailingURLErrorKey: String = "NSErrorFailingURLKey"
-
-/// The `NSError` userInfo dictionary key used to store and retrieve the NSString
-/// object for the URL which caused a load to fail.
 public let NSURLErrorFailingURLStringErrorKey: String = "NSErrorFailingURLStringKey"
-
-/// The `NSError` userInfo dictionary key used to store and retrieve the
-/// SecTrustRef object representing the state of a failed SSL handshake.
 public let NSURLErrorFailingURLPeerTrustErrorKey: String = "NSURLErrorFailingURLPeerTrustErrorKey"
-
-/// The `NSError` userInfo dictionary key used to store and retrieve the
-/// `NSNumber` corresponding to the reason why a background `URLSessionTask`
-/// was cancelled
-///
-/// One of
-/// * `NSURLErrorCancelledReasonUserForceQuitApplication`
-/// * `NSURLErrorCancelledReasonBackgroundUpdatesDisabled`
-/// * `NSURLErrorCancelledReasonInsufficientSystemResources`
 public let NSURLErrorBackgroundTaskCancelledReasonKey: String = "NSURLErrorBackgroundTaskCancelledReasonKey"
-
-/// Code associated with `NSURLErrorBackgroundTaskCancelledReasonKey`
 public var NSURLErrorCancelledReasonUserForceQuitApplication: Int { return 0 }
-/// Code associated with `NSURLErrorBackgroundTaskCancelledReasonKey`
 public var NSURLErrorCancelledReasonBackgroundUpdatesDisabled: Int { return 1 }
-/// Code associated with `NSURLErrorBackgroundTaskCancelledReasonKey`
 public var NSURLErrorCancelledReasonInsufficientSystemResources: Int { return 2 }
-
-//MARK: NSURL-related Error Codes
 
 public var NSURLErrorUnknown: Int { return -1 }
 public var NSURLErrorCancelled: Int { return -999 }
@@ -1445,7 +834,6 @@ public var NSURLErrorFileIsDirectory: Int { return -1101 }
 public var NSURLErrorNoPermissionsToReadFile: Int { return -1102 }
 public var NSURLErrorDataLengthExceedsMaximum: Int { return -1103 }
 
-// SSL errors
 public var NSURLErrorSecureConnectionFailed: Int { return -1201 }
 public var NSURLErrorServerCertificateHasBadDate: Int { return -1202 }
 public var NSURLErrorServerCertificateUntrusted: Int { return -1203 }
@@ -1455,7 +843,6 @@ public var NSURLErrorClientCertificateRejected: Int { return -1206 }
 public var NSURLErrorClientCertificateRequired: Int { return -1207 }
 public var NSURLErrorCannotLoadFromNetwork: Int { return -2000 }
 
-// Download and file I/O errors
 public var NSURLErrorCannotCreateFile: Int { return -3000 }
 public var NSURLErrorCannotOpenFile: Int { return -3001 }
 public var NSURLErrorCannotCloseFile: Int { return -3002 }

@@ -7,13 +7,7 @@
 #if SKIP
 
 public class PropertyListSerialization {
-    public enum PropertyListFormat {
-        case openStep
-        case xml
-        case binary
-    }
-
-    public static func propertyList(from: Data, format: PropertyListFormat? = nil) throws -> Dictionary<String, String>? {
+    public static func propertyList(from: Data, options: PropertyListSerialization.ReadOptions = [], format: Any?) throws -> [String: String]? {
         var dict: Dictionary<String, String> = [:]
         //let re = #"(?<!\\)"(.*?)(?<!\\)"\s*=\s*"(.*?)(?<!\\)";"# // Swift Regex error: "lookbehind is not currently supported"
         //let re = "^\"(.*)\"[ ]*=[ ]*\"(.*)\";\\s*$"
@@ -44,6 +38,45 @@ public class PropertyListSerialization {
         }
         return dict
     }
+
+    @available(*, unavailable)
+    public static func data(fromPropertyList: Any, format: PropertyListSerialization.PropertyListFormat, options: PropertyListSerialization.WriteOptions) -> Data {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func writePropertyList(_ propertyList: Any, to: Any, format: PropertyListSerialization.PropertyListFormat, options: PropertyListSerialization.WriteOptions, error: Any) -> Int {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func propertyList(with: Any, options: PropertyListSerialization.ReadOptions = [], format: Any?) -> Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func propertyList(_ propertyList: Any, isValidFor: PropertyListSerialization.PropertyListFormat) -> Bool {
+        fatalError()
+    }
+
+    public enum PropertyListFormat {
+        case openStep
+        case xml
+        case binary
+    }
+
+    public struct ReadOptions: RawRepresentable, OptionSet {
+        public let rawValue: UInt
+
+        public init(rawValue: UInt) {
+            self.rawValue = rawValue
+        }
+
+        public static let mutableContainers = ReadOptions(rawValue: UInt(1))
+        public static let mutableContainersAndLeaves = ReadOptions(rawValue: UInt(2))
+    }
+
+    public typealias WriteOptions = Int
 }
 
 #endif

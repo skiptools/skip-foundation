@@ -22,6 +22,7 @@
 
 public typealias UnicodeScalarValue = UInt32
 
+@available(*, unavailable)
 public func String(_ scalar: Unicode.Scalar) -> String {
     fatalError("SKIP TODO")
 }

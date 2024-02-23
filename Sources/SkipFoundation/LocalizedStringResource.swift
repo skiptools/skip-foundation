@@ -6,9 +6,7 @@
 
 #if SKIP
 
-public typealias LocalizedStringResource = SkipLocalizedStringResource
-
-public final class SkipLocalizedStringResource: Hashable {
+public final class LocalizedStringResource: Hashable {
     public let key: String
     public let defaultValue: String? // TODO: String.LocalizationValue
     public let table: String?
@@ -53,8 +51,6 @@ public final class SkipLocalizedStringResource: Hashable {
         }
     }
 
-
-    // FIXME: move to `Bundle.BundleDescription` so we can internalize the location
     public enum BundleDescription: CustomStringConvertible, Hashable {
         case main
         case forClass(AnyClass)
@@ -68,13 +64,6 @@ public final class SkipLocalizedStringResource: Hashable {
             }
         }
     }
-}
-
-public extension LocalizedStringResource {
-    public typealias BundleDescription = SkipLocalizedStringResource.LocalizedStringResource
-}
-
-extension SkipLocalizedStringResource {
 }
 
 #endif
