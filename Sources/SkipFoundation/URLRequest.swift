@@ -33,9 +33,16 @@ public struct URLRequest : Hashable, CustomStringConvertible {
     public var httpShouldHandleCookies: Bool = true
     public var httpShouldUsePipelining: Bool = true
     public var mainDocumentURL: URL? = nil
-    //public var networkServiceType: URLRequest.NetworkServiceType
-    //public var attribution: URLRequest.Attribution
-    //public var httpBodyStream: InputStream?
+    public var networkServiceType: URLRequest.NetworkServiceType = URLRequest.NetworkServiceType.default
+    public var attribution: URLRequest.Attribution = URLRequest.Attribution.developer
+    @available(*, unavailable)
+    public var httpBodyStream: Any? {
+        get {
+            fatalError()
+        }
+        set {
+        }
+    }
 
     public init(url: URL, cachePolicy: CachePolicy = CachePolicy.useProtocolCachePolicy, timeoutInterval: TimeInterval = 0.0) {
         self.url = url
@@ -51,7 +58,7 @@ public struct URLRequest : Hashable, CustomStringConvertible {
         return Self.value(forHTTPHeaderField: field, in: allHTTPHeaderFields ?? [:])
     }
 
-    /// Perform a case-insensitive header lookup for the given field name in the header fields
+    /// Perform a case-insensitive header lookup for the given field name in the header fields.
     internal static func value(forHTTPHeaderField fieldName: String, in headerFields: [String: String]) -> String? {
         if let value = headerFields[fieldName] {
             // fast case-sensitive match
@@ -111,14 +118,30 @@ public struct URLRequest : Hashable, CustomStringConvertible {
         self.allHTTPHeaderFields = fields
     }
 
+    public enum Attribution : Int {
+        case developer
+        case user
+    }
+
     public enum CachePolicy : Int {
         case useProtocolCachePolicy = 0
         case reloadIgnoringLocalCacheData = 1
         case reloadIgnoringLocalAndRemoteCacheData = 4
-        //public static var reloadIgnoringCacheData: NSURLRequest.CachePolicy { get }
         case returnCacheDataElseLoad = 2
         case returnCacheDataDontLoad = 3
         case reloadRevalidatingCacheData = 5
+    }
+
+    public enum NetworkServiceType : Int {
+        case `default`
+        case voip
+        case video
+        case background
+        case voice
+        case responsiveData
+        case avStreaming
+        case responsiveAV
+        case callSignaling
     }
 }
 

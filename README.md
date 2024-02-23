@@ -664,7 +664,7 @@ Support levels:
       <td><code>UnknownNSError</code></td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>🟡</td>
       <td>
         <details>
           <summary><code>URL</code></summary>
@@ -712,10 +712,18 @@ Support levels:
       <td>✅</td>
       <td><code>URLError</code></td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>URLRequest // Not yet documented</code></td>
-</tr>
+   <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>URLRequest</code></summary>
+          <ul>
+<li>Many properties are currently ignored by <code>URLSession</code></li>
+<li><code>httpBodyStream</code> is not supported</li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
     <tr>
       <td>✅</td>
       <td><code>URLResponse</code></td>
@@ -724,22 +732,59 @@ Support levels:
   <td>?</td>
   <td><code>URLSession // Not yet documented</code></td>
 </tr>
-<tr>
-  <td>?</td>
-  <td><code>URLSessionConfiguration // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>UserDefaults // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>UUID // Not yet documented</code></td>
-</tr>
-<tr>
-  <td>?</td>
-  <td><code>XMLParser // Not yet documented</code></td>
-</tr>
+   <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>URLSessionConfiguration</code></summary>
+          <ul>
+<li>Many properties are currently ignored by <code>URLSession</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>UserDefaults</code></summary>
+          <ul>
+<li><code>static var standard: UserDefaults</code></li>
+<li><code>init(suiteName: String?)</code></li>
+<li><code>func register(defaults registrationDictionary: [String : Any])</code></li>
+<li><code>func set(_ value: Int, forKey defaultName: String)</code></li>
+<li><code>func set(_ value: Boolean, forKey defaultName: String)</code></li>
+<li><code>func set(_ value: Double, forKey defaultName: String)</code></li>
+<li><code>func set(_ value: String, forKey defaultName: String)</code></li>
+<li><code>func set(_ value: Any?, forKey defaultName: String)</code></li>
+<li><code>func removeObject(forKey defaultName: String)</code></li>
+<li><code>func object(forKey defaultName: String) -> Any?</code></li>
+<li><code>func string(forKey defaultName: String) -> String?</code></li>
+<li><code>func double(forKey defaultName: String) -> Double?</code></li>
+<li><code>func integer(forKey defaultName: String) -> Int?</code></li>
+<li><code>func bool(forKey defaultName: String) -> Bool?</code></li>
+<li><code>func url(forKey defaultName: String) -> URL?</code></li>
+<li><code>func data(forKey defaultName: String) -> Data?</code></li>
+<li><code>func dictionaryRepresentation() -> [String : Any]</code></li>
+<li>Array and dictionary values are not supported</li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>UUID</code></summary>
+          <ul>
+<li><code>init()</code></li>
+<li><code>init?(uuidString: String)</code></li>
+<li><code>static func fromString(uuidString: String) -> UUID?</code></li>
+<li><code>var uuidString: String</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
   </tbody>
 </table>
 

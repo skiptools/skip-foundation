@@ -8,7 +8,7 @@
 
 public typealias NSUUID = UUID
 
-public struct UUID : Hashable, CustomStringConvertible, Codable {
+public struct UUID : Hashable, Comparable, CustomStringConvertible, Codable, KotlinConverting<java.util.UUID> {
     internal var platformValue: java.util.UUID
 
     public init?(uuidString: String) {
@@ -43,6 +43,11 @@ public struct UUID : Hashable, CustomStringConvertible, Codable {
         return try? UUID(platformValue: java.util.UUID.fromString(uuidString))
     }
 
+    @available(*, unavailable)
+    public var uuid: Any {
+        fatalError()
+    }
+
     public var uuidString: String {
         // java.util.UUID is lowercase, Foundation.UUID is uppercase
         return platformValue.toString().uppercase()
@@ -51,30 +56,17 @@ public struct UUID : Hashable, CustomStringConvertible, Codable {
     public var description: String {
         return uuidString
     }
-}
 
-// SKIP INSERT: public fun UUID(mostSigBits: Long, leastSigBits: Long): UUID { return UUID(java.util.UUID(mostSigBits, leastSigBits)) }
+    public static func <(lhs: UUID, rhs: UUID) -> Bool {
+        return lhs.platformValue < rhs.platformValue
+    }
 
-//extension UUID {
-//    public init(mostSigBits: Int64, leastSigBits: Int64) {
-//        UUID(mostSigBits, leastSigBits)
-//    }
-//
-//    public var uuidString: String {
-//        // java.util.UUID is lowercase, Foundation.UUID is uppercase
-//        return platformValue.toString().uppercase()
-//    }
-//
-//    public var description: String {
-//        return uuidString
-//    }
-//}
-
-extension UUID: KotlinConverting<java.util.UUID> {
     public override func kotlin(nocopy: Bool = false) -> java.util.UUID {
         return platformValue
     }
 }
+
+// SKIP INSERT: public fun UUID(mostSigBits: Long, leastSigBits: Long): UUID { return UUID(java.util.UUID(mostSigBits, leastSigBits)) }
 
 #endif
 

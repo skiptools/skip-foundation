@@ -6,7 +6,7 @@
 
 #if SKIP
 
-public class UserDefaults {
+public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
     let platformValue: android.content.SharedPreferences
     /// The default default values
     private var registrationDictionary: [String: Any] = [:]
@@ -27,9 +27,9 @@ public class UserDefaults {
         self.registrationDictionary = registrationDictionary
     }
 
-    public func registerOnSharedPreferenceChangeListener(key: String, onChange: () -> ()) -> AnyObject {
+    public func registerOnSharedPreferenceChangeListener(key: String, onChange: () -> Void) -> AnyObject {
         let listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { (_, changedKey: String?) in
-            if let changedKey = changedKey, key == changedKey {
+            if let changedKey, key == changedKey {
                 onChange()
             }
         }
@@ -100,6 +100,10 @@ public class UserDefaults {
 
     public func object(forKey defaultName: String) -> Any? {
         let value = platformValue.getAll()[defaultName] ?? registrationDictionary[defaultName] ?? nil
+        return fromStoredRepresentation(value)
+    }
+
+    private func fromStoredRepresentation(_ value: Any?) -> Any? {
         guard let string = value as? String else {
             return value
         }
@@ -110,6 +114,16 @@ public class UserDefaults {
         } else {
             return string
         }
+    }
+
+    @available(*, unavailable)
+    public func array(forKey defaultName: String) -> [Any]? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func dictionary(forKey defaultName: String) -> [String: Any]? {
+        fatalError()
     }
 
     public func string(forKey defaultName: String) -> String? {
@@ -131,6 +145,11 @@ public class UserDefaults {
         } else {
             return nil
         }
+    }
+
+    @available(*, unavailable)
+    public func stringArray(forKey defaultName: String) -> [String]? {
+        fatalError()
     }
 
     public func double(forKey defaultName: String) -> Double? {
@@ -205,6 +224,98 @@ public class UserDefaults {
         }
     }
 
+    public func dictionaryRepresentation() -> [String : Any] {
+        let map = platformValue.getAll()
+        var dict = Dictionary<String, Any>()
+        for entry in map {
+            if let value = fromStoredRepresentation(entry.value) {
+                dict[entry.key] = value
+            }
+        }
+        return dict
+    }
+
+    public func synchronize() -> Bool {
+        return true
+    }
+
+    public static func resetStandardUserDefaults() {
+    }
+
+    @available(*, unavailable)
+    public func addSuite(named: String) {
+    }
+
+    @available(*, unavailable)
+    public func removeSuite(named: String) {
+    }
+
+    @available(*, unavailable)
+    public func persistentDomain(forName: String) -> [String : Any]? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func setPersistentDomain(_ value: [String : Any], forName: String) {
+    }
+
+    @available(*, unavailable)
+    public func removePersistentDomain(forName: String) {
+    }
+
+    @available(*, unavailable)
+    public var volatileDomainNames: [String] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func volatileDomain(forName: String) -> [String : Any] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func setVolatileDomain(_ value: [String : Any], forName: String) {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func removeVolatileDomain(forName: String) {
+    }
+
+    @available(*, unavailable)
+    public static let argumentDomain: String = ""
+
+    @available(*, unavailable)
+    public static let globalDomain: String = ""
+
+    @available(*, unavailable)
+    public static let registrationDomain: String = ""
+
+    @available(*, unavailable)
+    public static let didChangeNotification = Notification.Name(rawValue: "NSUserDefaultsDidChangeNotification")
+
+    @available(*, unavailable)
+    public static let sizeLimitExceededNotification = Notification.Name(rawValue: "NSUserDefaultsSizeLimitExceededNotification")
+
+    @available(*, unavailable)
+    public static let completedInitialCloudSyncNotification = Notification.Name(rawValue: "NSUserDefaultsCompletedInitialCloudSyncNotification")
+
+    @available(*, unavailable)
+    public static let didChangeCloudAccountsNotification = Notification.Name(rawValue: "NSUserDefaultsDidChangeCloudAccountsNotification")
+
+    @available(*, unavailable)
+    public static let noCloudAccountNotification = Notification.Name(rawValue: "NSUserDefaultsNoCloudAccountNotification")
+
+    @available(*, unavailable)
+    public func objectIsForced(forKey: String) -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func objectIsForced(forKey: String, inDomain: String) -> Bool {
+        fatalError()
+    }
+
     private static let dataStringPrefix = "__data__:"
     private static let dateStringPrefix = "__date__:"
     private static let dateFormatter = ISO8601DateFormatter()
@@ -224,9 +335,7 @@ public class UserDefaults {
     private func dateFromString(_ string: String) -> Date? {
         return Self.dateFormatter.date(from: string)
     }
-}
 
-extension UserDefaults: KotlinConverting<android.content.SharedPreferences> {
     public override func kotlin(nocopy: Bool = false) -> android.content.SharedPreferences {
         return platformValue
     }

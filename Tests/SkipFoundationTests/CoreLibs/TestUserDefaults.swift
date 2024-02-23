@@ -25,7 +25,21 @@ class TestUserDefaults : XCTestCase {
 		
 		defaults.set(4, forKey: "ourKey")
 	}
-	
+
+    func test_dictionaryRepresentation() {
+        let defaults = UserDefaults.standard
+
+        defaults.set(4, forKey: "intKey")
+        defaults.set("string", forKey: "stringKey")
+        let date = Date.now
+        defaults.set(date, forKey: "dateKey")
+
+        let dict = defaults.dictionaryRepresentation()
+        XCTAssertEqual("string", dict["stringKey"] as? String)
+        XCTAssertEqual(date, dict["dateKey"] as? Date)
+        XCTAssertEqual(NSNumber(value: 4), dict["intKey"] as? NSNumber)
+    }
+
 	func test_getRegisteredDefaultItem() {
 		let defaults = UserDefaults.standard
 		
