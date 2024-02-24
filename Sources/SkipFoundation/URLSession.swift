@@ -13,15 +13,27 @@ public final class URLSession {
 
     public init(configuration: URLSessionConfiguration) {
         self.configuration = configuration
+        self.delegate = nil
+        self.delegateQueue = nil
+    }
+
+    @available(*, unavailable)
+    public init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue: OperationQueue?) {
+        self.configuration = configuration
+        self.delegate = delegate
+        self.delegateQueue = delegateQueue
     }
 
     public static let shared = URLSession(configuration: URLSessionConfiguration.default)
 
-    private func connection(for request: URLRequest) -> java.net.URLConnection {
-        let config = self.configuration
+    public let delegate: URLSessionDelegate?
+    public let delegateQueue: OperationQueue?
+
+    private func connection(for request: URLRequest) throws -> (URL, java.net.URLConnection) {
         guard let url = request.url else {
             throw NoURLInRequestError()
         }
+        let config = self.configuration
 
         // note that `openConnection` does not actually connect()
         let connection = url.platformValue.openConnection()
@@ -62,10 +74,10 @@ public final class URLSession {
             os.close()
         }
 
-        return connection
+        return (url, connection)
     }
 
-    private func response(for request: URLRequest, with connection: java.net.URLConnection) -> HTTPURLResponse {
+    private func response(for url: URL, with connection: java.net.URLConnection) -> HTTPURLResponse {
         var statusCode = -1
         if let httpConnection = connection as? java.net.HttpURLConnection {
             statusCode = httpConnection.getResponseCode()
@@ -84,7 +96,7 @@ public final class URLSession {
                 }
             }
         }
-        let response = HTTPURLResponse(url: request.url!, statusCode: statusCode, httpVersion: httpVersion, headerFields: headers)
+        let response = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: httpVersion, headerFields: headers)
         return response!
     }
 
@@ -92,10 +104,10 @@ public final class URLSession {
     public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         let job = kotlinx.coroutines.Job()
         return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
-            let connection = connection(for: request)
+            let (url, connection) = connection(for: request)
             var inputStream: java.io.InputStream? = nil
             return withTaskCancellationHandler {
-                let response = response(for: request, with: connection)
+                let response = response(for: url, with: connection)
 
                 inputStream = connection.getInputStream()
                 let outputStream = java.io.ByteArrayOutputStream()
@@ -117,9 +129,19 @@ public final class URLSession {
         }
     }
 
+    @available(*, unavailable)
+    public func data(for request: URLRequest, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse) {
+        fatalError()
+    }
+
     // SKIP ATTRIBUTES: nodispatch
     public func data(from url: URL) async throws -> (Data, URLResponse) {
         return self.data(for: URLRequest(url: url))
+    }
+
+    @available(*, unavailable)
+    public func data(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse) {
+        fatalError()
     }
 
     // SKIP ATTRIBUTES: nodispatch
@@ -257,10 +279,26 @@ public final class URLSession {
         }
     }
 
+    @available(*, unavailable)
+    public func download(for request: URLRequest, delegate: URLSessionTaskDelegate?) async throws -> (URL, URLResponse) {
+        fatalError()
+    }
+
     // SKIP ATTRIBUTES: nodispatch
     @available(*, unavailable)
     public func download(from url: URL) async throws -> (URL, URLResponse) {
         // return self.download(for: URLRequest(url: url))
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func download(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (URL, URLResponse) {
+        // return self.download(for: URLRequest(url: url))
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    func download(resumeFrom: Data, delegate: URLSessionTaskDelegate?) -> (URL, URLResponse) {
         fatalError()
     }
 
@@ -274,6 +312,11 @@ public final class URLSession {
         }
     }
 
+    @available(*, unavailable)
+    public func upload(for request: URLRequest, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse) {
+        fatalError()
+    }
+
     // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
         let job = kotlinx.coroutines.Job()
@@ -283,12 +326,17 @@ public final class URLSession {
         }
     }
 
+    @available(*, unavailable)
+    public func upload(for request: URLRequest, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse) {
+        fatalError()
+    }
+
     // SKIP ATTRIBUTES: nodispatch
     private func upload(for request: URLRequest, job: kotlinx.coroutines.Job) async -> (Data, URLResponse) {
-        let connection = connection(for: request)
+        let (url, connection) = connection(for: request)
         var inputStream: java.io.InputStream? = nil
         return withTaskCancellationHandler {
-            let response = response(for: request, with: connection)
+            let response = response(for: url, with: connection)
 
             inputStream = connection.getInputStream()
             let responseData = java.io.BufferedInputStream(inputStream).readBytes()
@@ -302,17 +350,12 @@ public final class URLSession {
     }
 
     // SKIP ATTRIBUTES: nodispatch
-    public func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse) {
-        return bytes(for: URLRequest(url: url))
-    }
-
-    // SKIP ATTRIBUTES: nodispatch
     public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
         let job = kotlinx.coroutines.Job()
         return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
-            let connection = connection(for: request)
+            let (url, connection) = connection(for: request)
             withTaskCancellationHandler {
-                let response = response(for: request, with: connection)
+                let response = response(for: url, with: connection)
                 let inputStream = connection.getInputStream()
                 let stream = AsyncBytes(connection: connection, inputStream: inputStream)
                 return (stream, response)
@@ -321,6 +364,21 @@ public final class URLSession {
                 job.cancel()
             }
         }
+    }
+
+    @available(*, unavailable)
+    public func bytes(for request: URLRequest, delegate: URLSessionTaskDelegate?) async throws -> (AsyncBytes, URLResponse) {
+        fatalError()
+    }
+
+    // SKIP ATTRIBUTES: nodispatch
+    public func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse) {
+        return bytes(for: URLRequest(url: url))
+    }
+
+    @available(*, unavailable)
+    public func bytes(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (AsyncBytes, URLResponse) {
+        fatalError()
     }
 
     public struct AsyncBytes: AsyncSequence {
@@ -364,6 +422,147 @@ public final class URLSession {
         }
     }
 
+    @available(*, unavailable)
+    public func dataTask(with: URL) -> URLSessionDataTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func dataTask(with: URL, completionHandler: (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func dataTask(with: URLRequest) -> URLSessionDataTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func dataTask(with: URLRequest, completionHandler: (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func downloadTask(with: URL) -> URLSessionDownloadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func downloadTask(with: URL, completionHandler: (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func downloadTask(with: URLRequest) -> URLSessionDownloadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func downloadTask(with: URLRequest, completionHandler: (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func downloadTask(withResumeData: Data) -> URLSessionDownloadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func downloadTask(withResumeData: Data, completionHandler: (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func uploadTask(with: URLRequest, from: Data) -> URLSessionUploadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func uploadTask(with: URLRequest, from: Data?, completionHandler: (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionUploadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func uploadTask(with: URLRequest, fromFile: URL) -> URLSessionUploadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func uploadTask(with: URLRequest, fromFile: URL, completionHandler: (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionUploadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func uploadTask(withStreamedRequest: URLRequest) -> URLSessionUploadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    func uploadTask(withResumeData: Data) -> URLSessionUploadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    func uploadTask(withResumeData: Data, completionHandler: (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func streamTask(withHostName: String, port: Int) -> URLSessionStreamTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func webSocketTask(with: URL) -> URLSessionWebSocketTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func webSocketTask(with: URLRequest) -> URLSessionWebSocketTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func webSocketTask(with: URL, protocols: [String]) -> URLSessionWebSocketTask {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func finishTasksAndInvalidate() {
+    }
+
+    @available(*, unavailable)
+    public func flush(completionHandler: () -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func getTasksWithCompletionHandler(_ handler: ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func getAllTasks(completionHandler: ([URLSessionTask]) -> Void) {
+    }
+
+    @available(*, unavailable)
+    public func invalidateAndCancel() {
+    }
+
+    @available(*, unavailable)
+    public func reset(completionHandler: () -> Void) {
+    }
+
+    public var sessionDescription: String?
+
+    @available(*, unavailable)
+    public func dataTaskPublisher(for: URLRequest) -> Any {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func dataTaskPublisher(for: URL) -> Any {
+        fatalError()
+    }
+
     public enum DelayedRequestDisposition : Int, @unchecked Sendable {
         case continueLoading = 0
         case useNewRequest = 1
@@ -396,6 +595,18 @@ public protocol URLSessionTask {
 }
 
 public protocol URLSessionDataTask : URLSessionTask {
+}
+
+public protocol URLSessionDownloadTask : URLSessionTask {
+}
+
+public protocol URLSessionUploadTask : URLSessionTask {
+}
+
+public protocol URLSessionStreamTask : URLSessionTask {
+}
+
+public protocol URLSessionWebSocketTask : URLSessionTask {
 }
 
 public protocol URLSessionDelegate {

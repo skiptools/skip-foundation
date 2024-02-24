@@ -266,10 +266,6 @@ Support levels:
         </details> 
       </td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>Digest // Not yet documented</code></td>
-</tr>
     <tr>
       <td>🔴</td>
       <td>
@@ -728,10 +724,25 @@ Support levels:
       <td>✅</td>
       <td><code>URLResponse</code></td>
     </tr>
-<tr>
-  <td>?</td>
-  <td><code>URLSession // Not yet documented</code></td>
-</tr>
+    <tr>
+      <td>🔴</td>
+      <td>
+        <details>
+          <summary><code>URLSession</code></summary>
+          <ul>
+<li><code>static let shared: URLSession</code></li>
+<li><code>init(configuration: URLSessionConfiguration)</code></li>
+<li><code>func data(for request: URLRequest) async throws -> (Data, URLResponse)</code></li>
+<li><code>func data(from url: URL) async throws -> (Data, URLResponse)</code></li>
+<li><code>func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse)</code></li>
+<li><code>func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse)</code></li>
+<li><code>func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse)</code></li>
+<li><code>func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse)</code></li>
+<li><code>struct AsyncBytes: AsyncSequence</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
    <tr>
       <td>🟡</td>
       <td>
