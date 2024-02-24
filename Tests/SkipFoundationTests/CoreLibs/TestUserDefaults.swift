@@ -31,7 +31,8 @@ class TestUserDefaults : XCTestCase {
 
         defaults.set(4, forKey: "intKey")
         defaults.set("string", forKey: "stringKey")
-        let date = Date.now
+        let dateString = Date.now.ISO8601Format()
+        let date = ISO8601DateFormatter().date(from: dateString)
         defaults.set(date, forKey: "dateKey")
 
         let dict = defaults.dictionaryRepresentation()
