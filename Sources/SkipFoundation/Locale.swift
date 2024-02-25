@@ -67,6 +67,10 @@ public struct Locale : Hashable {
         } else if let variantCode = self.variantCode, !variantCode.isEmpty {
             identifiers.append(languageCode + "-" + variantCode)
         }
+        // special case: un-specified "zh" should fall back to zh-Hans
+        if languageCode == "zh" {
+            identifiers.append("zh-Hans")
+        }
         identifiers.append(languageCode)
 
         return identifiers
