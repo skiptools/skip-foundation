@@ -1,3 +1,17 @@
+## 0.5.9
+
+Released 2024-02-25
+
+  - Map unspecified "zh" language to "zh-Hans" for bundle localization
+  - Make Digest work as a Sequence of Bytes
+  - Add stubs and API docs for URLSession
+  - Fix test
+  - Additional stubs and API documentation
+  - Additional stubs and API documentation
+  - Tweaks for ISO8601DateFormatter
+  - Update README
+  - Support more IndexPath functionality
+
 ## 0.5.7
 
 Released 2024-02-20
