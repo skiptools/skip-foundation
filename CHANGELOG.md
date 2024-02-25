@@ -1,3 +1,9 @@
+## 0.5.10
+
+Released 2024-02-25
+
+  - Check for appContext.getApplicationInfo().className being null during test cases
+
 ## 0.5.9
 
 Released 2024-02-25
