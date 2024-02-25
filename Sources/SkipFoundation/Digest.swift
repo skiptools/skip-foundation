@@ -8,7 +8,8 @@
 
 public typealias MessageDigest = java.security.MessageDigest
 
-public protocol Digest {
+public protocol Digest: Sequence {
+    typealias Element = Int8
     var bytes: PlatformData { get }
 }
 
@@ -42,11 +43,15 @@ public struct SHA256 : NamedHashFunction {
     }
 }
 
-public struct SHA256Digest : Digest {
+public struct SHA256Digest : Digest, Equatable {
     let bytes: PlatformData
 
-    var description: String {
+    public var description: String {
         "SHA256 digest: " + bytes.hex()
+    }
+
+    override var iterable: kotlin.collections.Iterable<Int8> {
+        return BytesIterable(bytes: bytes)
     }
 }
 
@@ -68,11 +73,15 @@ public struct SHA384 : NamedHashFunction {
     }
 }
 
-public struct SHA384Digest : Digest {
+public struct SHA384Digest : Digest, Equatable {
     let bytes: PlatformData
 
-    var description: String {
+    public var description: String {
         "SHA384 digest: " + bytes.hex()
+    }
+
+    override var iterable: kotlin.collections.Iterable<Int8> {
+        return BytesIterable(bytes: bytes)
     }
 }
 
@@ -94,11 +103,15 @@ public struct SHA512 : NamedHashFunction {
     }
 }
 
-public struct SHA512Digest : Digest {
+public struct SHA512Digest : Digest, Equatable {
     let bytes: PlatformData
 
-    var description: String {
+    public var description: String {
         "SHA512 digest: " + bytes.hex()
+    }
+
+    override var iterable: kotlin.collections.Iterable<Int8> {
+        return BytesIterable(bytes: bytes)
     }
 }
 
@@ -121,11 +134,15 @@ public struct Insecure {
         }
     }
 
-    public struct MD5Digest : Digest {
+    public struct MD5Digest : Digest, Equatable {
         let bytes: PlatformData
 
-        var description: String {
+        public var description: String {
             "MD5 digest: " + bytes.hex()
+        }
+
+        override var iterable: kotlin.collections.Iterable<Int8> {
+            return BytesIterable(bytes: bytes)
         }
     }
 
@@ -147,11 +164,15 @@ public struct Insecure {
         }
     }
 
-    public struct SHA1Digest : Digest {
+    public struct SHA1Digest : Digest, Equatable {
         let bytes: PlatformData
 
-        var description: String {
+        public var description: String {
             "SHA1 digest: " + bytes.hex()
+        }
+
+        override var iterable: kotlin.collections.Iterable<Int8> {
+            return BytesIterable(bytes: bytes)
         }
     }
 }
@@ -191,14 +212,6 @@ public class HMACSHA512 : DigestFunction {
     }
 }
 
-public extension kotlin.ByteArray {
-    public func hex() -> String {
-        joinToString("") {
-            java.lang.Byte.toUnsignedInt($0).toString(radix: 16).padStart(2, "0".get(0))
-        }
-    }
-}
-
 public class DigestFunction {
     static func authenticationCode(for message: Data, using secret: SymmetricKey, algorithm hashName: String) -> PlatformData {
         let secretKeySpec = javax.crypto.spec.SecretKeySpec(secret.data.platformValue, "Hmac\(hashName)")
@@ -208,6 +221,22 @@ public class DigestFunction {
         mac.init(secretKeySpec)
         let signature = mac.doFinal(message.platformValue)
         return signature
+    }
+}
+
+extension kotlin.ByteArray {
+    public func hex() -> String {
+        joinToString("") {
+            java.lang.Byte.toUnsignedInt($0).toString(radix: 16).padStart(2, "0".get(0))
+        }
+    }
+}
+
+struct BytesIterable: kotlin.collections.Iterable<Int8> {
+    let bytes: PlatformData
+
+    override func iterator() -> kotlin.collections.Iterator<Int8> {
+        return bytes.iterator()
     }
 }
 
