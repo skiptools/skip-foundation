@@ -8,6 +8,8 @@ See what API is currently implemented [here](#foundation-support).
 
 SkipFoundation vends the `skip.foundation` Kotlin package. It is a reimplementation of Foundation for Kotlin on Android. Its goal is to mirror as much of Foundation as possible, allowing Skip developers to use Foundation API with confidence.
 
+SkipFoundation also implements portions of the CryptoKit API.
+
 ## Dependencies
 
 SkipFoundation depends on the [skip](https://source.skip.tools/skip) transpiler plugin as well as the [SkipLib](https://github.com/skiptools/skip-lib) package.
@@ -167,6 +169,17 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>ComparisonResult</code></td>
+    </tr>
+   <tr>
+      <td>🔴</td>
+      <td>
+        <details>
+          <summary><code>CryptoKit</code></summary>
+          <ul>
+            <li>See the <a href="#cryptokit">CryptoKit</a> topic for details on supported API.</li>
+          </ul>
+        </details> 
+      </td>
     </tr>
     <tr>
       <td>✅</td>
@@ -800,6 +813,38 @@ Support levels:
 </table>
 
 ## Topics
+
+### CryptoKit
+
+SkipFoundation vends portions of the CryptoKit framework by delegating to the built-in Java implementations:
+
+- `SHA256`
+- `SHA256Digest`
+- `SHA384`
+- `SHA384Digest`
+- `SHA512`
+- `SHA512Digest`
+- `Insecure.MD5`
+- `Insecure.MD5Digest`
+- `Insecure.SHA1`
+- `Insecure.SHA1Digest`
+- `HMACMD5`
+- `HMACSHA1`
+- `HMACSHA256`
+- `HMACSHA384`
+- `HMACSHA512`
+
+Each supported algorithm includes the following API:
+
+```
+associatedtype Digest
+    
+public static func hash(data: Data) -> Digest
+public func update(_ data: DataProtocol) {
+public func finalize() -> Digest {
+```
+
+The returned `Digest` in turn acts as a sequence of `UInt8` bytes. 
 
 ### Files
 

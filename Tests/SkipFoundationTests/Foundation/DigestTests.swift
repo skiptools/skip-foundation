@@ -51,6 +51,17 @@ final class DigestTests: XCTestCase {
         XCTAssertEqual("SHA1 digest: 962f927d8fb5f84a01d2c7c7a2bdefff151dff09", Insecure.SHA1.hash(data: Data("ZZ Top".utf8)).description)
     }
 
+    func testDigestAsSequence() {
+        let inputData = Data("Hello World".utf8)
+        let hashedData: SHA256Digest = SHA256.hash(data: inputData)
+        if let max = hashedData.max() {
+            XCTAssertGreaterThan(max, UByte(0))
+        } else {
+            XCTFail()
+        }
+        XCTAssertNotNil(hashedData.makeIterator().next())
+    }
+
     func testHMACSignSHA256() {
         #if SKIP
         // this currently isn't possible in Skip since Kotlin can't access the generic type from a static context (to get the algorithm name)

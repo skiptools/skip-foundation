@@ -9,7 +9,7 @@
 public typealias MessageDigest = java.security.MessageDigest
 
 public protocol Digest: Sequence {
-    typealias Element = Int8
+    typealias Element = UInt8
     var bytes: PlatformData { get }
 }
 
@@ -50,7 +50,7 @@ public struct SHA256Digest : Digest, Equatable {
         "SHA256 digest: " + bytes.hex()
     }
 
-    override var iterable: kotlin.collections.Iterable<Int8> {
+    override var iterable: kotlin.collections.Iterable<UInt8> {
         return BytesIterable(bytes: bytes)
     }
 }
@@ -80,7 +80,7 @@ public struct SHA384Digest : Digest, Equatable {
         "SHA384 digest: " + bytes.hex()
     }
 
-    override var iterable: kotlin.collections.Iterable<Int8> {
+    override var iterable: kotlin.collections.Iterable<UInt8> {
         return BytesIterable(bytes: bytes)
     }
 }
@@ -110,7 +110,7 @@ public struct SHA512Digest : Digest, Equatable {
         "SHA512 digest: " + bytes.hex()
     }
 
-    override var iterable: kotlin.collections.Iterable<Int8> {
+    override var iterable: kotlin.collections.Iterable<UInt8> {
         return BytesIterable(bytes: bytes)
     }
 }
@@ -141,7 +141,7 @@ public struct Insecure {
             "MD5 digest: " + bytes.hex()
         }
 
-        override var iterable: kotlin.collections.Iterable<Int8> {
+        override var iterable: kotlin.collections.Iterable<UInt8> {
             return BytesIterable(bytes: bytes)
         }
     }
@@ -171,7 +171,7 @@ public struct Insecure {
             "SHA1 digest: " + bytes.hex()
         }
 
-        override var iterable: kotlin.collections.Iterable<Int8> {
+        override var iterable: kotlin.collections.Iterable<UInt8> {
             return BytesIterable(bytes: bytes)
         }
     }
@@ -179,7 +179,7 @@ public struct Insecure {
 
 // Implemented as a simple Data wrapper.
 public struct SymmetricKey {
-    let data: Data
+    public let data: Data
 }
 
 public class HMACMD5 : DigestFunction {
@@ -232,11 +232,23 @@ extension kotlin.ByteArray {
     }
 }
 
-struct BytesIterable: kotlin.collections.Iterable<Int8> {
+struct BytesIterable: kotlin.collections.Iterable<UInt8> {
     let bytes: PlatformData
 
-    override func iterator() -> kotlin.collections.Iterator<Int8> {
-        return bytes.iterator()
+    override func iterator() -> kotlin.collections.Iterator<UInt8> {
+        return Iterator(iterator: bytes.iterator())
+    }
+
+    struct Iterator: kotlin.collections.Iterator<UInt8> {
+        let iterator: kotlin.collections.Iterator<Int8>
+
+        override func hasNext() -> Bool {
+            return iterator.hasNext()
+        }
+
+        override func next() -> UInt8 {
+            return UInt8(iterator.next())
+        }
     }
 }
 
