@@ -840,8 +840,8 @@ Each supported algorithm includes the following API:
 associatedtype Digest
     
 public static func hash(data: Data) -> Digest
-public func update(_ data: DataProtocol) {
-public func finalize() -> Digest {
+public func update(_ data: DataProtocol)
+public func finalize() -> Digest
 ```
 
 The returned `Digest` in turn acts as a sequence of `UInt8` bytes. 
