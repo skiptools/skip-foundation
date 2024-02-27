@@ -350,20 +350,20 @@ Support levels:
           <summary><code>IndexSet</code></summary>
           <ul>
             <li>This is an <b>inefficient</b> implementation using an internal <code>Set</code></li>
-            <li><code>init(integersIn range: any RangeExpression<Int>)</code></li>
+            <li><code>init(integersIn range: any RangeExpression&lt;Int>)</code></li>
             <li><code>init(integer: Int)</code></li>
             <li><code>init()</code></li>
             <li><code>func integerGreaterThan(_ integer: Int) -> Int?</code></li>
             <li><code>func integerLessThan(_ integer: Int) -> Int?</code></li>
             <li><code>func integerGreaterThanOrEqualTo(_ integer: Int) -> Int?</code></li>
             <li><code>func integerLessThanOrEqualTo(_ integer: Int) -> Int?</code></li>
-            <li><code>func count(in range: any RangeExpression<Int>) -> Int</code></li>
-            <li><code>func contains(integersIn range: any RangeExpression<Int>) -> Bool</code></li>
+            <li><code>func count(in range: any RangeExpression&lt;Int>) -> Int</code></li>
+            <li><code>func contains(integersIn range: any RangeExpression&lt;Int>) -> Bool</code></li>
             <li><code>func contains(integersIn indexSet: IntSet) -> Bool</code></li>
-            <li><code>func intersects(integersIn range: any RangeExpression<Int>) -> Bool</code></li>
-            <li><code>mutating func insert(integersIn range: any RangeExpression<Int>)</code></li>
-            <li><code>mutating func remove(integersIn range: any RangeExpression<Int>)</code></li>
-            <li><code>func filteredIndexSet(in range: any RangeExpression<Int>, includeInteger: (Int) throws -> Bool) rethrows -> IndexSet</code></li>
+            <li><code>func intersects(integersIn range: any RangeExpression&lt;Int>) -> Bool</code></li>
+            <li><code>mutating func insert(integersIn range: any RangeExpression&lt;Int>)</code></li>
+            <li><code>mutating func remove(integersIn range: any RangeExpression&lt;Int>)</code></li>
+            <li><code>func filteredIndexSet(in range: any RangeExpression&lt;Int>, includeInteger: (Int) throws -> Bool) rethrows -> IndexSet</code></li>
             <li><code>func filteredIndexSet(includeInteger: (Int) throws -> Bool) rethrows -> IndexSet</code></li>
             <li>Supports the full <code>SetAlgebra</code> protocol</li>
           </ul>
