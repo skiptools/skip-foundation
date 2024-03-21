@@ -453,7 +453,15 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>NSLock</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>NSLocalizedString</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>NSRecursiveLock</code></td>
     </tr>
    <tr>
       <td>🟢</td>
