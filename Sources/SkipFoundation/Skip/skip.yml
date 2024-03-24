@@ -24,7 +24,11 @@ build:
         # needed to run local tests that use the JSON parser with a full Robolectric shadow environment
         - 'testImplementation(testLibs.json)'
         - 'testImplementation(testLibs.robolectric)'
+        - 'testImplementation(testLibs.androidx.test.core)'
+        - 'testImplementation(testLibs.androidx.test.rules)'
         - 'testImplementation(testLibs.androidx.test.ext.junit)'
+        - 'androidTestImplementation(testLibs.androidx.test.core)'
+        - 'androidTestImplementation(testLibs.androidx.test.rules)'
         - 'androidTestImplementation(testLibs.androidx.test.ext.junit)'
 
     - block: 'tasks.withType<Test>().configureEach'

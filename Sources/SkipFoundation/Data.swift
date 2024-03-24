@@ -14,7 +14,7 @@ public protocol DataProtocol {
 }
 
 public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
-    var platformValue: PlatformData
+    public var platformValue: PlatformData
 
     public init(platformValue: PlatformData) {
         self.platformValue = platformValue
@@ -176,8 +176,8 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
         fatalError()
     }
 
-    @available(*, unavailable)
-    public mutating func withUnsafeMutableBytes(_ body: (Any /* UnsafeMutableRawBufferPointer */) throws -> Any /* ResultType */) rethrows -> Any /* ResultType */ {
+    @available(*, deprecated, message: "withUnsafeMutableBytes requires import SkipFFI")
+    internal mutating func withUnsafeMutableBytes(_ body: (Any /* UnsafeMutableRawBufferPointer */) throws -> Any /* ResultType */) rethrows -> Any /* ResultType */ {
         fatalError()
     }
 
