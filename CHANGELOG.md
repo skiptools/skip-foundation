@@ -1,3 +1,9 @@
+## 0.5.13
+
+Released 2024-03-24
+
+  - Add androidx.test.core and androidx.test.rules to test dependencies; make Data.withUnsafeMutableBytes internal so it can be implemented by SkipFFI
+
 ## 0.5.10
 
 Released 2024-02-25
