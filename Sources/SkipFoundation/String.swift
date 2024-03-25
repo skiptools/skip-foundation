@@ -51,6 +51,16 @@ extension String {
         return trim { set.platformValue.contains(UInt32($0.code)) }
     }
 
+    @available(*, unavailable)
+    public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var removingPercentEncoding: String? {
+        fatalError()
+    }
+
     public typealias Encoding = StringEncoding
 
     public var utf8Data: Data {

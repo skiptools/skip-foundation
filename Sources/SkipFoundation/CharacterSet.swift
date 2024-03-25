@@ -63,13 +63,13 @@ public struct CharacterSet : SetAlgebra, Hashable {
     }
 
     public static var whitespaces: CharacterSet {
-        // TODO: Actual values
-        return CharacterSet(platformValue: toPlatformValue([" ", "\t"]))
+        // Also see SkipLib.Character.isWhitespace, .whitespacesAndNewlines
+        return CharacterSet(platformValue: toPlatformValue([" ", "\t", "\u{2029}", "\u{3000}"]))
     }
 
     public static var whitespacesAndNewlines: CharacterSet {
-        // TODO: Actual values
-        return CharacterSet(platformValue: toPlatformValue([" ", "\t", "\n", "\r"]))
+        // Also see SkipLib.Character.isWhitespace, SkipLib.Character.isNewline, .whitespaces, .newlines
+        return CharacterSet(platformValue: toPlatformValue([" ", "\t", "\u{2029}", "\u{3000}", "\n", "\r", "\u{000B}", "\u{000C}", "\u{0085}", "\u{2028}", "\u{2029}"]))
     }
 
     @available(*, unavailable)
@@ -128,8 +128,8 @@ public struct CharacterSet : SetAlgebra, Hashable {
     }
 
     public static var newlines: CharacterSet {
-        // TODO: Actual values
-        return CharacterSet(platformValue: toPlatformValue(["\n", "\r"]))
+        // Also see SkipLib.Character.isNewline, .whitespacesAndNewlines
+        return CharacterSet(platformValue: toPlatformValue(["\n", "\r", "\u{000B}", "\u{000C}", "\u{0085}", "\u{2028}", "\u{2029}"]))
     }
 
     @available(*, unavailable)
