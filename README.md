@@ -555,6 +555,30 @@ Support levels:
         </details> 
       </td>
     </tr>
+   <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>OSAllocatedUnfairLock</code></summary>
+          <ul>
+<li><code>init()</code></li>
+<li><code>init(initialState: State)</code></li>
+<li><code>init(uncheckedState initialState: State)</code></li>
+<li><code>func lock()</code></li>
+<li><code>func unlock()</code></li>
+<li><code>func lockIfAvailable() -> Bool</code></li>
+<li><code>func withLockUnchecked&lt;R>(_ body: (inout State) throws -> R) rethrows -> R</code></li>
+<li><code>func func withLockUnchecked&lt;R>(_ body: () throws -> R) rethrows -> R</code></li>
+<li><code>func withLock&lt;R>(_ body: (inout State) throws -> R) rethrows -> R</code></li>
+<li><code>func withLock&lt;R>(_ body: () throws -> R) rethrows -> R</code></li>
+<li><code>func withLockIfAvailableUnchecked&lt;R>(_ body: (inout State) throws -> R) rethrows -> R?</code></li>
+<li><code>func withLockIfAvailableUnchecked&lt;R>(_ body: () throws -> R) rethrows -> R?</code></li>
+<li><code>func withLockIfAvailable&lt;R>(_ body: @Sendable (inout State) throws -> R) rethrows -> R?</code></li>
+<li><code>func withLockIfAvailable&lt;R>(_ body: () throws -> R) rethrows -> R?</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
     <tr>
       <td>✅</td>
       <td><code>POSIXError</code></td>
@@ -728,6 +752,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>URLError</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>URLQueryItem</code></td>
     </tr>
    <tr>
       <td>🟡</td>
