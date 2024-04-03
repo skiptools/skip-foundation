@@ -193,6 +193,17 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         return platformValue.host
     }
 
+    public func host(percentEncoded: Bool = true) -> String? {
+        guard let host = self.host else {
+            return nil
+        }
+        if percentEncoded {
+            return host.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+        } else {
+            return host
+        }
+    }
+
     public var hasDirectoryPath: Bool {
         return self.isDirectoryFlag == true
     }

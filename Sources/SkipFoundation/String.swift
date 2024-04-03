@@ -6,6 +6,8 @@
 
 #if SKIP
 
+import net.thauvin.erik.urlencoder.UrlEncoderUtil
+
 public typealias NSString = kotlin.String
 public func NSString(string: String) -> NSString { string }
 
@@ -51,14 +53,12 @@ extension String {
         return trim { set.platformValue.contains(UInt32($0.code)) }
     }
 
-    @available(*, unavailable)
     public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
-        fatalError()
+        return UrlEncoderUtil.encode(self, allowedCharacters.platformValue, spaceToPlus: true)
     }
 
-    @available(*, unavailable)
     public var removingPercentEncoding: String? {
-        fatalError()
+        return UrlEncoderUtil.decode(self, plusToSpace: true)
     }
 
     public typealias Encoding = StringEncoding

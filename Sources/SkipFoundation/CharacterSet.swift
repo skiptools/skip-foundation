@@ -62,15 +62,11 @@ public struct CharacterSet : SetAlgebra, Hashable {
         fatalError("SKIP TODO: CharacterSet")
     }
 
-    public static var whitespaces: CharacterSet {
-        // Also see SkipLib.Character.isWhitespace, .whitespacesAndNewlines
-        return CharacterSet(platformValue: toPlatformValue([" ", "\t", "\u{2029}", "\u{3000}"]))
-    }
+    // Also see SkipLib.Character.isWhitespace, .whitespacesAndNewlines
+    public static let whitespaces: CharacterSet = CharacterSet(platformValue: toPlatformValue([" ", "\t", "\u{2029}", "\u{3000}"]))
 
-    public static var whitespacesAndNewlines: CharacterSet {
-        // Also see SkipLib.Character.isWhitespace, SkipLib.Character.isNewline, .whitespaces, .newlines
-        return CharacterSet(platformValue: toPlatformValue([" ", "\t", "\u{2029}", "\u{3000}", "\n", "\r", "\u{000B}", "\u{000C}", "\u{0085}", "\u{2028}", "\u{2029}"]))
-    }
+    // Also see SkipLib.Character.isWhitespace, SkipLib.Character.isNewline, .whitespaces, .newlines
+    public static let whitespacesAndNewlines = CharacterSet(platformValue: toPlatformValue([" ", "\t", "\u{2029}", "\u{3000}", "\n", "\r", "\u{000B}", "\u{000C}", "\u{0085}", "\u{2028}", "\u{2029}"]))
 
     @available(*, unavailable)
     public static var decimalDigits: CharacterSet {
@@ -127,10 +123,8 @@ public struct CharacterSet : SetAlgebra, Hashable {
         fatalError("SKIP TODO: CharacterSet")
     }
 
-    public static var newlines: CharacterSet {
-        // Also see SkipLib.Character.isNewline, .whitespacesAndNewlines
-        return CharacterSet(platformValue: toPlatformValue(["\n", "\r", "\u{000B}", "\u{000C}", "\u{0085}", "\u{2028}", "\u{2029}"]))
-    }
+    // Also see SkipLib.Character.isNewline, .whitespacesAndNewlines
+    public static let newlines: CharacterSet = CharacterSet(platformValue: toPlatformValue(["\n", "\r", "\u{000B}", "\u{000C}", "\u{0085}", "\u{2028}", "\u{2029}"]))
 
     @available(*, unavailable)
     public static var urlUserAllowed: CharacterSet {
@@ -142,24 +136,16 @@ public struct CharacterSet : SetAlgebra, Hashable {
         fatalError("SKIP TODO: CharacterSet")
     }
 
-    @available(*, unavailable)
     public static var urlHostAllowed: CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
+        return urlPathAllowed
     }
 
-    @available(*, unavailable)
-    public static var urlPathAllowed: CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
-    }
+    public static let urlPathAllowed = CharacterSet(platformValue: toPlatformValue(["-", ".", "_", "~", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]))
 
-    @available(*, unavailable)
-    public static var urlQueryAllowed: CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
-    }
+    public static let urlQueryAllowed = CharacterSet(platformValue: toPlatformValue(["/", "?", "&", "=", "+", "-", ".", "_", "~", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]))
 
-    @available(*, unavailable)
     public static var urlFragmentAllowed: CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
+        return urlQueryAllowed
     }
 
     @available(*, unavailable)

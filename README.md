@@ -17,6 +17,10 @@ SkipFoundation depends on the [skip](https://source.skip.tools/skip) transpiler 
 SkipFoundation is part of the core *SkipStack* and is not intended to be imported directly.
 The module is transparently adopted through the translation of `import Foundation` into `import skip.foundation.*` by the Skip transpiler.
 
+### Android Libraries
+
+- SkipFoundation includes source code from the [UrlEncoderUtil](https://github.com/ethauvin/urlencoder) library to implement percent escaping.
+
 ## Status
 
 SkipFoundation supports many of the Foundation framework's most common APIs, but there are many more that are not yet ported. See [Foundation Support](#foundation-support).
@@ -139,6 +143,10 @@ Support levels:
 <li><code>static var whitespaces: CharacterSet</code></li>
 <li><code>static var whitespacesAndNewlines: CharacterSet</code></li>
 <li><code>static var newlines: CharacterSet</code></li>
+<li><code>static var urlHostAllowed: CharacterSet</code></li>
+<li><code>static var urlFragmentAllowed: CharacterSet</code></li>
+<li><code>static var urlPathAllowed: CharacterSet</code></li>
+<li><code>static var urlQueryAllowed: CharacterSet</code></li>
 <li><code>init()</code></li>
 <li><code>func insert(_ character: Unicode.Scalar) -> (inserted: Bool, memberAfterInsert: Unicode.Scalar)</code></li>
 <li><code>func update(with character: Unicode.Scalar) -> Unicode.Scalar?</code></li>
@@ -646,6 +654,8 @@ Support levels:
 <li><code>func replacingOccurrences(of search: String, with replacement: String) -> String</code></li>
 <li><code>func components(separatedBy separator: String) -> [String]</code></li>
 <li><code>func trimmingCharacters(in set: CharacterSet) -> String</code></li>
+<li><code>func addingPercentEncoding(withAllowedCharacters: CharacterSet) -> String?</code></li>
+<li><code>var removingPercentEncoding: String?</code></li>
 <li><code>var utf8Data: Data</code></li>
 <li><code>var utf8: [UInt8]</code></li>
 <li><code>var utf16: [UInt8]</code></li>
@@ -721,6 +731,7 @@ Support levels:
 <li><code>let baseURL: URL?</code></li>
 <li><code>var scheme: String?</code></li>
 <li><code>var host: String?</code></li>
+<li><code>func host(percentEncoded: Bool = true) -> String?</code></li>
 <li><code>var hasDirectoryPath: Bool</code></li>
 <li><code>var path: String</code></li>
 <li><code>var standardized: URL</code></li>
