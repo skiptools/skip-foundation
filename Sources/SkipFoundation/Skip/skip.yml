@@ -21,6 +21,8 @@ build:
   contents:
     - block: 'dependencies'
       contents:
+        - 'implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))'
+        - 'implementation("com.squareup.okhttp3:okhttp")'
         # needed to run local tests that use the JSON parser with a full Robolectric shadow environment
         - 'testImplementation(testLibs.json)'
         - 'testImplementation(testLibs.robolectric)'
