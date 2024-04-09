@@ -18,7 +18,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import okhttp3.`internal`.closeQuietly
 
 private let logger: Logger = Logger(subsystem: "skip", category: "URLSession")
 private let httpClient: OkHttpClient = OkHttpClient.Builder()
@@ -170,13 +169,13 @@ public final class URLSession {
                     outputStream.write(buffer, 0, bytesRead)
                 }
             }
-            inputStream?.closeQuietly()
+            do { inputStream?.close() } catch {}
 
             let bytes = outputStream.toByteArray()
             let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
             return (data: Data(platformValue: bytes), response: response)
         } onCancel: {
-            inputStream?.closeQuietly()
+            do { inputStream?.close() } catch {}
             job.cancel()
         }
     }
@@ -298,11 +297,11 @@ public final class URLSession {
         var inputStream: java.io.InputStream? = nil
         return withTaskCancellationHandler {
             inputStream = connection.getInputStream()
-            let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { inputStream?.closeQuietly() })
+            let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { do { inputStream?.close() } catch {} })
             let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
             return (asyncBytes: asyncBytes, response: response)
         } onCancel: {
-            inputStream?.closeQuietly()
+            do { inputStream?.close() } catch {}
             job.cancel()
         }
     }
@@ -312,7 +311,7 @@ public final class URLSession {
         return withTaskCancellationHandler {
             let response = call.execute()
             let inputStream = response.body?.byteStream()
-            let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { response.closeQuietly() })
+            let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { do { response.close() } catch {} })
             let urlResponse = httpURLResponse(from: response, with: url)
             return (asyncBytes, urlResponse)
         } onCancel: {

@@ -63,17 +63,16 @@ final class URLTests: XCTestCase {
 
     func testFetchURLAsync() async throws {
         let (data, response) = try await URLSession.shared.data(from: testURL)
-
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
         XCTAssertEqual("text/plain", HTTPResponse.mimeType)
         XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
 
         XCTAssertEqual(104, data.count)
-        if isAndroidEmulator { // Android seems not to include the content-length
-            XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
-        } else {
-            XCTAssertEqual(104, HTTPResponse.expectedContentLength)
-        }
+        #if SKIP // Android seems not to include the content-length
+        XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
+        #else
+        XCTAssertEqual(104, HTTPResponse.expectedContentLength)
+        #endif
 
         XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
         {
@@ -99,11 +98,11 @@ final class URLTests: XCTestCase {
 
         let data = try Data(contentsOf: localURL)
         XCTAssertEqual(104, data.count)
-        if isAndroidEmulator { // Android seems not to include the Content-Length in its response
-            XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
-        } else {
-            XCTAssertEqual(104, HTTPResponse.expectedContentLength)
-        }
+        #if SKIP // Android seems not to include the content-length
+        XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
+        #else
+        XCTAssertEqual(104, HTTPResponse.expectedContentLength)
+        #endif
         XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
         {
           "group": 72531,
@@ -119,42 +118,27 @@ final class URLTests: XCTestCase {
 
     func testAsyncBytes() async throws {
         try failOnAndroid() // needs android.permission.INTERNET
-        var lastContentLength: Int64 = 0
-        for _ in 1...5 {
-            let (bytes, response) = try await URLSession.shared.bytes(from: testURL)
-            _ = bytes
-            let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
-            XCTAssertEqual("text/plain", HTTPResponse.mimeType)
-            XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
-            lastContentLength = HTTPResponse.expectedContentLength
-            if lastContentLength != Int64(104) {
-                // wait a bit and then try again, to handle intermittent network failures
-                try await Task.sleep(nanoseconds: 100_000_000)
-                continue
-            } else {
-                XCTAssertEqual(104, lastContentLength)
-                break
-            }
+        let (bytes, response) = try await URLSession.shared.bytes(from: testURL)
+        let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
+        XCTAssertEqual("text/plain", HTTPResponse.mimeType)
+        XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
+
+        var byteArray: [UInt8] = []
+        for try await b in bytes {
+            byteArray.append(b)
         }
-
-        XCTAssertEqual(104, lastContentLength)
-
-        //let data = try await bytes.reduce(into: Data(), { dat, byte in
-        //    var d: Data = dat // Unresolved reference with inout
-        //    var b: [UInt8] = [byte]
-        //    dat.append(contentsOf: [byte])
-        //})
-
-        //XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
-        //{
-        //  "group": 72531,
-        //  "contacts": [
-        //    "plehegar"
-        //  ],
-        //  "policy": "open",
-        //  "repo-type": "rec-track"
-        //}
-        //""")
+        var data = Data()
+        data.append(contentsOf: byteArray)
+        XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
+        {
+          "group": 72531,
+          "contacts": [
+            "plehegar"
+          ],
+          "policy": "open",
+          "repo-type": "rec-track"
+        }
+        """)
     }
 
     func testAsyncStream() async throws {
@@ -198,12 +182,11 @@ final class URLTests: XCTestCase {
         request.httpMethod = "POST"
         request.setValue("Some User Agent", forHTTPHeaderField: "User-Agent")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         let (key, value) = ("abc", "xyz")
         request.httpBody = Data("\(key)=\(value)".utf8)
 
         let (data, response) = try await URLSession.shared.data(for: request)
-
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
         XCTAssertEqual("application/json", HTTPResponse.mimeType)
         let JSONResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any]
