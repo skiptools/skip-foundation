@@ -5,11 +5,50 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
+import okhttp3.Cache
+import okhttp3.CacheControl
+import okhttp3.Call
+import okhttp3.Headers.Companion.toHeaders
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okhttp3.`internal`.closeQuietly
 
-fileprivate let logger: Logger = Logger(subsystem: "skip", category: "URLSession")
+private let logger: Logger = Logger(subsystem: "skip", category: "URLSession")
+private let httpClient: OkHttpClient = OkHttpClient.Builder()
+    .callTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForRequest * 1000), TimeUnit.MILLISECONDS)
+    .readTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForResource * 1000), TimeUnit.MILLISECONDS)
+    .cache(Cache(java.io.File(ProcessInfo.processInfo.androidContext.cacheDir, "http_cache"), 5 * 1024 * 1024))
+    .build()
+
+private enum RequestType {
+    case generic, http
+
+    init(_ request: URLRequest) {
+        guard let url = request.url else {
+            self = RequestType.generic
+        }
+        switch url.scheme?.lowercased() {
+        case "http", "https", "ws", "wss":
+            self = RequestType.http
+        default:
+            self = RequestType.generic
+        }
+    }
+}
 
 public final class URLSession {
+    public static let shared = URLSession(configuration: URLSessionConfiguration.default)
+
     public var configuration: URLSessionConfiguration
+    public let delegate: URLSessionDelegate?
+    public let delegateQueue: OperationQueue?
 
     public init(configuration: URLSessionConfiguration) {
         self.configuration = configuration
@@ -24,20 +63,10 @@ public final class URLSession {
         self.delegateQueue = delegateQueue
     }
 
-    public static let shared = URLSession(configuration: URLSessionConfiguration.default)
-
-    public let delegate: URLSessionDelegate?
-    public let delegateQueue: OperationQueue?
-
-    private func connection(for request: URLRequest) throws -> (URL, java.net.URLConnection) {
-        guard let url = request.url else {
-            throw NoURLInRequestError()
-        }
-        let config = self.configuration
-
-        // note that `openConnection` does not actually connect()
+    /// Use for non-HTTP requests.
+    private static func genericConnection(for request: URLRequest, with url: URL) throws -> java.net.URLConnection {
+        // Calling openConnection does not actually connect
         let connection = url.platformValue.openConnection()
-
         switch request.cachePolicy {
         case URLRequest.CachePolicy.useProtocolCachePolicy:
             connection.setUseCaches(true)
@@ -52,79 +81,62 @@ public final class URLSession {
         case URLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData:
             connection.setUseCaches(false)
         }
-
-        if let httpConnection = connection as? java.net.HttpURLConnection {
-            if let httpMethod = request.httpMethod {
-                httpConnection.setRequestMethod(httpMethod)
-            }
-
-            httpConnection.connectTimeout = request.timeoutInterval > 0 ? (request.timeoutInterval * 1000.0).toInt() : (config.timeoutIntervalForRequest * 1000.0).toInt()
-            httpConnection.readTimeout = config.timeoutIntervalForResource.toInt()
-        }
-
-        for (headerKey, headerValue) in request.allHTTPHeaderFields ?? [:] {
-            connection.setRequestProperty(headerKey, headerValue)
-        }
-
-        if let httpBody = request.httpBody {
-            connection.setDoOutput(true)
-            let os = connection.getOutputStream()
-            os.write(httpBody.platformValue)
-            os.flush()
-            os.close()
-        }
-
-        return (url, connection)
+        return connection
     }
 
-    private func response(for url: URL, with connection: java.net.URLConnection) -> HTTPURLResponse {
-        var statusCode = -1
-        if let httpConnection = connection as? java.net.HttpURLConnection {
-            statusCode = httpConnection.getResponseCode()
+    /// Use for HTTP requests.
+    private static func httpCall(for request: URLRequest, with url: URL, configuration: URLSessionConfiguration, build: (Request.Builder) -> Void = {}) -> Call {
+        let requestTimeout = request.timeoutInterval > 0.0 ? request.timeoutInterval : configuration.timeoutIntervalForRequest
+        let resourceTimeout = configuration.timeoutIntervalForResource
+        let client: OkHttpClient
+        if requestTimeout != URLSessionConfiguration.default.timeoutIntervalForRequest || resourceTimeout != URLSessionConfiguration.default.timeoutIntervalForResource {
+            client = httpClient.newBuilder()
+                .callTimeout(Int64(requestTimeout * 1000), TimeUnit.MILLISECONDS)
+                .readTimeout(Int64(resourceTimeout * 1000), TimeUnit.MILLISECONDS)
+                .build()
+        } else {
+            client = httpClient
         }
 
-        let headerFields = connection.getHeaderFields()
-
-        let httpVersion: String? = nil // TODO: extract version from response
-        var headers: [String: String] = [:]
-        for (key, values) in headerFields {
-            if let key = key, let values = values {
-                for value in values {
-                    if let value = value {
-                        headers[key] = value
-                    }
-                }
-            }
+        let builder = Request.Builder()
+            .url(url.platformValue)
+            .method(request.httpMethod ?? "GET", request.httpBody?.platformValue?.toRequestBody())
+        // SKIP NOWARN
+        if let headerMap = request.allHTTPHeaderFields?.kotlin(nocopy: true) as? Map<String, String> {
+            builder.headers(headerMap.toHeaders())
         }
-        let response = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: httpVersion, headerFields: headers)
-        return response!
+        switch request.cachePolicy {
+        case URLRequest.CachePolicy.useProtocolCachePolicy:
+            break
+        case URLRequest.CachePolicy.returnCacheDataElseLoad:
+            builder.header("Cache-Control", "max-stale=31536000") // One year
+        case URLRequest.CachePolicy.returnCacheDataDontLoad:
+            builder.cacheControl(CacheControl.FORCE_CACHE)
+        case URLRequest.CachePolicy.reloadRevalidatingCacheData:
+            builder.header("Cache-Control", "no-cache, must-revalidate")
+        case URLRequest.CachePolicy.reloadIgnoringLocalCacheData:
+            builder.cacheControl(CacheControl.FORCE_NETWORK)
+        case URLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData: builder.cacheControl(CacheControl.FORCE_NETWORK)
+        }
+
+        build(builder)
+        return client.newCall(builder.build())
     }
 
     // SKIP ATTRIBUTES: nodispatch
     public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        let job = kotlinx.coroutines.Job()
-        return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
-            let (url, connection) = connection(for: request)
-            var inputStream: java.io.InputStream? = nil
-            return withTaskCancellationHandler {
-                let response = response(for: url, with: connection)
-
-                inputStream = connection.getInputStream()
-                let outputStream = java.io.ByteArrayOutputStream()
-                let buffer = ByteArray(1024)
-                if let stableInputStream = inputStream {
-                    var bytesRead: Int
-                    while (stableInputStream.read(buffer).also { bytesRead = $0 } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                    }
-                }
-                cleanup(connection: connection, inputStream: inputStream)
-
-                let bytes = outputStream.toByteArray()
-                return (data: Data(platformValue: bytes), response: response)
-            } onCancel: {
-                cleanup(connection: connection, inputStream: inputStream)
-                job.cancel()
+        guard let url = request.url else {
+            throw NoURLInRequestError()
+        }
+        let configuration = configuration
+        let job = Job()
+        return withContext(job + Dispatchers.IO) {
+            switch RequestType(request) {
+            case .generic:
+                return Self.genericResponse(for: request, with: url, job: job)
+            case .http:
+                let call = Self.httpCall(for: request, with: url, configuration: configuration)
+                return Self.httpResponse(for: call, with: url, job: job)
             }
         }
     }
@@ -145,138 +157,60 @@ public final class URLSession {
     }
 
     // SKIP ATTRIBUTES: nodispatch
+    private static func genericResponse(for request: URLRequest, with url: URL, job: Job) async throws -> (Data, URLResponse) {
+        let connection = try genericConnection(for: request, with: url)
+        var inputStream: java.io.InputStream? = nil
+        return withTaskCancellationHandler {
+            inputStream = connection.getInputStream()
+            let outputStream = java.io.ByteArrayOutputStream()
+            let buffer = ByteArray(1024)
+            if let stableInputStream = inputStream {
+                var bytesRead: Int
+                while (stableInputStream.read(buffer).also { bytesRead = $0 } != -1) {
+                    outputStream.write(buffer, 0, bytesRead)
+                }
+            }
+            inputStream?.closeQuietly()
+
+            let bytes = outputStream.toByteArray()
+            let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
+            return (data: Data(platformValue: bytes), response: response)
+        } onCancel: {
+            inputStream?.closeQuietly()
+            job.cancel()
+        }
+    }
+
+    // SKIP ATTRIBUTES: nodispatch
+    private static func httpResponse(for call: Call, with url: URL, job: Job) async throws -> (Data, URLResponse) {
+        return withTaskCancellationHandler {
+            call.execute().use { response in
+                let data: Data
+                if let bytes = response.body?.bytes() {
+                    data = Data(bytes)
+                } else {
+                    data = Data()
+                }
+                let urlResponse = httpURLResponse(from: response, with: url)
+                return (data, urlResponse)
+            }
+        } onCancel: {
+            do { call.cancel() } catch {}
+            job.cancel()
+        }
+    }
+
+    private static func httpURLResponse(from response: Response, with url: URL) -> HTTPURLResponse {
+        let statusCode = response.code
+        let httpVersion = response.protocol.toString()
+        let headerDictionary = Dictionary(response.headers.toMap(), nocopy: true)
+        return HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: httpVersion, headerFields: headerDictionary)
+    }
+
     @available(*, unavailable)
     public func download(for request: URLRequest) async throws -> (URL, URLResponse) {
-        guard let url = request.url else {
-            throw NoURLInRequestError()
-        }
-
-        // seems to be the typical way of converting from java.net.URL into android.net.Uri (which is needed by the DownloadManager)
-        let uri = android.net.Uri.parse(url.description)
-
-        let ctx = ProcessInfo.processInfo.androidContext
-        let downloadManager = ctx.getSystemService(android.content.Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
-
-        let downloadRequest = android.app.DownloadManager.Request(uri)
-            .setAllowedOverMetered(self.configuration.allowsExpensiveNetworkAccess)
-            .setAllowedOverRoaming(self.configuration.allowsConstrainedNetworkAccess)
-            .setShowRunningNotification(true)
-
-        for (headerKey, headerValue) in request.allHTTPHeaderFields ?? [:] {
-            downloadRequest.addRequestHeader(headerKey, headerValue)
-        }
-
-        let downloadId = downloadManager.enqueue(downloadRequest)
-        let query = android.app.DownloadManager.Query()
-            .setFilterById(downloadId)
-
-        // Query the DownloadManager for the response, which returns a SQLite cursor with the current download status of all the outstanding downloads.
-        func queryDownload() -> Result<(URL, URLResponse), Error>? {
-            let cursor = downloadManager.query(query)
-
-            defer { cursor.close() }
-
-            if !cursor.moveToFirst() {
-                // download not found
-                let error = UnableToStartDownload()
-                return Result.failure(error)
-            }
-
-            let status = cursor.getInt(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_STATUS))
-            let uri = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_URI)) // URI to be downloaded.
-
-            // STATUS_FAILED, STATUS_PAUSED, STATUS_PENDING, STATUS_RUNNING, STATUS_SUCCESSFUL
-            if status == android.app.DownloadManager.STATUS_PAUSED {
-                return nil
-            }
-            if status == android.app.DownloadManager.STATUS_PENDING {
-                return nil
-            }
-
-            //let desc = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_DESCRIPTION)) // The client-supplied description of this download // NPE
-            //let id = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_ID)) // An identifier for a particular download, unique across the system. // NPE
-            // let lastModified = cursor.getLong(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_LAST_MODIFIED_TIMESTAMP)) // Timestamp when the download was last modified, in System.currentTimeMillis() (wall clock time in UTC).
-
-            // Error: java.lang.SecurityException: COLUMN_LOCAL_FILENAME is deprecated; use ContentResolver.openFileDescriptor() instead
-            // let localFilename = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_LOCAL_FILENAME)) // Path to the downloaded file on disk.
-
-            //let localURI = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_LOCAL_URI)) // Uri where downloaded file will be stored. // NPE
-            // let mediaproviderURI = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_MEDIAPROVIDER_URI)) // The URI to the corresponding entry in MediaProvider for this downloaded entry. // NPE
-            //let mediaType = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_MEDIA_TYPE)) // Internet Media Type of the downloaded file.
-            let reason = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_REASON)) // Provides more detail on the status of the download.
-            //let title = cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_TITLE)) // The client-supplied title for this download.
-            let totalSizeBytes = cursor.getLong(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_TOTAL_SIZE_BYTES)) // Total size of the download in bytes.
-            let bytesDownloaded = cursor.getLong(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)) // Number of bytes download so far.
-
-            if status == android.app.DownloadManager.STATUS_RUNNING {
-                // TODO: update progress
-                //  if let progress = Progress.current() {
-                //  }
-                return nil
-            } else if status == android.app.DownloadManager.STATUS_SUCCESSFUL {
-                let httpVersion: String? = nil // TODO: extract version from response
-                var headers: [String: String] = [:]
-                let statusCode = 200 // TODO: extract status code
-                headers["Content-Length"] = totalSizeBytes?.description
-                //headers["Last-Modified"] = lastModified // TODO: convert to Date
-                let response = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: httpVersion, headerFields: headers)
-                //let localURL = URL(fileURLWithPath: localFilename)
-
-                // Type mismatch: inferred type is String! but Uri was expected
-//                guard let pfd = ctx.getContentResolver().openFileDescriptor(uri, "r") else {
-//                    // TODO: create error from error
-//                    let error = FailedToDownloadURLError()
-//                    return Result.failure(error)
-//                }
-
-                // unfortunately we cannot get a file path from a descriptor, so we need to copy the contents to a temporary file, and then return that one
-                return Result.failure(DownloadUnimplentedError())
-                // TODO: return Result.success((localURL as URL, response as URLResponse))
-            } else if status == android.app.DownloadManager.STATUS_FAILED {
-                // File download failed
-                // TODO: create error from error
-                let error = FailedToDownloadURLError()
-                return Result.failure(error)
-            } else {
-                // no known android.app.DownloadManager.STATUS_*
-                // this can happen with Robolectric tests, since ShadowDownloadManager is just a stub and it sets 0 for the status
-                let error = DownloadUnsupportedWithRobolectric(status: status)
-                return Result.failure(error)
-            }
-
-            return nil
-        }
-
-        let isRobolectric = (try? Class.forName("org.robolectric.Robolectric")) != nil
-
-        let response: Result<(URL, URLResponse), Error> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            if isRobolectric {
-                // Robolectric's ShadowDownloadManager doesn't actually download anything, so we fake it for testing by just getting the data in-memory (hoping it isn't too large!) and saving it to a temporary file
-                do {
-                    let (data, response) = try await data(for: request)
-                    let outputFileURL: URL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-                    try data.write(to: outputFileURL)
-                    return Result.success((outputFileURL, response))
-                } catch {
-                    return Result.failure(error)
-                }
-            } else {
-                // initiate using android.app.DownloadManager
-                // TODO: rather than polling in a loop, we could do android.registerBroadcastReceiver(android.app.DownloadManager.ACTION_DOWNLOAD_COMPLETE, handleDownloadEvent)
-                while true {
-                    if let downloadResult = queryDownload() {
-                        return downloadResult
-                    }
-                    kotlinx.coroutines.delay(250) // wait and poll again
-                }
-            }
-            return Result.failure(FailedToDownloadURLError()) // needed for Kotlin type checking
-        }
-
-        switch response {
-        case .failure(let error): throw error
-        case .success(let urlResponseTuple): return urlResponseTuple
-        }
+        // NOTE: Partial implementation was here prior to 4/7/2024. See git history to revive
+        fatalError()
     }
 
     @available(*, unavailable)
@@ -284,16 +218,13 @@ public final class URLSession {
         fatalError()
     }
 
-    // SKIP ATTRIBUTES: nodispatch
     @available(*, unavailable)
     public func download(from url: URL) async throws -> (URL, URLResponse) {
-        // return self.download(for: URLRequest(url: url))
         fatalError()
     }
 
     @available(*, unavailable)
     public func download(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (URL, URLResponse) {
-        // return self.download(for: URLRequest(url: url))
         fatalError()
     }
 
@@ -304,11 +235,17 @@ public final class URLSession {
 
     // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
-        let job = kotlinx.coroutines.Job()
-        return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
-            let data = Data(contentsOfFile: fileURL.absoluteString)
-            request.httpBody = data
-            return upload(for: request, job: job)
+        guard let url = request.url else {
+            throw NoURLInRequestError()
+        }
+        let file = java.io.File(url.platformValue.toURI())
+        // Only supported for HTTP
+        let call = Self.httpCall(for: request, with: url, configuration: configuration) {
+            $0.post(file.asRequestBody())
+        }
+        let job = Job()
+        return withContext(job + Dispatchers.IO) {
+            return Self.httpResponse(for: call, with: url, job: job)
         }
     }
 
@@ -319,10 +256,16 @@ public final class URLSession {
 
     // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
-        let job = kotlinx.coroutines.Job()
-        return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
-            request.httpBody = bodyData
-            return upload(for: request, job: job)
+        guard let url = request.url else {
+            throw NoURLInRequestError()
+        }
+        // Only supported for HTTP
+        let call = Self.httpCall(for: request, with: url, configuration: configuration) {
+            $0.post(bodyData.platformValue.toRequestBody())
+        }
+        let job = Job()
+        return withContext(job + Dispatchers.IO) {
+            return Self.httpResponse(for: call, with: url, job: job)
         }
     }
 
@@ -332,37 +275,49 @@ public final class URLSession {
     }
 
     // SKIP ATTRIBUTES: nodispatch
-    private func upload(for request: URLRequest, job: kotlinx.coroutines.Job) async -> (Data, URLResponse) {
-        let (url, connection) = connection(for: request)
+    public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
+        guard let url = request.url else {
+            throw NoURLInRequestError()
+        }
+        let configuration = configuration
+        let job = Job()
+        return withContext(job + Dispatchers.IO) {
+            switch RequestType(request) {
+            case .generic:
+                return Self.genericBytes(for: request, with: url, job: job)
+            case .http:
+                let call = Self.httpCall(for: request, with: url, configuration: configuration)
+                return Self.httpBytes(for: call, with: url, job: job)
+            }
+        }
+    }
+
+    // SKIP ATTRIBUTES: nodispatch
+    private static func genericBytes(for request: URLRequest, with url: URL, job: Job) async throws -> (AsyncBytes, URLResponse) {
+        let connection = try genericConnection(for: request, with: url)
         var inputStream: java.io.InputStream? = nil
         return withTaskCancellationHandler {
-            let response = response(for: url, with: connection)
-
             inputStream = connection.getInputStream()
-            let responseData = java.io.BufferedInputStream(inputStream).readBytes()
-            cleanup(connection: connection, inputStream: inputStream)
-
-            return (Data(platformValue: responseData), response as URLResponse)
+            let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { inputStream?.closeQuietly() })
+            let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
+            return (asyncBytes: asyncBytes, response: response)
         } onCancel: {
-            cleanup(connection: connection, inputStream: inputStream)
+            inputStream?.closeQuietly()
             job.cancel()
         }
     }
 
     // SKIP ATTRIBUTES: nodispatch
-    public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
-        let job = kotlinx.coroutines.Job()
-        return kotlinx.coroutines.withContext(job + kotlinx.coroutines.Dispatchers.IO) {
-            let (url, connection) = connection(for: request)
-            withTaskCancellationHandler {
-                let response = response(for: url, with: connection)
-                let inputStream = connection.getInputStream()
-                let stream = AsyncBytes(connection: connection, inputStream: inputStream)
-                return (stream, response)
-            } onCancel: {
-                cleanup(connection: connection, inputStream: nil)
-                job.cancel()
-            }
+    private static func httpBytes(for call: Call, with url: URL, job: Job) async throws -> (AsyncBytes, URLResponse) {
+        return withTaskCancellationHandler {
+            let response = call.execute()
+            let inputStream = response.body?.byteStream()
+            let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { response.closeQuietly() })
+            let urlResponse = httpURLResponse(from: response, with: url)
+            return (asyncBytes, urlResponse)
+        } onCancel: {
+            do { call.cancel() } catch {}
+            job.cancel()
         }
     }
 
@@ -384,16 +339,18 @@ public final class URLSession {
     public struct AsyncBytes: AsyncSequence {
         typealias Element = UInt8
         
-        let connection: java.net.URLConnection
         var inputStream: java.io.InputStream?
+        var onClose: (() -> Void)?
 
-        init(connection: java.net.URLConnection, inputStream: java.io.InputStream) {
-            self.connection = connection
+        init(inputStream: java.io.InputStream?, onClose: (() -> Void)? = nil) {
             self.inputStream = inputStream
+            self.onClose = onClose
         }
 
         deinit {
-            close()
+            if let onClose {
+                onClose()
+            }
         }
 
         override func makeAsyncIterator() -> Iterator {
@@ -401,8 +358,11 @@ public final class URLSession {
         }
 
         func close() {
-            cleanup(connection: connection, inputStream: inputStream)
-            inputStream = nil
+            if let onClose {
+                onClose()
+                self.inputStream = nil
+                self.onClose = nil
+            }
         }
 
         public final class Iterator: AsyncIteratorProtocol {
@@ -581,13 +541,6 @@ public final class URLSession {
         case allow = 1
         case becomeDownload = 2
         case becomeStream = 3
-    }
-}
-
-private func cleanup(connection: java.net.URLConnection, inputStream: java.io.InputStream?) {
-    do { inputStream?.close() } catch {}
-    if let httpConnection = connection as? java.net.HttpURLConnection {
-        do { httpConnection.disconnect() }
     }
 }
 
