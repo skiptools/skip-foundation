@@ -294,6 +294,7 @@ Support levels:
           <summary><code>DispatchQueue</code></summary>
           <ul>
 <li><code>static let main: DispatchQueue</code></li>
+<li><code>func async(execute: () -> Void)</code></li>
           </ul>
         </details> 
       </td>
@@ -785,7 +786,7 @@ Support levels:
       <td><code>URLResponse</code></td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟡</td>
       <td>
         <details>
           <summary><code>URLSession</code></summary>
@@ -798,6 +799,10 @@ Support levels:
 <li><code>func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse)</code></li>
 <li><code>func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse)</code></li>
 <li><code>func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse)</code></li>
+<li><code>func dataTask(with url: URL, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionDataTask</code></li>
+<li><code>func dataTask(with request: URLRequest, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionDataTask</code></li>
+<li><code>func uploadTask(with: URLRequest, from: Data?, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionUploadTask</code></li>
+<li><code>func uploadTask(with: URLRequest, fromFile: URL, completionHandler: ((Data?, URLResponse?, Error?) -> Void)?) -> URLSessionUploadTask</code></li>
 <li><code>struct AsyncBytes: AsyncSequence</code></li>
           </ul>
         </details> 

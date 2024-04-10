@@ -179,7 +179,7 @@ public extension CustomNSError {
     }
 }
 
-public struct CocoaError {
+public struct CocoaError: Error {
     public let _nsError: NSError
 
     public init(_nsError error: NSError) {
@@ -394,7 +394,7 @@ public struct CocoaError {
     }
 }
 
-public struct URLError {
+public struct URLError: Error {
     public let _nsError: NSError
 
     public init(_nsError error: NSError) {
@@ -519,7 +519,7 @@ public struct URLError {
 
 public typealias POSIXErrorCode = POSIXError.Code
 
-public struct POSIXError {
+public struct POSIXError: Error {
     public let _nsError: NSError
 
     public init(_nsError error: NSError) {

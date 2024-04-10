@@ -5,6 +5,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 // Stubs that allow SkipModel to implement Publisher.receive(on:) for the main queue
 
@@ -33,8 +36,10 @@ public struct DispatchQueue : Scheduler {
         fatalError()
     }
 
-    @available(*, unavailable)
     public func async(execute: () -> Void) {
+        GlobalScope.launch(Dispatchers.Main) {
+            execute()
+        }
     }
 
     @available(*, unavailable)
