@@ -9,6 +9,9 @@
 public typealias NSURL = URL
 
 public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting<java.net.URL> {
+    // TODO: Switch away from java.net.URL, which can only be constructed with a limited set of supported protocols.
+    // When we switch, make sure to update the networking code in URLSession to re-map ws/wss websocket URLs to http
+    // rather than doing that in our string constructor
     internal var platformValue: java.net.URL
     private let isDirectoryFlag: Bool?
 
@@ -102,8 +105,16 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public init?(string: String, relativeTo baseURL: URL? = nil) {
+        // Java doesn't support ws/wss URLs
+        var sanitizedString = string
+        if sanitizedString.hasPrefix("ws://") {
+            sanitizedString = "http" + String(sanitizedString.dropFirst("ws".count))
+        } else if sanitizedString.hasPrefix("wss://") {
+            sanitizedString = "https" + String(sanitizedString.dropFirst("wss".count))
+        }
+
         do {
-            let url = java.net.URL(relativeTo?.platformValue, string) // throws on malformed
+            let url = java.net.URL(relativeTo?.platformValue, sanitizedString) // throws on malformed
             // use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
             let isDirectory = url.`protocol` == "file" && string.hasSuffix("/")
             self.platformValue = url

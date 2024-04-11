@@ -792,7 +792,11 @@ Support levels:
           <summary><code>URLSession</code></summary>
           <ul>
 <li><code>static let shared: URLSession</code></li>
-<li><code>init(configuration: URLSessionConfiguration)</code></li>
+<li><code>init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate? = nil, delegateQueue: OperationQueue? = nil)</code></li>
+<li><code>var configuration: URLSessionConfiguration</code></li>
+<li><code>var sessionDescription: String?</code></li>
+<li><code>var delegate: URLSessionDelegate?</code></li>
+<li><code>var delegateQueue: OperationQueue?</code></li>
 <li><code>func data(for request: URLRequest) async throws -> (Data, URLResponse)</code></li>
 <li><code>func data(from url: URL) async throws -> (Data, URLResponse)</code></li>
 <li><code>func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse)</code></li>
@@ -803,6 +807,9 @@ Support levels:
 <li><code>func dataTask(with request: URLRequest, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionDataTask</code></li>
 <li><code>func uploadTask(with: URLRequest, from: Data?, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionUploadTask</code></li>
 <li><code>func uploadTask(with: URLRequest, fromFile: URL, completionHandler: ((Data?, URLResponse?, Error?) -> Void)?) -> URLSessionUploadTask</code></li>
+<li><code>func webSocketTask(with url: URL) -> URLSessionWebSocketTask</code></li>
+<li><code>func webSocketTask(with request: URLRequest) -> URLSessionWebSocketTask</code></li>
+<li><code>func webSocketTask(with url: URL, protocols: [String]) -> URLSessionWebSocketTask</code></li>
 <li><code>struct AsyncBytes: AsyncSequence</code></li>
           </ul>
         </details> 
@@ -815,6 +822,78 @@ Support levels:
           <summary><code>URLSessionConfiguration</code></summary>
           <ul>
 <li>Many properties are currently ignored by <code>URLSession</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>URLSessionDataTask</code></summary>
+          <ul>
+<li><code>static let defaultPriority: Float</code></li>
+<li><code>static let lowPriority: Float</code></li>
+<li><code>static let highPriority: Float</code></li>
+<li><code>var taskIdentifier: Int</code></li>
+<li><code>var taskDescription: String?</code></li>
+<li><code>var originalRequest: URLRequest?</code></li>
+<li><code>var state: URLSessionTask.State</code></li>
+<li><code>var error: Error?</code></li>
+<li><code>var priority: Float</code></li>
+<li><code>func suspend()</code></li>
+<li><code>func resume()</code></li>
+<li><code>func cancel()</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>URLSessionUploadTask</code></summary>
+          <ul>
+<li><code>static let defaultPriority: Float</code></li>
+<li><code>static let lowPriority: Float</code></li>
+<li><code>static let highPriority: Float</code></li>
+<li><code>var taskIdentifier: Int</code></li>
+<li><code>var taskDescription: String?</code></li>
+<li><code>var originalRequest: URLRequest?</code></li>
+<li><code>var state: URLSessionTask.State</code></li>
+<li><code>var error: Error?</code></li>
+<li><code>var priority: Float</code></li>
+<li><code>func suspend()</code></li>
+<li><code>func resume()</code></li>
+<li><code>func cancel()</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>URLSessionWebSocketTask</code></summary>
+          <ul>
+<li><code>static let defaultPriority: Float</code></li>
+<li><code>static let lowPriority: Float</code></li>
+<li><code>static let highPriority: Float</code></li>
+<li><code>var taskIdentifier: Int</code></li>
+<li><code>var taskDescription: String?</code></li>
+<li><code>var originalRequest: URLRequest?</code></li>
+<li><code>var state: URLSessionTask.State</code></li>
+<li><code>var error: Error?</code></li>
+<li><code>var priority: Float</code></li>
+<li><code>func suspend()</code></li>
+<li><code>func resume()</code></li>
+<li><code>func cancel()</code></li>
+<li><code>func cancel(with closeCode: CloseCode, reason: Data?)</code></li>
+<li><code>var maximumMessageSize: Int</code></li>
+<li><code>var closeCode: CloseCode</code></li>
+<li><code>var closeReason: Data?</code></li>
+<li><code>func send(_ message: Message) async throws -> Void</code></li>
+<li><code>func receive() async throws -> Message</code></li>
           </ul>
         </details> 
       </td>

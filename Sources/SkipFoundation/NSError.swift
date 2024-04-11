@@ -402,6 +402,10 @@ public struct URLError: Error {
         self._nsError = error
     }
 
+    public init(_ code: URLError.Code, userInfo: [String: Any] = [:]) {
+        self.init(_nsError: NSError(domain: NSURLErrorDomain, code: code.rawValue, userInfo: userInfo))
+    }
+
     public var code: Code { Code(rawValue: _nsError.code)! }
 
     public static var _nsErrorDomain: String { return NSURLErrorDomain }

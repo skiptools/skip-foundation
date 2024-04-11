@@ -52,14 +52,7 @@ public final class URLSession {
     private let lock = NSRecursiveLock()
     private var nextTaskIdentifier = 0
 
-    public init(configuration: URLSessionConfiguration) {
-        self.configuration = configuration
-        self.delegate = nil
-        self.delegateQueue = nil
-    }
-
-    @available(*, unavailable)
-    public init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue: OperationQueue?) {
+    public init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate? = nil, delegateQueue: OperationQueue? = nil) {
         self.configuration = configuration
         self.delegate = delegate
         self.delegateQueue = delegateQueue
@@ -130,7 +123,7 @@ public final class URLSession {
     // SKIP ATTRIBUTES: nodispatch
     public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         guard let url = request.url else {
-            throw NoURLInRequestError()
+            throw URLError(.badURL)
         }
         switch RequestType(request) {
         case .generic:
@@ -243,7 +236,7 @@ public final class URLSession {
     // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
         guard let url = request.url else {
-            throw NoURLInRequestError()
+            throw URLError(.badURL)
         }
         let file = java.io.File(url.platformValue.toURI())
         // Only supported for HTTP
@@ -261,7 +254,7 @@ public final class URLSession {
     // SKIP ATTRIBUTES: nodispatch
     public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
         guard let url = request.url else {
-            throw NoURLInRequestError()
+            throw URLError(.badURL)
         }
         // Only supported for HTTP
         let (client, httpRequest) = Self.httpRequest(for: request, with: url, configuration: configuration) {
@@ -278,7 +271,7 @@ public final class URLSession {
     // SKIP ATTRIBUTES: nodispatch
     public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
         guard let url = request.url else {
-            throw NoURLInRequestError()
+            throw URLError(.badURL)
         }
         switch RequestType(request) {
         case .generic:
@@ -550,22 +543,6 @@ extension URLSessionDelegate {
 
     public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
     }
-}
-
-public struct NoURLInRequestError : Error {
-}
-
-public struct FailedToDownloadURLError : Error {
-}
-
-public struct DownloadUnimplentedError : Error {
-}
-
-public struct UnableToStartDownload : Error {
-}
-
-public struct DownloadUnsupportedWithRobolectric : Error {
-    let status: Int
 }
 
 // Stub
