@@ -39,12 +39,21 @@ public class URLSessionTask {
 
     public let taskIdentifier: Int
     public let originalRequest: URLRequest?
+    public var delegate: URLSessionTaskDelegate? {
+        get {
+            return lock.withLock { _delegate }
+        }
+        set {
+            lock.withLock { _delegate = newValue }
+        }
+    }
+    private var _delegate: URLSessionTaskDelegate?
 
     public var countOfBytesClientExpectsToReceive = Int64(-1)
     public var countOfBytesClientExpectsToSend = Int64(-1)
     
     @available(*, unavailable)
-    public private(set) var progress: Any? = nil /* Progress(totalUnitCount: -1) */
+    public let progress: Any? = nil /* Progress(totalUnitCount: -1) */
 
     @available(*, unavailable)
     public var earliestBeginDate: Date? = nil
@@ -165,17 +174,22 @@ public class URLSessionTask {
         if let completionHandler {
             completionHandler(data, response, error)
         }
-        withDelegate(session.delegate as? URLSessionTaskDelegate) { delegate in
+        withDelegates(task: delegate, session: session.delegate as? URLSessionTaskDelegate) { delegate in
             delegate.urlSession(session, task: self, didCompleteWithError: error)
         }
     }
 
-    func withDelegate<D>(_ delegate: D?, operation: (D) -> Void) {
-        guard let delegate else {
+    func withDelegates<D>(task taskDelegate: D?, session sessionDelegate: D?, operation: (D) -> Void) {
+        guard taskDelegate != nil || sessionDelegate != nil else {
             return
         }
-        GlobalScope.launch(Dispatchers.Main) {
-            operation(delegate)
+        session.delegateQueue.runBlock {
+            if let taskDelegate {
+                operation(taskDelegate)
+            }
+            if let sessionDelegate {
+                operation(sessionDelegate)
+            }
         }
     }
 }
@@ -215,7 +229,7 @@ public class _URLSessionDataTask : URLSessionTask {
 
     private func notifyDelegate(response: URLResponse) {
         if let dataTask = self as? URLSessionDataTask {
-            withDelegate(session.delegate as? URLSessionDataDelegate) { delegate in
+            withDelegates(task: delegate as? URLSessionDataDelegate, session: session.delegate as? URLSessionDataDelegate) { delegate in
                 delegate.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: { _ in })
             }
         }
@@ -223,7 +237,7 @@ public class _URLSessionDataTask : URLSessionTask {
 
     private func notifyDelegate(data: Data) {
         if let dataTask = self as? URLSessionDataTask {
-            withDelegate(session.delegate as? URLSessionDataDelegate) { delegate in
+            withDelegates(task: delegate as? URLSessionDataDelegate, session: session.delegate as? URLSessionDataDelegate) { delegate in
                 delegate.urlSession(session, dataTask: dataTask, didReceive: data)
             }
         }
@@ -383,14 +397,14 @@ public class URLSessionWebSocketTask : URLSessionTask {
 
         override func onOpen(webSocket: WebSocket, response: Response) {
             super.onOpen(webSocket: webSocket, response: response)
-            task.withDelegate(task.session.delegate as? URLSessionWebSocketDelegate) { delegate in
+            task.withDelegates(task: task.delegate as? URLSessionWebSocketDelegate, session: task.session.delegate as? URLSessionWebSocketDelegate) { delegate in
                 delegate.urlSession(task.session, webSocketTask: task, didOpenWithProtocol: response.protocol.toString())
             }
         }
 
         override func onClosed(webSocket: WebSocket, code: Int, reason: String) {
             super.onClosed(webSocket: webSocket, code: code, reason: reason)
-            task.withDelegate(task.session.delegate as? URLSessionWebSocketDelegate) { delegate in
+            task.withDelegates(task: task.delegate as? URLSessionWebSocketDelegate, session: task.session.delegate as? URLSessionWebSocketDelegate) { delegate in
                 let closeCode = CloseCode(rawValue: code) ?? CloseCode.invalid
                 let closeData = reason.utf8Data
                 delegate.urlSession(task.session, webSocketTask: task, didCloseWith: closeCode, reason: closeData)

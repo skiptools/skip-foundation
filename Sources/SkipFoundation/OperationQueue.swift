@@ -5,14 +5,33 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import java.util.concurrent.Executors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 public class OperationQueue {
     /// Stub representing the main queue.
-    public static let main = OperationQueue()
+    public static let main = OperationQueue(runBlock: { block in
+        GlobalScope.launch(Dispatchers.Main) {
+            block()
+        }
+    })
 
     @available(*, unavailable)
     public static var current: OperationQueue? {
         return nil
+    }
+
+    let runBlock: (() -> Void) -> Void
+
+    public init() {
+        let executorService = Executors.newSingleThreadExecutor()
+        self.runBlock = { block in executorService.submit(block) }
+    }
+
+    public init(runBlock: (() -> Void) -> Void) {
+        self.runBlock = runBlock
     }
 
     @available(*, unavailable)

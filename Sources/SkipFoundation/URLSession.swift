@@ -53,7 +53,7 @@ public final class URLSession {
 
     public let configuration: URLSessionConfiguration
     public let delegate: URLSessionDelegate?
-    public let delegateQueue: OperationQueue?
+    public let delegateQueue: OperationQueue
 
     private let lock = NSRecursiveLock()
     private var nextTaskIdentifier = 0
@@ -61,7 +61,7 @@ public final class URLSession {
     public init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate? = nil, delegateQueue: OperationQueue? = nil) {
         self.configuration = configuration
         self.delegate = delegate
-        self.delegateQueue = delegateQueue
+        self.delegateQueue = delegateQueue ?? OperationQueue()
     }
 
     public var sessionDescription: String?
@@ -127,7 +127,7 @@ public final class URLSession {
     }
 
     // SKIP ATTRIBUTES: nodispatch
-    public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+    public func data(for request: URLRequest, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
         guard let url = request.url else {
             throw URLError(.badURL)
         }
@@ -140,19 +140,9 @@ public final class URLSession {
         }
     }
 
-    @available(*, unavailable)
-    public func data(for request: URLRequest, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse) {
-        fatalError()
-    }
-
     // SKIP ATTRIBUTES: nodispatch
-    public func data(from url: URL) async throws -> (Data, URLResponse) {
-        return self.data(for: URLRequest(url: url))
-    }
-
-    @available(*, unavailable)
-    public func data(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse) {
-        fatalError()
+    public func data(from url: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
+        return self.data(for: URLRequest(url: url), delegate: delegate)
     }
 
     // SKIP ATTRIBUTES: nodispatch
@@ -483,24 +473,36 @@ public final class URLSession {
         return webSocketTask(with: request)
     }
 
-    @available(*, unavailable)
     public func finishTasksAndInvalidate() {
+        //~~~
     }
 
     @available(*, unavailable)
     public func flush(completionHandler: () -> Void) {
     }
 
-    @available(*, unavailable)
     public func getTasksWithCompletionHandler(_ handler: ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void) {
+        //~~~
     }
 
-    @available(*, unavailable)
+    public var tasks: ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) {
+        get async {
+            //~~~
+        }
+    }
+
     public func getAllTasks(completionHandler: ([URLSessionTask]) -> Void) {
+        //~~~
     }
 
-    @available(*, unavailable)
+    public var allTasks: [URLSessionTask] {
+        get async {
+            //~~~
+        }
+    }
+
     public func invalidateAndCancel() {
+        //~~~
     }
 
     @available(*, unavailable)
