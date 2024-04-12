@@ -20,11 +20,17 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
 private let logger: Logger = Logger(subsystem: "skip", category: "URLSession")
-private let httpClient: OkHttpClient = OkHttpClient.Builder()
-    .callTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForRequest * 1000), TimeUnit.MILLISECONDS)
-    .readTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForResource * 1000), TimeUnit.MILLISECONDS)
-    .cache(Cache(java.io.File(ProcessInfo.processInfo.androidContext.cacheDir, "http_cache"), 5 * 1024 * 1024))
-    .build()
+private let httpClient: OkHttpClient = {
+    let builder = OkHttpClient.Builder()
+        .callTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForRequest * 1000), TimeUnit.MILLISECONDS)
+        .readTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForResource * 1000), TimeUnit.MILLISECONDS)
+    do {
+        builder.cache(Cache(java.io.File(ProcessInfo.processInfo.androidContext.cacheDir, "http_cache"), 5 * 1024 * 1024))
+    } catch {
+        // Can't access ProcessInfo in testing environments
+    }
+    return builder.build()
+}()
 
 enum RequestType {
     case generic, http
