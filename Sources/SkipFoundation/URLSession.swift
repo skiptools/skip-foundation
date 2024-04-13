@@ -5,138 +5,70 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.withContext
-import okhttp3.Cache
-import okhttp3.CacheControl
-import okhttp3.Call
-import okhttp3.Headers.Companion.toHeaders
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import kotlinx.coroutines.channels.Channel
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-
-private let logger: Logger = Logger(subsystem: "skip", category: "URLSession")
-private let httpClient: OkHttpClient = {
-    let builder = OkHttpClient.Builder()
-        .callTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForRequest * 1000), TimeUnit.MILLISECONDS)
-        .readTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForResource * 1000), TimeUnit.MILLISECONDS)
-    do {
-        builder.cache(Cache(java.io.File(ProcessInfo.processInfo.androidContext.cacheDir, "http_cache"), 5 * 1024 * 1024))
-    } catch {
-        // Can't access ProcessInfo in testing environments
-    }
-    return builder.build()
-}()
-
-enum RequestType {
-    case generic, http
-
-    init(_ request: URLRequest) {
-        guard let url = request.url else {
-            self = RequestType.generic
-        }
-        switch url.scheme?.lowercased() {
-        case "http", "https", "ws", "wss":
-            self = RequestType.http
-        default:
-            self = RequestType.generic
-        }
-    }
-}
 
 public final class URLSession {
-    public static let shared = URLSession(configuration: URLSessionConfiguration.default)
+    public static let shared = URLSession(configuration: URLSessionConfiguration.default, delegate: nil, delegateQueue: nil, isShared: true)
+
+    private static var sessions: [Int: URLSession] = [:]
+    private static var nextSessionIdentifier = 0
+    private static let sessionsLock = NSRecursiveLock()
 
     public let configuration: URLSessionConfiguration
-    public let delegate: URLSessionDelegate?
-    public let delegateQueue: OperationQueue
+    public private(set) var delegate: URLSessionDelegate?
+    public private(set) var delegateQueue: OperationQueue
 
+    private let identifier: Int
     private let lock = NSRecursiveLock()
     private var nextTaskIdentifier = 0
+    private var tasks: [Int: URLSessionTask] = [:]
+    private var invalidateOnCompletion = false
 
     public init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate? = nil, delegateQueue: OperationQueue? = nil) {
+        self.init(configuration: configuration, delegate: delegate, delegateQueue: delegateQueue, isShared: false)
+    }
+
+    private init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue: OperationQueue?, isShared: Bool) {
         self.configuration = configuration
         self.delegate = delegate
         self.delegateQueue = delegateQueue ?? OperationQueue()
+        var identifier = -1
+        if !isShared {
+            Self.sessionsLock.withLock {
+                identifier = Self.nextSessionIdentifier
+                Self.nextSessionIdentifier += 1
+                Self.sessions[identifier] = self
+            }
+        }
+        self.identifier = identifier
     }
 
     public var sessionDescription: String?
 
-    /// Use for non-HTTP requests.
-    static func genericConnection(for request: URLRequest, with url: URL) throws -> java.net.URLConnection {
-        // Calling openConnection does not actually connect
-        let connection = url.platformValue.openConnection()
-        switch request.cachePolicy {
-        case URLRequest.CachePolicy.useProtocolCachePolicy:
-            connection.setUseCaches(true)
-        case URLRequest.CachePolicy.returnCacheDataElseLoad:
-            connection.setUseCaches(true)
-        case URLRequest.CachePolicy.returnCacheDataDontLoad:
-            connection.setUseCaches(true)
-        case URLRequest.CachePolicy.reloadRevalidatingCacheData:
-            connection.setUseCaches(true)
-        case URLRequest.CachePolicy.reloadIgnoringLocalCacheData:
-            connection.setUseCaches(false)
-        case URLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData:
-            connection.setUseCaches(false)
-        }
-        return connection
-    }
-
-    /// Use for HTTP requests.
-    static func httpRequest(for request: URLRequest, with url: URL, configuration: URLSessionConfiguration, build: (Request.Builder) -> Void = {}) -> (OkHttpClient, Request) {
-        let requestTimeout = request.timeoutInterval > 0.0 ? request.timeoutInterval : configuration.timeoutIntervalForRequest
-        let resourceTimeout = configuration.timeoutIntervalForResource
-        let client: OkHttpClient
-        if requestTimeout != URLSessionConfiguration.default.timeoutIntervalForRequest || resourceTimeout != URLSessionConfiguration.default.timeoutIntervalForResource {
-            client = httpClient.newBuilder()
-                .callTimeout(Int64(requestTimeout * 1000), TimeUnit.MILLISECONDS)
-                .readTimeout(Int64(resourceTimeout * 1000), TimeUnit.MILLISECONDS)
-                .build()
-        } else {
-            client = httpClient
-        }
-
-        let builder = Request.Builder()
-            .url(url.platformValue)
-            .method(request.httpMethod ?? "GET", request.httpBody?.platformValue?.toRequestBody())
-        // SKIP NOWARN
-        if let headerMap = request.allHTTPHeaderFields?.kotlin(nocopy: true) as? Map<String, String> {
-            builder.headers(headerMap.toHeaders())
-        }
-        switch request.cachePolicy {
-        case URLRequest.CachePolicy.useProtocolCachePolicy:
-            break
-        case URLRequest.CachePolicy.returnCacheDataElseLoad:
-            builder.header("Cache-Control", "max-stale=31536000") // One year
-        case URLRequest.CachePolicy.returnCacheDataDontLoad:
-            builder.cacheControl(CacheControl.FORCE_CACHE)
-        case URLRequest.CachePolicy.reloadRevalidatingCacheData:
-            builder.header("Cache-Control", "no-cache, must-revalidate")
-        case URLRequest.CachePolicy.reloadIgnoringLocalCacheData:
-            builder.cacheControl(CacheControl.FORCE_NETWORK)
-        case URLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData: builder.cacheControl(CacheControl.FORCE_NETWORK)
-        }
-
-        build(builder)
-        return (client, builder.build())
-    }
-
     // SKIP ATTRIBUTES: nodispatch
     public func data(for request: URLRequest, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
-        guard let url = request.url else {
-            throw URLError(.badURL)
+        runDataTask(delegate: delegate, factory: { completionHandler in
+            return dataTask(with: request, completionHandler: completionHandler)
+        })
+    }
+
+    private func runDataTask(delegate: URLSessionTaskDelegate?, factory: ((Data?, URLResponse?, Error?) -> Void) -> URLSessionTask) async throws -> (Data, URLResponse) {
+        let channel = Channel<(Data?, URLResponse?, Error?)>(1)
+        let task = factory { data, response, error in
+            channel.trySend((data, response, error))
         }
-        switch RequestType(request) {
-        case .generic:
-            return Self.genericResponse(for: request, with: url)
-        case .http:
-            let (client, httpRequest) = Self.httpRequest(for: request, with: url, configuration: configuration)
-            return Self.httpResponse(client: client, request: httpRequest, with: url)
+        task.delegate = delegate
+        task.resume()
+        let (data, response, error) = channel.receive()
+        channel.close()
+        if let error {
+            throw error
+        } else if let data, let response {
+            return (data, response)
+        } else {
+            throw URLError(.unknown)
         }
     }
 
@@ -145,188 +77,65 @@ public final class URLSession {
         return self.data(for: URLRequest(url: url), delegate: delegate)
     }
 
-    // SKIP ATTRIBUTES: nodispatch
-    static func genericResponse(for request: URLRequest, with url: URL) async throws -> (Data, URLResponse) {
-        let job = Job()
-        return withContext(job + Dispatchers.IO) {
-            let connection = try genericConnection(for: request, with: url)
-            var inputStream: java.io.InputStream? = nil
-            return withTaskCancellationHandler {
-                inputStream = connection.getInputStream()
-                let outputStream = java.io.ByteArrayOutputStream()
-                let buffer = ByteArray(1024)
-                if let stableInputStream = inputStream {
-                    var bytesRead: Int
-                    while (stableInputStream.read(buffer).also { bytesRead = $0 } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                    }
-                }
-                do { inputStream?.close() } catch {}
-
-                let bytes = outputStream.toByteArray()
-                let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
-                return (data: Data(platformValue: bytes), response: response)
-            } onCancel: {
-                do { inputStream?.close() } catch {}
-                job.cancel()
-            }
-        }
-    }
-
-    // SKIP ATTRIBUTES: nodispatch
-    static func httpResponse(client: OkHttpClient, request: Request, with url: URL) async throws -> (Data, URLResponse) {
-        let job = Job()
-        return withContext(job + Dispatchers.IO) {
-            let call = client.newCall(request)
-            return withTaskCancellationHandler {
-                call.execute().use { response in
-                    let data: Data
-                    if let bytes = response.body?.bytes() {
-                        data = Data(bytes)
-                    } else {
-                        data = Data()
-                    }
-                    let urlResponse = httpURLResponse(from: response, with: url)
-                    return (data, urlResponse)
-                }
-            } onCancel: {
-                do { call.cancel() } catch {}
-                job.cancel()
-            }
-        }
-    }
-
-    static func httpURLResponse(from response: Response, with url: URL) -> HTTPURLResponse {
-        let statusCode = response.code
-        let httpVersion = response.protocol.toString()
-        let headerDictionary = Dictionary(response.headers.toMap(), nocopy: true)
-        return HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: httpVersion, headerFields: headerDictionary)
-    }
-
     @available(*, unavailable)
-    public func download(for request: URLRequest) async throws -> (URL, URLResponse) {
+    public func download(for request: URLRequest, delegate: URLSessionTaskDelegate? = nil) async throws -> (URL, URLResponse) {
         // NOTE: Partial implementation was here prior to 4/7/2024. See git history to revive
         fatalError()
     }
 
     @available(*, unavailable)
-    public func download(for request: URLRequest, delegate: URLSessionTaskDelegate?) async throws -> (URL, URLResponse) {
+    public func download(from url: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (URL, URLResponse) {
         fatalError()
     }
 
     @available(*, unavailable)
-    public func download(from url: URL) async throws -> (URL, URLResponse) {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public func download(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (URL, URLResponse) {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    func download(resumeFrom: Data, delegate: URLSessionTaskDelegate?) -> (URL, URLResponse) {
+    func download(resumeFrom: Data, delegate: URLSessionTaskDelegate? = nil) -> (URL, URLResponse) {
         fatalError()
     }
 
     // SKIP ATTRIBUTES: nodispatch
-    public func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
-        guard let url = request.url else {
-            throw URLError(.badURL)
-        }
-        let file = java.io.File(url.platformValue.toURI())
-        // Only supported for HTTP
-        let (client, httpRequest) = Self.httpRequest(for: request, with: url, configuration: configuration) {
-            $0.post(file.asRequestBody())
-        }
-        return Self.httpResponse(client: client, request: httpRequest, with: url)
-    }
-
-    @available(*, unavailable)
-    public func upload(for request: URLRequest, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse) {
-        fatalError()
+    public func upload(for request: URLRequest, fromFile fileURL: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
+        runDataTask(delegate: delegate, factory: { completionHandler in
+            return uploadTask(with: request, fromFile: fromFile, completionHandler: completionHandler)
+        })
     }
 
     // SKIP ATTRIBUTES: nodispatch
-    public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
-        guard let url = request.url else {
-            throw URLError(.badURL)
-        }
-        // Only supported for HTTP
-        let (client, httpRequest) = Self.httpRequest(for: request, with: url, configuration: configuration) {
-            $0.post(bodyData.platformValue.toRequestBody())
-        }
-        return Self.httpResponse(client: client, request: httpRequest, with: url)
-    }
-
-    @available(*, unavailable)
-    public func upload(for request: URLRequest, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> (Data, URLResponse) {
-        fatalError()
+    public func upload(for request: URLRequest, from bodyData: Data, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse) {
+        runDataTask(delegate: delegate, factory: { completionHandler in
+            return uploadTask(with: request, from: bodyData, completionHandler: completionHandler)
+        })
     }
 
     // SKIP ATTRIBUTES: nodispatch
-    public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
-        guard let url = request.url else {
-            throw URLError(.badURL)
+    public func bytes(for request: URLRequest, delegate: URLSessionTaskDelegate? = nil) async throws -> (AsyncBytes, URLResponse) {
+        let channel = Channel<(URLResponse?, Error?)>(1)
+        let task = dataTask(with: request) { _, response, error in
+            channel.trySend((response, error))
         }
-        switch RequestType(request) {
-        case .generic:
-            return Self.genericBytes(for: request, with: url)
-        case .http:
-            let (client, request) = Self.httpRequest(for: request, with: url, configuration: configuration)
-            return Self.httpBytes(client: client, request: request, with: url)
+        task.delegate = delegate
+        task.isForResponse = true
+        task.resume()
+        let (response, error) = channel.receive()
+        channel.close()
+        if let error {
+            throw error
+        } else if let response, let genericConnection = task.genericConnection {
+            let inputStream = genericConnection.getInputStream()
+            let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { do { inputStream?.close() } catch {} })
+            return (asyncBytes, response)
+        } else if let response, let httpResponse = task.httpResponse {
+            let inputStream = httpResponse.body?.byteStream()
+            let asyncBytes = URLSession.AsyncBytes(inputStream: inputStream, onClose: { do { httpResponse.close() } catch {} })
+            return (asyncBytes, response)
+        } else {
+            throw URLError(.unknown)
         }
     }
 
     // SKIP ATTRIBUTES: nodispatch
-    static func genericBytes(for request: URLRequest, with url: URL) async throws -> (AsyncBytes, URLResponse) {
-        let job = Job()
-        return withContext(job + Dispatchers.IO) {
-            let connection = try genericConnection(for: request, with: url)
-            var inputStream: java.io.InputStream? = nil
-            return withTaskCancellationHandler {
-                inputStream = connection.getInputStream()
-                let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { do { inputStream?.close() } catch {} })
-                let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
-                return (asyncBytes: asyncBytes, response: response)
-            } onCancel: {
-                do { inputStream?.close() } catch {}
-                job.cancel()
-            }
-        }
-    }
-
-    // SKIP ATTRIBUTES: nodispatch
-    static func httpBytes(client: OkHttpClient, request: Request, with url: URL) async throws -> (AsyncBytes, URLResponse) {
-        let job = Job()
-        return withContext(job + Dispatchers.IO) {
-            let call = client.newCall(request)
-            return withTaskCancellationHandler {
-                let response = call.execute()
-                let inputStream = response.body?.byteStream()
-                let asyncBytes = AsyncBytes(inputStream: inputStream, onClose: { do { response.close() } catch {} })
-                let urlResponse = httpURLResponse(from: response, with: url)
-                return (asyncBytes, urlResponse)
-            } onCancel: {
-                do { call.cancel() } catch {}
-                job.cancel()
-            }
-        }
-    }
-
-    @available(*, unavailable)
-    public func bytes(for request: URLRequest, delegate: URLSessionTaskDelegate?) async throws -> (AsyncBytes, URLResponse) {
-        fatalError()
-    }
-
-    // SKIP ATTRIBUTES: nodispatch
-    public func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse) {
-        return bytes(for: URLRequest(url: url))
-    }
-
-    @available(*, unavailable)
-    public func bytes(from url: URL, delegate: URLSessionTaskDelegate?) async throws -> (AsyncBytes, URLResponse) {
-        fatalError()
+    public func bytes(from url: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (AsyncBytes, URLResponse) {
+        return bytes(for: URLRequest(url: url), delegate: delegate)
     }
 
     public struct AsyncBytes: AsyncSequence {
@@ -375,20 +184,20 @@ public final class URLSession {
         }
     }
 
-    private func nextTaskIdentifier() -> Int {
-        lock.withLock {
-            nextTaskIdentifier += 1
-            return nextTaskIdentifier
-        }
-    }
-
     public func dataTask(with url: URL, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionDataTask {
         return dataTask(with: URLRequest(url: url), completionHandler: completionHandler)
     }
 
     public func dataTask(with request: URLRequest, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionDataTask {
-        let identifier = nextTaskIdentifier()
-        return URLSessionDataTask(session: self, request: request, taskIdentifier: identifier, completionHandler: completionHandler)
+        let task = lock.withLock {
+            let identifier = nextTaskIdentifier
+            nextTaskIdentifier += 1
+            let task = URLSessionDataTask(session: self, request: request, taskIdentifier: identifier, completionHandler: completionHandler)
+            tasks[task.taskIdentifier] = task
+            return task
+        }
+        taskDidCreate(task)
+        return task
     }
 
     @available(*, unavailable)
@@ -422,20 +231,34 @@ public final class URLSession {
     }
 
     public func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionUploadTask {
-        let identifier = nextTaskIdentifier()
-        return URLSessionUploadTask(session: self, request: request, taskIdentifier: identifier, build: {
-            if let bodyData {
-                $0.post(bodyData.platformValue.toRequestBody())
-            }
-        }, completionHandler: completionHandler)
+        let task = lock.withLock {
+            let identifier = nextTaskIdentifier
+            nextTaskIdentifier += 1
+            let task = URLSessionUploadTask(session: self, request: request, taskIdentifier: identifier, build: {
+                if let bodyData {
+                    $0.post(bodyData.platformValue.toRequestBody())
+                }
+            }, completionHandler: completionHandler)
+            tasks[task.taskIdentifier] = task
+            return task
+        }
+        taskDidCreate(task)
+        return task
     }
 
     public func uploadTask(with request: URLRequest, fromFile url: URL, completionHandler: ((Data?, URLResponse?, Error?) -> Void)?) -> URLSessionUploadTask {
         let file = java.io.File(url.platformValue.toURI())
-        let identifier = nextTaskIdentifier()
-        return URLSessionUploadTask(session: self, request: request, taskIdentifier: identifier, build: {
-            $0.post(file.asRequestBody())
-        }, completionHandler: completionHandler)
+        let task = lock.withLock {
+            let identifier = nextTaskIdentifier
+            nextTaskIdentifier += 1
+            let task = URLSessionUploadTask(session: self, request: request, taskIdentifier: identifier, build: {
+                $0.post(file.asRequestBody())
+            }, completionHandler: completionHandler)
+            tasks[task.taskIdentifier] = task
+            return task
+        }
+        taskDidCreate(task)
+        return task
     }
 
     @available(*, unavailable)
@@ -463,8 +286,15 @@ public final class URLSession {
     }
 
     public func webSocketTask(with request: URLRequest) -> URLSessionWebSocketTask {
-        let identifier = nextTaskIdentifier()
-        return URLSessionWebSocketTask(session: self, request: request, taskIdentifier: identifier)
+        let task = lock.withLock {
+            let identifier = nextTaskIdentifier
+            nextTaskIdentifier += 1
+            let task = URLSessionWebSocketTask(session: self, request: request, taskIdentifier: identifier)
+            tasks[task.taskIdentifier] = task
+            return task
+        }
+        taskDidCreate(task)
+        return task
     }
 
     public func webSocketTask(with url: URL, protocols: [String]) -> URLSessionWebSocketTask {
@@ -473,8 +303,42 @@ public final class URLSession {
         return webSocketTask(with: request)
     }
 
+    /// We call this after task creation to inform our delegate.
+    private func taskDidCreate(_ task: URLSessionTask) {
+        if let taskDelegate = delegate as? URLSessionTaskDelegate {
+            taskDelegate.urlSession(self, didCreateTask: task)
+        }
+    }
+
+    /// Called by tasks to remove them from the session.
+    func taskDidComplete(_ task: URLSessionTask) {
+        lock.withLock {
+            tasks[task.taskIdentifier] = nil
+            if tasks.isEmpty, invalidateOnCompletion {
+                invalidate()
+            }
+        }
+    }
+
+    /// Invalidate this session. Called with lock.
+    private func invalidate() {
+        self.delegate = nil
+        Self.sessionsLock.withLock {
+            Self.sessions[identifier] = nil
+        }
+    }
+
     public func finishTasksAndInvalidate() {
-        //~~~
+        guard identifier >= 0 else {
+            return
+        }
+        lock.withLock {
+            if tasks.isEmpty {
+                invalidate()
+            } else {
+                invalidateOnCompletion = true
+            }
+        }
     }
 
     @available(*, unavailable)
@@ -482,27 +346,63 @@ public final class URLSession {
     }
 
     public func getTasksWithCompletionHandler(_ handler: ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void) {
-        //~~~
+        let (dataTasks, uploadTasks, downloadTasks) = tasksByType
+        handler(dataTasks, uploadTasks, downloadTasks)
     }
 
     public var tasks: ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) {
         get async {
-            //~~~
+            return tasksByType
         }
     }
 
-    public func getAllTasks(completionHandler: ([URLSessionTask]) -> Void) {
-        //~~~
+    private var tasksByType: ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) {
+        return lock.withLock {
+            var dataTasks: [URLSessionDataTask] = []
+            var uploadTasks: [URLSessionUploadTask] = []
+            var downloadTasks: [URLSessionDownloadTask] = []
+            for task in tasks.values {
+                if let dataTask = task as? URLSessionDataTask {
+                    dataTasks.append(dataTask)
+                } else if let uploadTask = task as? URLSessionUploadTask {
+                    uploadTasks.append(uploadTask)
+                } else if let downloadTask = task as? URLSessionDownloadTask {
+                    downloadTasks.append(downloadTask)
+                }
+            }
+            return (dataTasks, uploadTasks, downloadTasks)
+        }
+    }
+
+    public func getAllTasks(handler: ([URLSessionTask]) -> Void) {
+        let allTasks = lock.withLock {
+            Array(tasks.values)
+        }
+        handler(allTasks)
     }
 
     public var allTasks: [URLSessionTask] {
         get async {
-            //~~~
+            return lock.withLock {
+                Array(tasks.values)
+            }
         }
     }
 
     public func invalidateAndCancel() {
-        //~~~
+        guard identifier >= 0 else {
+            return
+        }
+        lock.withLock {
+            if tasks.isEmpty {
+                invalidate()
+            } else {
+                invalidateOnCompletion = true
+                for task in tasks.values {
+                    do { task.cancel() } catch {}
+                }
+            }
+        }
     }
 
     @available(*, unavailable)

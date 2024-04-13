@@ -5,14 +5,21 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.channels.Channel
+import okhttp3.Cache
+import okhttp3.CacheControl
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.Headers.Companion.toHeaders
+import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -27,7 +34,7 @@ public class URLSessionTask {
     let session: URLSession
     let build: (Request.Builder) -> Void
     let lock = NSRecursiveLock()
-    private let completionHandler: ((Data?, URLResponse?, Error?) -> Void)?
+    let completionHandler: ((Data?, URLResponse?, Error?) -> Void)?
 
     init(session: URLSession, request: URLRequest, taskIdentifier: Int, build: (Request.Builder) -> Void = {}, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) {
         self.session = session
@@ -108,7 +115,7 @@ public class URLSessionTask {
                 info[NSURLErrorFailingURLErrorKey] = url
                 info[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
             }
-            close()
+            do { close() } catch {}
             completionError = URLError(.cancelled, userInfo: info)
         }
         completion(data: nil, response: nil, error: completionError)
@@ -171,6 +178,7 @@ public class URLSessionTask {
                 _state = error == nil ? .completed : .canceling
             }
         }
+        session.taskDidComplete(self)
         if let completionHandler {
             completionHandler(data, response, error)
         }
@@ -183,7 +191,7 @@ public class URLSessionTask {
         guard taskDelegate != nil || sessionDelegate != nil else {
             return
         }
-        session.delegateQueue.runBlock {
+        self.session.delegateQueue.runBlock {
             if let taskDelegate {
                 operation(taskDelegate)
             }
@@ -198,6 +206,10 @@ public class _URLSessionDataTask : URLSessionTask {
     var genericJob: Job?
     var httpCall: Call?
 
+    var isForResponse = false
+    private(set) var genericConnection: java.net.URLConnection?
+    private(set) var httpResponse: Response?
+
     override func open(request: URLRequest, with url: URL) {
         switch RequestType(request) {
         case .generic:
@@ -205,16 +217,19 @@ public class _URLSessionDataTask : URLSessionTask {
             genericJob = job
             GlobalScope.launch(job) {
                 do {
-                    let (data, response) = URLSession.genericResponse(for: request, with: url)
+                    let (data, response, connection) = genericResponse(for: request, with: url, isForResponse: isForResponse)
+                    genericConnection = connection
                     notifyDelegate(response: response)
-                    notifyDelegate(data: data)
+                    if let data {
+                        notifyDelegate(data: data)
+                    }
                     completion(data: data, response: response, error: nil)
                 } catch {
                     completion(data: nil, response: nil, error: error)
                 }
             }
         case .http:
-            let (client, httpRequest) = URLSession.httpRequest(for: request, with: url, configuration: session.configuration, build: build)
+            let (client, httpRequest) = httpRequest(for: request, with: url, configuration: session.configuration, build: build)
             httpCall = client.newCall(httpRequest)
             httpCall?.enqueue(HTTPCallback(task: self, url: url))
         }
@@ -257,21 +272,29 @@ public class _URLSessionDataTask : URLSessionTask {
         }
 
         override func onResponse(call: Call, response: Response) {
+            defer {
+                if response != task.httpResponse {
+                    do { response.close() } catch {}
+                }
+            }
             do {
-                response.use { response in
-                    let urlResponse = URLSession.httpURLResponse(from: response, with: url)
-                    task.notifyDelegate(response: urlResponse)
-
-                    let data: Data
+                let urlResponse = httpURLResponse(from: response, with: url)
+                task.notifyDelegate(response: urlResponse)
+                let data: Data?
+                if task.isForResponse {
+                    data = nil
+                    task.httpResponse = response
+                } else {
                     if let bytes = response.body?.bytes() {
-                        data = Data(bytes)
+                        data = Data(platformValue: bytes)
                     } else {
                         data = Data()
                     }
                     task.notifyDelegate(data: data)
-                    task.completion(data: data, response: urlResponse, error: nil)
                 }
+                task.completion(data: data, response: urlResponse, error: nil)
             } catch {
+                task.httpResponse = nil
                 task.completion(data: nil, response: nil, error: error)
             }
         }
@@ -324,7 +347,7 @@ public class URLSessionWebSocketTask : URLSessionTask {
     }
 
     override func open(request: URLRequest, with url: URL) {
-        let (client, httpRequest) = URLSession.httpRequest(for: request, with: url, configuration: session.configuration, build: build)
+        let (client, httpRequest) = httpRequest(for: request, with: url, configuration: session.configuration, build: build)
         self.url = url
         webSocket = client.newWebSocket(httpRequest, listener)
         channel = Channel<Message>(Channel.UNLIMITED)
@@ -420,7 +443,7 @@ public class URLSessionWebSocketTask : URLSessionTask {
             let urlError = URLError(.unknown, userInfo: userInfo)
             var httpResponse: URLResponse? = nil
             if let response, let url = task.url {
-                httpResponse = URLSession.httpURLResponse(from: response, with: url)
+                httpResponse = httpURLResponse(from: response, with: url)
             }
             task.completion(data: nil, response: httpResponse, error: urlError)
         }
@@ -490,6 +513,7 @@ public class URLSessionStreamTask : URLSessionTask {
 public let URLSessionDownloadTaskResumeData: String = "NSURLSessionDownloadTaskResumeData"
 
 public protocol URLSessionTaskDelegate : URLSessionDelegate {
+    func urlSession(_ session: URLSession, didCreateTask: URLSessionTask)
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void)
     func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
 //    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void)
@@ -497,9 +521,13 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
     func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics)
+    func urlSession(_ session: URLSession, task: URLSessionTask, didReceiveInformationalResponse: HTTPURLResponse)
 }
 
 extension URLSessionTaskDelegate {
+    public func urlSession(_ session: URLSession, didCreateTask: URLSessionTask) {
+    }
+
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
     }
 
@@ -519,6 +547,9 @@ extension URLSessionTaskDelegate {
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+    }
+
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didReceiveInformationalResponse: HTTPURLResponse) {
     }
 }
 
@@ -584,6 +615,131 @@ extension URLSessionStreamDelegate {
 
 // Stubs
 public struct URLSessionTaskMetrics {
+}
+
+private enum RequestType {
+    case generic, http
+
+    init(_ request: URLRequest) {
+        guard let url = request.url else {
+            self = RequestType.generic
+        }
+        switch url.scheme?.lowercased() {
+        case "http", "https", "ws", "wss":
+            self = RequestType.http
+        default:
+            self = RequestType.generic
+        }
+    }
+}
+
+private let httpClient: OkHttpClient = {
+    let builder = OkHttpClient.Builder()
+        .callTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForRequest * 1000), TimeUnit.MILLISECONDS)
+        .readTimeout(Int64(URLSessionConfiguration.default.timeoutIntervalForResource * 1000), TimeUnit.MILLISECONDS)
+    do {
+        builder.cache(Cache(java.io.File(ProcessInfo.processInfo.androidContext.cacheDir, "http_cache"), 5 * 1024 * 1024))
+    } catch {
+        // Can't access ProcessInfo in testing environments
+    }
+    return builder.build()
+}()
+
+/// Use for HTTP requests.
+private func httpRequest(for request: URLRequest, with url: URL, configuration: URLSessionConfiguration, build: (Request.Builder) -> Void = {}) -> (OkHttpClient, Request) {
+    let requestTimeout = request.timeoutInterval > 0.0 ? request.timeoutInterval : configuration.timeoutIntervalForRequest
+    let resourceTimeout = configuration.timeoutIntervalForResource
+    let client: OkHttpClient
+    if requestTimeout != URLSessionConfiguration.default.timeoutIntervalForRequest || resourceTimeout != URLSessionConfiguration.default.timeoutIntervalForResource {
+        client = httpClient.newBuilder()
+            .callTimeout(Int64(requestTimeout * 1000), TimeUnit.MILLISECONDS)
+            .readTimeout(Int64(resourceTimeout * 1000), TimeUnit.MILLISECONDS)
+            .build()
+    } else {
+        client = httpClient
+    }
+
+    let builder = Request.Builder()
+        .url(url.platformValue)
+        .method(request.httpMethod ?? "GET", request.httpBody?.platformValue?.toRequestBody())
+    // SKIP NOWARN
+    if let headerMap = request.allHTTPHeaderFields?.kotlin(nocopy: true) as? Map<String, String> {
+        builder.headers(headerMap.toHeaders())
+    }
+    switch request.cachePolicy {
+    case URLRequest.CachePolicy.useProtocolCachePolicy:
+        break
+    case URLRequest.CachePolicy.returnCacheDataElseLoad:
+        builder.header("Cache-Control", "max-stale=31536000") // One year
+    case URLRequest.CachePolicy.returnCacheDataDontLoad:
+        builder.cacheControl(CacheControl.FORCE_CACHE)
+    case URLRequest.CachePolicy.reloadRevalidatingCacheData:
+        builder.header("Cache-Control", "no-cache, must-revalidate")
+    case URLRequest.CachePolicy.reloadIgnoringLocalCacheData:
+        builder.cacheControl(CacheControl.FORCE_NETWORK)
+    case URLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData: builder.cacheControl(CacheControl.FORCE_NETWORK)
+    }
+
+    build(builder)
+    return (client, builder.build())
+}
+
+private func httpURLResponse(from response: Response, with url: URL) -> HTTPURLResponse {
+    let statusCode = response.code
+    let httpVersion = response.protocol.toString()
+    let headerDictionary = Dictionary(response.headers.toMap(), nocopy: true)
+    return HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: httpVersion, headerFields: headerDictionary)
+}
+
+/// Use for non-HTTP requests.
+private func genericConnection(for request: URLRequest, with url: URL) throws -> java.net.URLConnection {
+    // Calling openConnection does not actually connect
+    let connection = url.platformValue.openConnection()
+    switch request.cachePolicy {
+    case URLRequest.CachePolicy.useProtocolCachePolicy:
+        connection.setUseCaches(true)
+    case URLRequest.CachePolicy.returnCacheDataElseLoad:
+        connection.setUseCaches(true)
+    case URLRequest.CachePolicy.returnCacheDataDontLoad:
+        connection.setUseCaches(true)
+    case URLRequest.CachePolicy.reloadRevalidatingCacheData:
+        connection.setUseCaches(true)
+    case URLRequest.CachePolicy.reloadIgnoringLocalCacheData:
+        connection.setUseCaches(false)
+    case URLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData:
+        connection.setUseCaches(false)
+    }
+    return connection
+}
+
+// SKIP ATTRIBUTES: nodispatch
+private func genericResponse(for request: URLRequest, with url: URL, isForResponse: Bool) async throws -> (Data?, URLResponse, java.net.URLConnection?) {
+    let job = Job()
+    return withContext(job + Dispatchers.IO) {
+        let connection = try genericConnection(for: request, with: url)
+        let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
+        guard !isForResponse else {
+            return (nil, response, connection)
+        }
+        var inputStream: java.io.InputStream? = nil
+        return withTaskCancellationHandler {
+            inputStream = connection.getInputStream()
+            let outputStream = java.io.ByteArrayOutputStream()
+            let buffer = ByteArray(1024)
+            if let stableInputStream = inputStream {
+                var bytesRead: Int
+                while (stableInputStream.read(buffer).also { bytesRead = $0 } != -1) {
+                    outputStream.write(buffer, 0, bytesRead)
+                }
+            }
+            do { inputStream?.close() } catch {}
+            let bytes = outputStream.toByteArray()
+            return (Data(platformValue: bytes), response, nil)
+        } onCancel: {
+            do { inputStream?.close() } catch {}
+            job.cancel()
+        }
+    }
 }
 
 #endif
