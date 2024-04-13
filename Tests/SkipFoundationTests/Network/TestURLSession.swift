@@ -3,8 +3,261 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
-//import Foundation
-//import XCTest
+import Foundation
+import XCTest
+
+//~~~ SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
+class TestURLSession: XCTestCase {
+    func testDefaultURLSessionConfiguration() {
+        let config = URLSessionConfiguration.default
+        XCTAssertEqual(nil, config.identifier)
+        XCTAssertEqual(60.0, config.timeoutIntervalForRequest)
+        XCTAssertEqual(604800.0, config.timeoutIntervalForResource)
+        XCTAssertEqual(true, config.allowsCellularAccess)
+        //XCTAssertEqual(true, config.allowsExpensiveNetworkAccess)
+        XCTAssertEqual(true, config.allowsConstrainedNetworkAccess)
+        XCTAssertEqual(false, config.waitsForConnectivity)
+        XCTAssertEqual(false, config.isDiscretionary)
+        XCTAssertEqual(nil, config.sharedContainerIdentifier)
+        XCTAssertEqual(false, config.sessionSendsLaunchEvents)
+        //XCTAssertEqual(nil, config.connectionProxyDictionary)
+        XCTAssertEqual(false, config.httpShouldUsePipelining)
+        XCTAssertEqual(true, config.httpShouldSetCookies)
+        //XCTAssertEqual(nil, config.httpAdditionalHeaders)
+        XCTAssertEqual(6, config.httpMaximumConnectionsPerHost)
+        XCTAssertEqual(false, config.shouldUseExtendedBackgroundIdleMode)
+    }
+
+    func testEphemeralURLSessionConfiguration() {
+        let config = URLSessionConfiguration.ephemeral
+        XCTAssertEqual(nil, config.identifier)
+        XCTAssertEqual(60.0, config.timeoutIntervalForRequest)
+        XCTAssertEqual(604800.0, config.timeoutIntervalForResource)
+        XCTAssertEqual(true, config.allowsCellularAccess)
+        //XCTAssertEqual(true, config.allowsExpensiveNetworkAccess)
+        XCTAssertEqual(true, config.allowsConstrainedNetworkAccess)
+        XCTAssertEqual(false, config.waitsForConnectivity)
+        XCTAssertEqual(false, config.isDiscretionary)
+        XCTAssertEqual(nil, config.sharedContainerIdentifier)
+        XCTAssertEqual(false, config.sessionSendsLaunchEvents)
+        //XCTAssertEqual(nil, config.connectionProxyDictionary)
+        XCTAssertEqual(false, config.httpShouldUsePipelining)
+        XCTAssertEqual(true, config.httpShouldSetCookies)
+        //XCTAssertEqual(nil, config.httpAdditionalHeaders)
+        XCTAssertEqual(6, config.httpMaximumConnectionsPerHost)
+        XCTAssertEqual(false, config.shouldUseExtendedBackgroundIdleMode)
+    }
+
+    let testURL = URL(string: "https://raw.githubusercontent.com/w3c/activitypub/1a6e82e77da5f36a17e3ebd4be3f7b42a33f82da/w3c.json")!
+
+    func testFetchURLAsync() async throws {
+        let (data, response) = try await URLSession.shared.data(from: testURL)
+        let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
+        XCTAssertEqual("text/plain", HTTPResponse.mimeType)
+        XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
+
+        XCTAssertEqual(104, data.count)
+        #if SKIP // Android seems not to include the content-length
+        XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
+        #else
+        XCTAssertEqual(104, HTTPResponse.expectedContentLength)
+        #endif
+
+        XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
+        {
+          "group": 72531,
+          "contacts": [
+            "plehegar"
+          ],
+          "policy": "open",
+          "repo-type": "rec-track"
+        }
+        """)
+    }
+
+    func testDownloadURLAsync() async throws {
+        #if SKIP
+        throw XCTSkip("TODO")
+        #else
+        try failOnAndroid() // needs android.permission.INTERNET
+        let (localURL, response) = try await URLSession.shared.download(from: testURL)
+        let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
+        XCTAssertEqual("text/plain", HTTPResponse.mimeType)
+        XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
+
+        let data = try Data(contentsOf: localURL)
+        XCTAssertEqual(104, data.count)
+        #if SKIP // Android seems not to include the content-length
+        XCTAssertEqual(-1, HTTPResponse.expectedContentLength)
+        #else
+        XCTAssertEqual(104, HTTPResponse.expectedContentLength)
+        #endif
+        XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
+        {
+          "group": 72531,
+          "contacts": [
+            "plehegar"
+          ],
+          "policy": "open",
+          "repo-type": "rec-track"
+        }
+        """)
+        #endif
+    }
+
+    func testAsyncBytes() async throws {
+        try failOnAndroid() // needs android.permission.INTERNET
+        let (bytes, response) = try await URLSession.shared.bytes(from: testURL)
+        let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
+        XCTAssertEqual("text/plain", HTTPResponse.mimeType)
+        XCTAssertEqual("utf-8", HTTPResponse.textEncodingName)
+
+        var byteArray: [UInt8] = []
+        for try await b in bytes {
+            byteArray.append(b)
+        }
+        var data = Data()
+        data.append(contentsOf: byteArray)
+        XCTAssertEqual(String(data: data, encoding: String.Encoding.utf8), """
+        {
+          "group": 72531,
+          "contacts": [
+            "plehegar"
+          ],
+          "policy": "open",
+          "repo-type": "rec-track"
+        }
+        """)
+    }
+
+    func testAsyncStream() async throws {
+        #if SKIP
+        throw XCTSkip("TODO: SkipAsyncStream")
+        #else
+        var numbers = (1...10).makeIterator()
+        let stream = AsyncStream(unfolding: { numbers.next() }, onCancel: nil)
+        // TODO: implement `for await number in stream { … }`
+        let sum = await stream.reduce(0, +)
+        XCTAssertEqual(55, sum)
+        #endif
+    }
+
+    func testPostURL() async throws {
+        // curl -v -d 'ab=xyz' https://httpbin.org/post
+        /*
+         {
+           "args": {},
+           "data": "",
+           "files": {},
+           "form": {
+             "ab": "xyz"
+           },
+           "headers": {
+             "Accept": "* / *",
+             "Content-Length": "6",
+             "Content-Type": "application/x-www-form-urlencoded",
+             "Host": "httpbin.org",
+             "User-Agent": "curl/8.4.0"
+           },
+           "json": null,
+           "origin": "14.104.46.232",
+           "url": "https://httpbin.org/post"
+         }
+         */
+
+        let url = try XCTUnwrap(URL(string: "https://httpbin.org/post")) // this service just echos back the form data
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Some User Agent", forHTTPHeaderField: "User-Agent")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        let (key, value) = ("abc", "xyz")
+        request.httpBody = Data("\(key)=\(value)".utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
+        XCTAssertEqual("application/json", HTTPResponse.mimeType)
+        let JSONResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        XCTAssertEqual([key: value], JSONResponse?["form"] as? [String: String])
+    }
+
+    func testGetTasks() async throws {
+        let session = URLSession(configuration: URLSessionConfiguration.default)
+        let task = session.dataTask(with: URLRequest(url: testURL))
+        task.resume()
+        var tasks = await session.allTasks
+        XCTAssertEqual(tasks.count, 1)
+        XCTAssertTrue(tasks.first === task)
+        let (dataTasks, uploadTasks, downloadTasks) = await session.tasks
+        XCTAssertEqual(dataTasks.count, 1)
+        XCTAssertEqual(uploadTasks.count, 0)
+        XCTAssertEqual(downloadTasks.count, 0)
+        XCTAssertTrue(dataTasks.first === task)
+        task.cancel()
+        tasks = await session.allTasks
+        XCTAssertEqual(tasks.count, 0)
+        let (dataTasks2, uploadTasks2, downloadTasks2) = await session.tasks
+        XCTAssertEqual(dataTasks2.count, 0)
+        XCTAssertEqual(uploadTasks2.count, 0)
+        XCTAssertEqual(downloadTasks2.count, 0)
+    }
+
+    func testFinishTasksAndInvalidate() async throws {
+        let delegate = DelegateStub()
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: delegate, delegateQueue: nil)
+        let task = session.dataTask(with: URLRequest(url: testURL))
+        task.resume()
+        session.finishTasksAndInvalidate()
+        XCTAssertFalse(delegate.didInvalidate)
+        XCTAssertNotEqual(task.state, .canceling)
+        task.cancel()
+        XCTAssertTrue(task.state != .running)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertTrue(delegate.didInvalidate)
+    }
+
+    func testInvalidate() async throws {
+        let delegate = DelegateStub()
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: delegate, delegateQueue: nil)
+        XCTAssertNotNil(session.delegate)
+        let task = session.dataTask(with: URLRequest(url: testURL))
+        task.resume()
+        session.invalidateAndCancel()
+        try await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertTrue(task.state != .running)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertTrue(delegate.didInvalidate)
+    }
+
+    func testWebSocketTask() async throws {
+        let url = URL(string: "wss://echo.websocket.org/")!
+        let task = URLSession.shared.webSocketTask(with: url)
+        task.resume()
+
+        try await task.send(.string("echo test"))
+        let _ = try await task.receive() // Ignore initial "Request served by <id>" response
+        let response = try await task.receive()
+        switch response {
+        case .data(let data):
+            XCTFail("Expected string; got \(data)")
+        case .string(let string):
+            XCTAssertEqual(string, "echo test")
+        default:
+            XCTFail("Got unexpected response: \(response)")
+        }
+        task.cancel(with: .normalClosure, reason: nil)
+    }
+
+    final class DelegateStub: NSObject, URLSessionDelegate {
+        var didInvalidate = false
+
+        func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+            didInvalidate = true
+        }
+    }
+}
+
 //
 //// These tests are adapted from https://github.com/apple/swift-corelibs-foundation/blob/main/Tests/Foundation/Tests which have the following license:
 //

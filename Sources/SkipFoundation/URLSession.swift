@@ -322,9 +322,13 @@ public final class URLSession {
 
     /// Invalidate this session. Called with lock.
     private func invalidate() {
-        self.delegate = nil
         Self.sessionsLock.withLock {
             Self.sessions[identifier] = nil
+        }
+        if let delegate {
+            delegateQueue.runBlock {
+                delegate.urlSession(self, didBecomeInvalidWithError: nil)
+            }
         }
     }
 
