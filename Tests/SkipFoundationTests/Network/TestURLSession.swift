@@ -6,7 +6,6 @@
 import Foundation
 import XCTest
 
-//~~~ SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 class TestURLSession: XCTestCase {
     func testDefaultURLSessionConfiguration() {
         let config = URLSessionConfiguration.default
