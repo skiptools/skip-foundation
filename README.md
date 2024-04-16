@@ -797,12 +797,12 @@ Support levels:
 <li><code>var sessionDescription: String?</code></li>
 <li><code>var delegate: URLSessionDelegate?</code></li>
 <li><code>var delegateQueue: OperationQueue?</code></li>
-<li><code>func data(for request: URLRequest) async throws -> (Data, URLResponse)</code></li>
-<li><code>func data(from url: URL) async throws -> (Data, URLResponse)</code></li>
-<li><code>func upload(for request: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse)</code></li>
-<li><code>func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse)</code></li>
-<li><code>func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse)</code></li>
-<li><code>func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse)</code></li>
+<li><code>func data(for request: URLRequest, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse)</code></li>
+<li><code>func data(from url: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse)</code></li>
+<li><code>func upload(for request: URLRequest, fromFile fileURL: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse)</code></li>
+<li><code>func upload(for request: URLRequest, from bodyData: Data, delegate: URLSessionTaskDelegate? = nil) async throws -> (Data, URLResponse)</code></li>
+<li><code>func bytes(for request: URLRequest, delegate: URLSessionTaskDelegate? = nil) async throws -> (AsyncBytes, URLResponse)</code></li>
+<li><code>func bytes(from url: URL, delegate: URLSessionTaskDelegate? = nil) async throws -> (AsyncBytes, URLResponse)</code></li>
 <li><code>func dataTask(with url: URL, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionDataTask</code></li>
 <li><code>func dataTask(with request: URLRequest, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionDataTask</code></li>
 <li><code>func uploadTask(with: URLRequest, from: Data?, completionHandler: ((Data?, URLResponse?, Error?) -> Void)? = nil) -> URLSessionUploadTask</code></li>
@@ -810,6 +810,12 @@ Support levels:
 <li><code>func webSocketTask(with url: URL) -> URLSessionWebSocketTask</code></li>
 <li><code>func webSocketTask(with request: URLRequest) -> URLSessionWebSocketTask</code></li>
 <li><code>func webSocketTask(with url: URL, protocols: [String]) -> URLSessionWebSocketTask</code></li>
+<li><code>func finishTasksAndInvalidate()</code></li>
+<li><code>func getTasksWithCompletionHandler(_ handler: ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)</code></li>
+<li><code>var tasks: ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask])</code></li>
+<li><code>func getAllTasks(handler: ([URLSessionTask]) -> Void)</code></li>
+<li><code>var allTasks: [URLSessionTask]</code></li>
+<li><code>func invalidateAndCancel()</code></li>
 <li><code>struct AsyncBytes: AsyncSequence</code></li>
           </ul>
         </details> 
@@ -838,6 +844,7 @@ Support levels:
 <li><code>var taskIdentifier: Int</code></li>
 <li><code>var taskDescription: String?</code></li>
 <li><code>var originalRequest: URLRequest?</code></li>
+<li><code>var delegate: URLSessionTaskDelegate?</code></li>
 <li><code>var state: URLSessionTask.State</code></li>
 <li><code>var error: Error?</code></li>
 <li><code>var priority: Float</code></li>
@@ -860,6 +867,7 @@ Support levels:
 <li><code>var taskIdentifier: Int</code></li>
 <li><code>var taskDescription: String?</code></li>
 <li><code>var originalRequest: URLRequest?</code></li>
+<li><code>var delegate: URLSessionTaskDelegate?</code></li>
 <li><code>var state: URLSessionTask.State</code></li>
 <li><code>var error: Error?</code></li>
 <li><code>var priority: Float</code></li>
@@ -882,6 +890,7 @@ Support levels:
 <li><code>var taskIdentifier: Int</code></li>
 <li><code>var taskDescription: String?</code></li>
 <li><code>var originalRequest: URLRequest?</code></li>
+<li><code>var delegate: URLSessionTaskDelegate?</code></li>
 <li><code>var state: URLSessionTask.State</code></li>
 <li><code>var error: Error?</code></li>
 <li><code>var priority: Float</code></li>
