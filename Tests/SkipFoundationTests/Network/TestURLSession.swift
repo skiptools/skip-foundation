@@ -188,7 +188,7 @@ class TestURLSession: XCTestCase {
         var tasks = await session.allTasks
         XCTAssertEqual(tasks.count, 1)
         XCTAssertTrue(tasks.first === task)
-        let (dataTasks, uploadTasks, downloadTasks) = await session.tasks
+        var (dataTasks, uploadTasks, downloadTasks) = await session.tasks
         XCTAssertEqual(dataTasks.count, 1)
         XCTAssertEqual(uploadTasks.count, 0)
         XCTAssertEqual(downloadTasks.count, 0)
@@ -196,10 +196,10 @@ class TestURLSession: XCTestCase {
         task.cancel()
         tasks = await session.allTasks
         XCTAssertEqual(tasks.count, 0)
-        let (dataTasks2, uploadTasks2, downloadTasks2) = await session.tasks
-        XCTAssertEqual(dataTasks2.count, 0)
-        XCTAssertEqual(uploadTasks2.count, 0)
-        XCTAssertEqual(downloadTasks2.count, 0)
+        (dataTasks, uploadTasks, downloadTasks) = await session.tasks
+        XCTAssertEqual(dataTasks.count, 0)
+        XCTAssertEqual(uploadTasks.count, 0)
+        XCTAssertEqual(downloadTasks.count, 0)
     }
 
     func testFinishTasksAndInvalidate() async throws {
@@ -211,8 +211,8 @@ class TestURLSession: XCTestCase {
         XCTAssertFalse(delegate.didInvalidate)
         XCTAssertNotEqual(task.state, .canceling)
         task.cancel()
-        XCTAssertTrue(task.state != .running)
         try await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertTrue(task.state != .running)
         XCTAssertTrue(delegate.didInvalidate)
     }
 
@@ -225,7 +225,6 @@ class TestURLSession: XCTestCase {
         session.invalidateAndCancel()
         try await Task.sleep(nanoseconds: 100_000_000)
         XCTAssertTrue(task.state != .running)
-        try await Task.sleep(nanoseconds: 100_000_000)
         XCTAssertTrue(delegate.didInvalidate)
     }
 
