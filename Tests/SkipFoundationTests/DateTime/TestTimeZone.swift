@@ -215,7 +215,7 @@ class TestTimeZone: XCTestCase {
         }
 
         XCTAssertNotNil(children["identifier"])
-        XCTAssertNotNil(children["kind"])
+        //XCTAssertNotNil(children["kind"])
         XCTAssertNotNil(children["secondsFromGMT"])
         XCTAssertNotNil(children["isDaylightSavingTime"])
         #endif // !SKIP

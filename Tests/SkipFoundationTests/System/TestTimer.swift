@@ -60,31 +60,35 @@ class TestTimer : XCTestCase {
         #endif // !SKIP
     }
 
-//    func test_timerRepeats() {
-//        var flag = 0
-//        let interval = TimeInterval(0.1)
-//        let numberOfRepeats = 3
-//        var previousInterval = Date().timeIntervalSince1970
-//
-//        let dummyTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
-//            XCTAssertEqual(timer.timeInterval, interval)
-//
-//            let currentInterval = Date().timeIntervalSince1970
-//            XCTAssertEqual(currentInterval, previousInterval + interval, accuracy: 0.2)
-//            previousInterval = currentInterval
-//
-//            flag += 1
-//            if (flag == numberOfRepeats) {
-//                timer.invalidate()
-//            }
-//        }
-//
-//        let runLoop = RunLoop.current
-//        runLoop.add(dummyTimer, forMode: .default)
-//        runLoop.run(until: Date(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
-//
-//        XCTAssertEqual(flag, numberOfRepeats)
-//    }
+    func test_timerRepeats() {
+        #if SKIP
+        throw XCTSkip("TODO")
+        #else
+        var flag = 0
+        let interval = TimeInterval(0.1)
+        let numberOfRepeats = 3
+        var previousInterval = Date().timeIntervalSince1970
+
+        let dummyTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+            XCTAssertEqual(timer.timeInterval, interval)
+
+            let currentInterval = Date().timeIntervalSince1970
+            XCTAssertEqual(currentInterval, previousInterval + interval, accuracy: 0.2)
+            previousInterval = currentInterval
+
+            flag += 1
+            if (flag == numberOfRepeats) {
+                timer.invalidate()
+            }
+        }
+
+        let runLoop = RunLoop.current
+        runLoop.add(dummyTimer, forMode: .default)
+        runLoop.run(until: Date(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
+
+        XCTAssertEqual(flag, numberOfRepeats)
+        #endif
+    }
 
     func test_timerInvalidate() {
         #if SKIP
