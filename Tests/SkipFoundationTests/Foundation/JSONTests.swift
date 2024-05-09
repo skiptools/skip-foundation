@@ -59,6 +59,24 @@ class TestJSON : XCTestCase {
         var intArrayField: Array<Int>
     }
 
+    struct CustomSingleValueIntArrayField : Codable {
+        var intArrayField: Array<Int>
+
+        init(intArrayField: Array<Int>) {
+            self.intArrayField = intArrayField
+        }
+
+        init(from decoder: Decoder) throws {
+            var container = try decoder.singleValueContainer()
+            intArrayField = try container.decode([Int].self)
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            try container.encode(intArrayField)
+        }
+    }
+
     struct UIntArrayField : Equatable, Codable {
         var uintArrayField: Array<UInt>
     }
@@ -420,6 +438,16 @@ class TestJSON : XCTestCase {
               ]
             }
             """, try roundtrip(value: org, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
+    }
+
+    func testSingleValueArrayJSONCodable() throws {
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(CustomSingleValueIntArrayField(intArrayField: [1, 2]))
+        let string = String(data: data, encoding: .utf8) ?? ""
+        XCTAssertEqual(string, "[1,2]")
+        let decoder = JSONDecoder()
+        let obj = try decoder.decode(CustomSingleValueIntArrayField.self, from: data)
+        XCTAssertEqual(obj.intArrayField, [1, 2])
     }
 
     struct EntityCustomKeys : Encodable {

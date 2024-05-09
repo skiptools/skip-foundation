@@ -309,20 +309,23 @@ private final class JSONEncoderImpl: Encoder {
 
     func unkeyedContainer() -> UnkeyedEncodingContainer {
         if let _ = array {
-            return JSONUnkeyedEncodingContainer(impl: self, codingPath: self.codingPath)
+            let container = JSONUnkeyedEncodingContainer(impl: self, codingPath: self.codingPath)
+            return UnkeyedEncodingContainer(container)
         }
         guard self.singleValue == nil, self.object == nil else {
             preconditionFailure()
         }
         self.array = JSONFuture.RefArray()
-        return JSONUnkeyedEncodingContainer(impl: self, codingPath: self.codingPath)
+        let container = JSONUnkeyedEncodingContainer(impl: self, codingPath: self.codingPath)
+        return UnkeyedEncodingContainer(container)
     }
 
     func singleValueContainer() -> SingleValueEncodingContainer {
         guard self.object == nil, self.array == nil else {
             preconditionFailure()
         }
-        return JSONSingleValueEncodingContainer(impl: self, codingPath: self.codingPath)
+        let container = JSONSingleValueEncodingContainer(impl: self, codingPath: self.codingPath)
+        return SingleValueEncodingContainer(container)
     }
 }
 
@@ -555,7 +558,7 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
         let newPath = self.codingPath + [convertedKey]
         let array = self.object.setArray(for: convertedKey.stringValue)
         let nestedContainer = JSONUnkeyedEncodingContainer(impl: impl, array: array, codingPath: newPath)
-        return nestedContainer
+        return UnkeyedEncodingContainer(nestedContainer)
     }
 
     mutating func superEncoder() -> Encoder {
@@ -583,7 +586,7 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
     }
 }
 
-private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialTreatmentEncoder {
+private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainerProtocol, _SpecialTreatmentEncoder {
     let impl: JSONEncoderImpl
     let array: JSONFuture.RefArray
     let codingPath: [CodingKey]
@@ -679,7 +682,7 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
         let newPath = self.codingPath + [_JSONKey(index: self.count)]
         let array = self.array.appendArray()
         let nestedContainer = JSONUnkeyedEncodingContainer(impl: impl, array: array, codingPath: newPath)
-        return nestedContainer
+        return UnkeyedEncodingContainer(nestedContainer)
     }
 
     mutating func superEncoder() -> Encoder {
@@ -700,7 +703,7 @@ private struct JSONUnkeyedEncodingContainer: UnkeyedEncodingContainer, _SpecialT
     }
 }
 
-private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer, _SpecialTreatmentEncoder {
+private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainerProtocol, _SpecialTreatmentEncoder {
     let impl: JSONEncoderImpl
     let codingPath: [CodingKey]
 
@@ -773,6 +776,17 @@ private struct JSONSingleValueEncodingContainer: SingleValueEncodingContainer, _
     mutating func encode<T: Encodable>(_ value: T) throws {
         self.preconditionCanEncodeNewValue()
         self.impl.singleValue = try self.wrapEncodable(value, for: nil)
+    }
+
+    mutating func nestedContainer<NestedKey>(keyedBy nestedKeyType: NestedKey.Type) ->
+        KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
+        self.preconditionCanEncodeNewValue()
+        return impl.container(keyedBy: nestedKeyType)
+    }
+
+    mutating func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
+        self.preconditionCanEncodeNewValue()
+        return impl.unkeyedContainer()
     }
 
     func preconditionCanEncodeNewValue() {

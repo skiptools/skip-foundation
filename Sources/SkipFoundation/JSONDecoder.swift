@@ -142,11 +142,12 @@ private struct JSONDecoderImpl: Decoder {
         array = json as? Array<Any>
         isNull = json is NSNull
         if let array {
-            return JSONUnkeyedDecodingContainer(
+            let container = JSONUnkeyedDecodingContainer(
                 impl: self,
                 codingPath: self.codingPath,
                 array: array
             )
+            return UnkeyedDecodingContainer(container)
         } else if isNull {
             throw DecodingError.valueNotFound(Array<JSONDecoderValue>.self, DecodingError.Context(
                 codingPath: self.codingPath,
@@ -161,11 +162,12 @@ private struct JSONDecoderImpl: Decoder {
     }
 
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        JSONSingleValueDecodingContainer(
+        let container = JSONSingleValueDecodingContainer(
             impl: self,
             codingPath: self.codingPath,
             json: self.json
         )
+        return SingleValueDecodingContainer(container)
     }
 
     // SKIP DECLARE: internal fun <T> unwrap(as_: KClass<T>): T where T: Any
@@ -269,7 +271,7 @@ private struct JSONDecoderImpl: Decoder {
     }
 }
 
-private struct JSONSingleValueDecodingContainer: SingleValueDecodingContainer {
+private struct JSONSingleValueDecodingContainer: SingleValueDecodingContainerProtocol {
     let impl: JSONDecoderImpl
     let value: JSONDecoderValue
     let codingPath: [CodingKey]
@@ -335,6 +337,29 @@ private struct JSONSingleValueDecodingContainer: SingleValueDecodingContainer {
     // SKIP DECLARE: override fun <T> decode(type: KClass<T>): T where T: Any
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         return try self.impl.unwrap(as: type)
+    }
+
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws
+        -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey
+    {
+        let decoder = decoderForValue()
+        let container = try decoder.container(keyedBy: type)
+        return container
+    }
+
+    func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
+        let decoder = decoderForValue()
+        let container = try decoder.unkeyedContainer()
+        return container
+    }
+
+    private func decoderForValue() -> JSONDecoderImpl {
+        return JSONDecoderImpl(
+            userInfo: self.impl.userInfo,
+            from: self.value,
+            codingPath: self.codingPath,
+            options: self.impl.options
+        )
     }
 }
 
@@ -520,7 +545,7 @@ fileprivate struct JSONKeyedDecodingContainer<Key : CodingKey>: KeyedDecodingCon
     }
 }
 
-fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
+fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainerProtocol {
     let impl: JSONDecoderImpl
     let codingPath: [CodingKey]
     let array: [JSONDecoderValue]
@@ -673,7 +698,7 @@ fileprivate struct JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     private func getNextValue<T>(ofType: T.Type) throws -> JSONDecoderValue where T: Any {
         guard !self.isAtEnd else {
             var message = "Unkeyed container is at end."
-            if ofType == JSONUnkeyedDecodingContainer.self {
+            if ofType == UnkeyedDecodingContainer.self {
                 message = "Cannot get nested unkeyed container -- unkeyed container is at end."
             }
             if ofType == Decoder.self {
