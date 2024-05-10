@@ -17,7 +17,18 @@ public protocol Scheduler {
 public struct RunLoop : Scheduler {
     public static let main = RunLoop()
 
+    public enum Mode: Int {
+        case `default`, common, eventTracking, modalPanel, tracking
+    }
+
+    public struct SchedulerOptions {
+    }
+
     private init() {
+    }
+
+    public func add(_ timer: Timer, forMode mode: Mode) {
+        timer.start() // We don't yet support non-main run loops and timer always uses main
     }
 }
 
@@ -28,7 +39,7 @@ public struct DispatchQueue : Scheduler {
     }
 
     @available(*, unavailable)
-    init(label: String, qos: Any, attributes: Any, autoreleaseFrequency: Any, target: DispatchQueue?) {
+    public init(label: String, qos: Any, attributes: Any, autoreleaseFrequency: Any, target: DispatchQueue?) {
     }
 
     @available(*, unavailable)

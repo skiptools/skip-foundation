@@ -452,6 +452,7 @@ Support levels:
 <li><code>func post(_ notification: Notification)</code></li>
 <li><code>func post(name: Notification.Name, object: Any?, userInfo: [AnyHashable: Any]? = nil)</code></li>
 <li><code>func notifications(named: Notification.Name, object: AnyObject? = nil) -> Notifications</code></li>
+<li>Also see support for <code>NotificationCenter.publisher</code> in the <code>SkipModel</code> module</li>
           </ul>
         </details> 
       </td>
@@ -680,6 +681,23 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>func strncmp(_ str1: String, _ str2: String) -> Int</code></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>Timer</code></summary>
+          <ul>
+<li><code>init(timeInterval: TimeInterval, repeats: Bool, block: (Timer) -> Void)</code></li>
+<li><code>static func scheduledTimer(withTimeInterval interval: TimeInterval, repeats: Bool, block: (Timer) -> Void) -> Timer</code></li>
+<li><code>var timeInterval: TimeInterval</code></li>
+<li><code>func invalidate()</code></li>
+<li><code>var isValid: Bool</code></li>
+<li><code>var userInfo: Any?</code></li>
+<li>Also see support for <code>Timer.publish</code> in the <code>SkipModel</code> module</li>
+          </ul>
+        </details> 
+      </td>
     </tr>
     <tr>
       <td>🟢</td>
