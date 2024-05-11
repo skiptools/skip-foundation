@@ -295,6 +295,8 @@ Support levels:
           <ul>
 <li><code>static let main: DispatchQueue</code></li>
 <li><code>func async(execute: () -> Void)</code></li>
+<li><code>func asyncAfter(deadline: DispatchTime, execute: () -> Void)</code></li>
+<li><code>func asyncAfter(wallDeadline: DispatchWallTime, execute: () -> Void)</code></li>
           </ul>
         </details> 
       </td>

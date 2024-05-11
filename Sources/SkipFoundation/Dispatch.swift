@@ -7,6 +7,7 @@
 #if SKIP
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // Stubs that allow SkipModel to implement Publisher.receive(on:) for the main queue
@@ -32,6 +33,15 @@ public struct RunLoop : Scheduler {
     }
 }
 
+public typealias DispatchWallTime = Double
+public typealias DispatchTime = Double
+
+extension Double {
+    public static func now() -> Double {
+        Double(System.currentTimeMillis()) / 1000.0
+    }
+}
+
 public struct DispatchQueue : Scheduler {
     public static let main = DispatchQueue()
 
@@ -53,20 +63,26 @@ public struct DispatchQueue : Scheduler {
         }
     }
 
-    @available(*, unavailable)
-    public func asyncAfter(deadline: Any, execute: () -> Void) {
+    public func asyncAfter(deadline: DispatchTime, execute: () -> Void) {
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(Int64(deadline * 1000.0) - System.currentTimeMillis())
+            execute()
+        }
     }
 
     @available(*, unavailable)
-    public func asyncAfter(deadline: Any, qos: Any, flags: Any, execute: () -> Void) {
+    public func asyncAfter(deadline: DispatchTime, qos: Any, flags: Any, execute: () -> Void) {
+    }
+
+    public func asyncAfter(wallDeadline: DispatchWallTime, execute: () -> Void) {
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(Int64(wallDeadline * 1000.0) - System.currentTimeMillis())
+            execute()
+        }
     }
 
     @available(*, unavailable)
-    public func asyncAfter(wallDeadline: Any, execute: () -> Void) {
-    }
-
-    @available(*, unavailable)
-    public func asyncAfter(wallDeadline: Any, qos: Any, flags: Any, execute: () -> Void) {
+    public func asyncAfter(wallDeadline: DispatchWallTime, qos: Any, flags: Any, execute: () -> Void) {
     }
 
     @available(*, unavailable)
