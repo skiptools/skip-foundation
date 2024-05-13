@@ -659,8 +659,14 @@ private func httpRequest(for request: URLRequest, with url: URL, configuration: 
         client = httpClient
     }
 
+    var sanitizedString = url.absoluteString
+    if sanitizedString.hasPrefix("ws://") {
+        sanitizedString = "http" + String(sanitizedString.dropFirst("ws".count))
+    } else if sanitizedString.hasPrefix("wss://") {
+        sanitizedString = "https" + String(sanitizedString.dropFirst("wss".count))
+    }
     let builder = Request.Builder()
-        .url(url.platformValue)
+        .url(sanitizedString)
         .method(request.httpMethod ?? "GET", request.httpBody?.platformValue?.toRequestBody())
     // SKIP NOWARN
     if let headerMap = request.allHTTPHeaderFields?.kotlin(nocopy: true) as? Map<String, String> {
@@ -694,7 +700,7 @@ private func httpURLResponse(from response: Response, with url: URL) -> HTTPURLR
 /// Use for non-HTTP requests.
 private func genericConnection(for request: URLRequest, with url: URL) throws -> java.net.URLConnection {
     // Calling openConnection does not actually connect
-    let connection = url.platformValue.openConnection()
+    let connection = url.absoluteURL.platformValue.toURL().openConnection()
     switch request.cachePolicy {
     case URLRequest.CachePolicy.useProtocolCachePolicy:
         connection.setUseCaches(true)

@@ -90,7 +90,7 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
     }
 
     public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
-        self.platformValue = url.platformValue.readBytes()
+        self.platformValue = url.absoluteURL.platformValue.toURL().readBytes()
     }
 
     public init(_ checksum: Digest) {

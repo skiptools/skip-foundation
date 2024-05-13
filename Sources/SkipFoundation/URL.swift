@@ -8,16 +8,13 @@
 
 public typealias NSURL = URL
 
-public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting<java.net.URL> {
-    // TODO: Switch away from java.net.URL, which can only be constructed with a limited set of supported protocols.
-    // When we switch, make sure to update the networking code in URLSession to re-map ws/wss websocket URLs to http
-    // rather than doing that in our string constructor
-    internal var platformValue: java.net.URL
+public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting<java.net.URI> {
+    internal let platformValue: java.net.URI
     private let isDirectoryFlag: Bool?
 
     public let baseURL: URL?
 
-    public init(platformValue: java.net.URL, isDirectory: Bool? = nil, baseURL: URL? = nil) {
+    public init(platformValue: java.net.URI, isDirectory: Bool? = nil, baseURL: URL? = nil) {
         self.platformValue = platformValue
         self.isDirectoryFlag = isDirectory
         self.baseURL = baseURL
@@ -42,7 +39,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public static var cachesDirectory: URL {
-        return URL(platformValue: ProcessInfo.processInfo.androidContext.getCacheDir().toURL(), isDirectory: true)
+        return URL(platformValue: ProcessInfo.processInfo.androidContext.getCacheDir().toURI(), isDirectory: true)
     }
 
     @available(*, unavailable)
@@ -61,7 +58,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public static var documentsDirectory: URL {
-        return URL(platformValue: ProcessInfo.processInfo.androidContext.getFilesDir().toURL(), isDirectory: true)
+        return URL(platformValue: ProcessInfo.processInfo.androidContext.getFilesDir().toURI(), isDirectory: true)
     }
 
     @available(*, unavailable)
@@ -105,21 +102,13 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public init?(string: String, relativeTo baseURL: URL? = nil) {
-        // Java doesn't support ws/wss URLs
-        var sanitizedString = string
-        if sanitizedString.hasPrefix("ws://") {
-            sanitizedString = "http" + String(sanitizedString.dropFirst("ws".count))
-        } else if sanitizedString.hasPrefix("wss://") {
-            sanitizedString = "https" + String(sanitizedString.dropFirst("wss".count))
-        }
-
         do {
-            let url = java.net.URL(relativeTo?.platformValue, sanitizedString) // throws on malformed
-            // use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
-            let isDirectory = url.`protocol` == "file" && string.hasSuffix("/")
-            self.platformValue = url
-            self.isDirectoryFlag = isDirectory
+            self.platformValue = java.net.URI(string) // throws on malformed
             self.baseURL = baseURL
+            // Use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
+            let scheme = baseURL?.platformValue.scheme ?? self.platformValue.scheme
+            self.isDirectoryFlag = scheme == "file" && string.hasSuffix("/")
+
         } catch {
             // e.g., malformed URL
             return nil
@@ -127,56 +116,56 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public init(fileURLWithPath path: String, isDirectory: Bool? = nil, relativeTo base: URL? = nil) {
-        self.platformValue = java.net.URL("file://" + path) // TODO: escaping
-        self.baseURL = base // TODO: base resolution
+        self.platformValue = java.net.URI("file://" + path) // TODO: escaping
+        self.baseURL = base
         self.isDirectoryFlag = isDirectory ?? path.hasSuffix("/") // TODO: should we hit the file system like NSURL does?
     }
 
     @available(*, unavailable)
     init(fileURLWithFileSystemRepresentation: Any, isDirectory: Bool, relativeTo: URL? = nil, unusedp: Nothing? = nil) {
-        self.platformValue = java.net.URL("")
+        self.platformValue = java.net.URI("")
         self.baseURL = nil
         self.isDirectoryFlag = false
     }
 
     @available(*, unavailable)
     public init(fileReferenceLiteralResourceName: String) {
-        self.platformValue = java.net.URL("")
+        self.platformValue = java.net.URI("")
         self.baseURL = nil
         self.isDirectoryFlag = false
     }
 
     @available(*, unavailable)
     init(resolvingBookmarkData: Data, options: Any? = nil, relativeTo: URL? = nil, bookmarkDataIsStale: inout Bool) {
-        self.platformValue = java.net.URL("")
+        self.platformValue = java.net.URI("")
         self.baseURL = nil
         self.isDirectoryFlag = false
     }
 
     @available(*, unavailable)
     init(resolvingAliasFileAt: URL, options: Any? = nil) throws {
-        self.platformValue = java.net.URL("")
+        self.platformValue = java.net.URI("")
         self.baseURL = nil
         self.isDirectoryFlag = false
     }
 
     @available(*, unavailable)
     init?(resource: URLResource) {
-        self.platformValue = java.net.URL("")
+        self.platformValue = java.net.URI("")
         self.baseURL = nil
         self.isDirectoryFlag = false
     }
 
     @available(*, unavailable)
     init(_ parseInput: Any, strategy: Any, unusedp: Nothing? = nil) {
-        self.platformValue = java.net.URL("")
+        self.platformValue = java.net.URI("")
         self.baseURL = nil
         self.isDirectoryFlag = false
     }
 
     @available(*, unavailable)
     public init?(dataRepresentation: Data, relativeTo: URL?, isAbsolute: Bool) {
-        self.platformValue = java.net.URL("")
+        self.platformValue = java.net.URI("")
         self.baseURL = nil
         self.isDirectoryFlag = false
     }
@@ -192,27 +181,20 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var description: String {
-        return platformValue.description
+        return platformValue.toString()
     }
 
     /// Converts this URL to a `java.nio.file.Path`.
     public func toPath() -> java.nio.file.Path {
-        return java.nio.file.Paths.get(platformValue.toURI())
+        return java.nio.file.Paths.get(absoluteURL.platformValue)
     }
 
     public var host: String? {
-        return platformValue.host
+        return absoluteURL.platformValue.host
     }
 
     public func host(percentEncoded: Bool = true) -> String? {
-        guard let host = self.host else {
-            return nil
-        }
-        if percentEncoded {
-            return host.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
-        } else {
-            return host
-        }
+        return absoluteURL.platformValue.host
     }
 
     public var hasDirectoryPath: Bool {
@@ -220,36 +202,56 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var path: String {
-        return platformValue.path
+        return absoluteURL.platformValue.path
     }
 
-    @available(*, unavailable)
+    public func path(percentEncoded: Bool = true) -> String? {
+        return percentEncoded ? absoluteURL.platformValue.path : absoluteURL.platformValue.rawPath
+    }
+
     public var port: Int? {
-        fatalError("TODO: implement port")
+        let port = absoluteURL.platformValue.port
+        return port == -1 ? nil : port
     }
 
     public var scheme: String? {
-        return platformValue.`protocol`
+        return absoluteURL.platformValue.scheme
     }
 
-    @available(*, unavailable)
     public var query: String? {
-        fatalError("TODO: implement query")
+        return absoluteURL.platformValue.query
+    }
+
+    public func query(percentEncoded: Bool = true) -> String? {
+        return percentEncoded ? absoluteURL.platformValue.query : absoluteURL.platformValue.rawQuery
     }
 
     @available(*, unavailable)
     public var user: String? {
-        fatalError("TODO: implement user")
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func user(percentEncoded: Bool = true) -> String? {
+        fatalError()
     }
 
     @available(*, unavailable)
     public var password: String? {
-        fatalError("TODO: implement password")
+        fatalError()
     }
 
     @available(*, unavailable)
+    public func password(percentEncoded: Bool = true) -> String? {
+        fatalError()
+    }
+
     public var fragment: String? {
-        fatalError("TODO: implement fragment")
+        return absoluteURL.platformValue.fragment
+    }
+
+    public func fragment(percentEncoded: Bool = true) -> String? {
+        return percentEncoded ? absoluteURL.platformValue.fragment : absoluteURL.platformValue.rawFragment
     }
 
     @available(*, unavailable)
@@ -258,48 +260,43 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var standardized: URL {
-        return URL(platformValue: toPath().normalize().toUri().toURL())
+        return URL(platformValue: toPath().normalize().toUri())
     }
 
     public var absoluteString: String {
-        return platformValue.toExternalForm()
+        return absoluteURL.platformValue.toString()
     }
 
     public var lastPathComponent: String {
-        return pathComponents.lastOrNull() ?? ""
+        return pathComponents.last ?? ""
     }
 
     public var pathExtension: String {
-        let parts = Array((lastPathComponent ?? "").split(separator: "."))
-        if parts.count >= 2 {
-            return parts.last!
-        } else {
+        guard let lastPathComponent = pathComponents.last else {
             return ""
         }
+        let parts = lastPathComponent.split(separator: ".")
+        return parts.count >= 2 ? parts.last! : ""
     }
 
     public var isFileURL: Bool {
-        return platformValue.`protocol` == "file"
+        return scheme == "file"
     }
 
     public var pathComponents: [String] {
-        let path: String = platformValue.path
-        return Array(path.split(separator: "/")).filter { !$0.isEmpty }
+        return path.split(separator: "/").filter { !$0.isEmpty }
     }
 
-    @available(*, unavailable)
     public var relativePath: String {
-        fatalError("TODO: implement relativePath")
+        return platformValue.path
     }
 
-    @available(*, unavailable)
     public var relativeString: String {
-        fatalError("TODO: implement relativeString")
+        return platformValue.toString()
     }
 
-    @available(*, unavailable)
     public var standardizedFileURL: URL {
-        fatalError("TODO: implement standardizedFileURL")
+        return isFileURL ? standardized : self
     }
 
     public mutating func standardize() {
@@ -307,21 +304,25 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var absoluteURL: URL {
-        return self
+        if let baseURL = self.baseURL {
+            return URL(platformValue: baseURL.platformValue.resolve(platformValue))
+        } else {
+            return self
+        }
     }
 
     public func appendingPathComponent(_ pathComponent: String) -> URL {
-        var url = self.platformValue.toExternalForm()
-        if !url.hasSuffix("/") { url = url + "/" }
-        url = url + pathComponent
-        return URL(platformValue: java.net.URL(url))
+        var string = absoluteString
+        if !string.hasSuffix("/") { string = string + "/" }
+        string = string + pathComponent
+        return URL(platformValue: java.net.URI(string))
     }
 
     public func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL {
-        var url = self.platformValue.toExternalForm()
-        if !url.hasSuffix("/") { url = url + "/" }
-        url = url + pathComponent
-        return URL(platformValue: java.net.URL(url), isDirectory: isDirectory)
+        var string = absoluteString
+        if !string.hasSuffix("/") { string = string + "/" }
+        string = string + pathComponent
+        return URL(platformValue: java.net.URI(string), isDirectory: isDirectory)
     }
 
     public mutating func appendPathComponent(_ pathComponent: String) {
@@ -343,9 +344,9 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func appendingPathExtension(_ pathExtension: String) -> URL {
-        var url = self.platformValue.toExternalForm()
-        url = url + "." + pathExtension
-        return URL(platformValue: java.net.URL(url))
+        var string = absoluteString
+        string = string + "." + pathExtension
+        return URL(platformValue: java.net.URI(string))
     }
 
     public mutating func appendPathExtension(_ pathExtension: String) {
@@ -363,14 +364,14 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func deletingLastPathComponent() -> URL {
-        var url = self.platformValue.toExternalForm()
-        while url.hasSuffix("/") && !url.isEmpty {
-            url = url.dropLast(1)
+        var string = absoluteString
+        while string.hasSuffix("/") && !string.isEmpty {
+            string = string.dropLast(1)
         }
-        while !url.hasSuffix("/") && !url.isEmpty {
-            url = url.dropLast(1)
+        while !string.hasSuffix("/") && !string.isEmpty {
+            string = string.dropLast(1)
         }
-        return URL(platformValue: java.net.URL(url))
+        return URL(platformValue: java.net.URI(string))
     }
 
     public mutating func deleteLastPathComponent() {
@@ -379,14 +380,14 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
 
     public func deletingPathExtension() -> URL {
         let ext = pathExtension
-        var url = self.platformValue.toExternalForm()
-        while url.hasSuffix("/") {
-            url = url.dropLast(1)
+        var string = absoluteString
+        while string.hasSuffix("/") {
+            string = string.dropLast(1)
         }
-        if url.hasSuffix("." + ext) {
-            url = url.dropLast(ext.count + 1)
+        if string.hasSuffix("." + ext) {
+            string = string.dropLast(ext.count + 1)
         }
-        return URL(platformValue: java.net.URL(url))
+        return URL(platformValue: java.net.URI(string))
     }
 
     public mutating func deletePathExtension() {
@@ -394,7 +395,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func resolvingSymlinksInPath() -> URL {
-        if isFileURL == false {
+        guard isFileURL else {
             return self
         }
         let originalPath = toPath()
@@ -405,7 +406,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         //    return URL(platformValue: normalized.toUri().toURL())
         //}
         do {
-            return URL(platformValue: originalPath.toRealPath().toUri().toURL())
+            return URL(platformValue: originalPath.toRealPath().toUri())
         } catch {
             // this will fail if the file does not exist, but Foundation expects it to return the path itself
             return self
@@ -417,12 +418,12 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func checkResourceIsReachable() throws -> Bool {
-        if !isFileURL {
+        guard isFileURL else {
             // “This method is currently applicable only to URLs for file system resources. For other URL types, `false` is returned.”
             return false
         }
         // check whether the resource can be reached by opening and closing a connection
-        platformValue.openConnection().getInputStream().close()
+        platformValue.toURL().openConnection().getInputStream().close()
         return true
     }
 
@@ -448,7 +449,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
 
     @available(*, unavailable)
     public mutating func removeAllCachedResourceValues() {
-        fatalError("TODO: implement removeAllCachedResourceValues")
+        fatalError()
     }
 
     @available(*, unavailable)
@@ -496,7 +497,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         fatalError()
     }
 
-    public override func kotlin(nocopy: Bool = false) -> java.net.URL {
+    public override func kotlin(nocopy: Bool = false) -> java.net.URI {
         return platformValue
     }
 }

@@ -134,7 +134,7 @@ public func String(bytes: [UInt8], encoding: StringEncoding) -> String? {
 }
 
 public func String(contentsOf: URL) -> String {
-    return contentsOf.platformValue.readText()
+    return contentsOf.absoluteURL.platformValue.toURL().readText()
 }
 
 #endif

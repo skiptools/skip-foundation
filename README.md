@@ -736,7 +736,7 @@ Support levels:
       <td><code>UnknownNSError</code></td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>🟢</td>
       <td>
         <details>
           <summary><code>URL</code></summary>
@@ -753,17 +753,25 @@ Support levels:
 <li><code>var scheme: String?</code></li>
 <li><code>var host: String?</code></li>
 <li><code>func host(percentEncoded: Bool = true) -> String?</code></li>
+<li><code>var port: Int?</code></li>
+<li><code>var path: String?</code></li>
+<li><code>func path(percentEncoded: Bool = true) -> String?</code></li>
 <li><code>var hasDirectoryPath: Bool</code></li>
-<li><code>var path: String</code></li>
+<li><code>var query: String?</code></li>
+<li><code>func query(percentEncoded: Bool = true) -> String?</code></li>
+<li><code>var fragment: String?</code></li>
+<li><code>func fragment(percentEncoded: Bool = true) -> String?</code></li>
 <li><code>var standardized: URL</code></li>
+<li><code>var standardizedFileURL: URL</code></li>
 <li><code>mutating func standardize()</code></li>
-<li><code>var absoluteString: String</code></li>
 <li><code>var absoluteURL: URL</code></li>
+<li><code>var absoluteString: String</code></li>
+<li><code>var relativePath: String</code></li>
+<li><code>var relativeString: String</code></li>
 <li><code>var pathComponents: [String]</code></li>
 <li><code>var lastPathComponent: String</code></li>
 <li><code>var pathExtension: String</code></li>
 <li><code>var isFileURL: Bool</code></li>
-<li><code>mutating func standardize()</code></li>
 <li><code>func appendingPathComponent(_ pathComponent: String) -> URL</code></li>
 <li><code>mutating func appendPathComponent(_ pathComponent: String)</code></li>
 <li><code>func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL</code></li>

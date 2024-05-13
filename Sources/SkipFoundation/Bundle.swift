@@ -124,7 +124,7 @@ public class Bundle : Hashable {
         do {
             let rpath = "Resources/" + path
             let resURL = try forClass.getResource(rpath)
-            return URL(platformValue: resURL)
+            return URL(platformValue: resURL.toURI())
         } catch {
             // getResource throws when it cannot find the resource, but it doesn't handle directories
             // such as .lproj folders; so manually scan the resources.lst elements, and if any

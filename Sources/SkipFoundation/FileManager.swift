@@ -353,7 +353,7 @@ public class FileManager {
     public func contentsOfDirectory(at url: URL, includingPropertiesForKeys: [URLResourceKey]?) throws -> [URL] {
         // https://developer.android.com/reference/kotlin/java/nio/file/Files
         let shallowFiles = java.nio.file.Files.list(platformFilePath(for: url)).collect(java.util.stream.Collectors.toList())
-        let contents = shallowFiles.map { URL(platformValue: $0.toUri().toURL()) }
+        let contents = shallowFiles.map { URL(platformValue: $0.toUri()) }
         return Array(contents)
     }
 

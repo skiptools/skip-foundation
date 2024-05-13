@@ -161,39 +161,39 @@ class TestURL : XCTestCase {
         var result = Dictionary<String, Any>()
         if let pathComponent = pathComponent {
             let newFileURL = url.appendingPathComponent(pathComponent, isDirectory: false)
-            // API marked unavailable for Skip: result["appendingPathComponent-File"] = newFileURL.relativeString
-            // API marked unavailable for Skip: result["appendingPathComponent-File-BaseURL"] = newFileURL.baseURL?.relativeString ?? kNullString
+            result["appendingPathComponent-File"] = newFileURL.relativeString
+            result["appendingPathComponent-File-BaseURL"] = newFileURL.baseURL?.relativeString ?? kNullString
 
             let newDirURL = url.appendingPathComponent(pathComponent, isDirectory: true)
-            // API marked unavailable for Skip: result["appendingPathComponent-Directory"] = newDirURL.relativeString
-            // API marked unavailable for Skip: result["appendingPathComponent-Directory-BaseURL"] = newDirURL.baseURL?.relativeString ?? kNullString
+            result["appendingPathComponent-Directory"] = newDirURL.relativeString
+            result["appendingPathComponent-Directory-BaseURL"] = newDirURL.baseURL?.relativeString ?? kNullString
         } else if let pathExtension = pathExtension {
-            // API marked unavailable for Skip: let newURL = url.appendingPathExtension(pathExtension)
-            // API marked unavailable for Skip: result["appendingPathExtension"] = newURL.relativeString
-            // API marked unavailable for Skip: result["appendingPathExtension-BaseURL"] = newURL.baseURL?.relativeString ?? kNullString
+            let newURL = url.appendingPathExtension(pathExtension)
+            result["appendingPathExtension"] = newURL.relativeString
+            result["appendingPathExtension-BaseURL"] = newURL.baseURL?.relativeString ?? kNullString
         } else {
-            // API marked unavailable for Skip: result["relativeString"] = url.relativeString
-            // API marked unavailable for Skip: result["baseURLString"] = url.baseURL?.relativeString ?? kNullString
+            result["relativeString"] = url.relativeString
+            result["baseURLString"] = url.baseURL?.relativeString ?? kNullString
             result["absoluteString"] = url.absoluteString
-            // API marked unavailable for Skip: result["absoluteURLString"] = url.absoluteURL.relativeString
-            // API marked unavailable for Skip: result["scheme"] = url.scheme ?? kNullString
+            result["absoluteURLString"] = url.absoluteURL.relativeString
+            result["scheme"] = url.scheme ?? kNullString
             result["host"] = url.host ?? kNullString
 
-            // API marked unavailable for Skip: result["port"] = url.port ?? kNullString
+            result["port"] = url.port ?? kNullString
             // API marked unavailable for Skip: result["user"] = url.user ?? kNullString
             // API marked unavailable for Skip: result["password"] = url.password ?? kNullString
             result["path"] = url.path
-            // API marked unavailable for Skip: result["query"] = url.query ?? kNullString
-            // API marked unavailable for Skip: result["fragment"] = url.fragment ?? kNullString
-            // API marked unavailable for Skip: result["relativePath"] = url.relativePath
+            result["query"] = url.query ?? kNullString
+            result["fragment"] = url.fragment ?? kNullString
+            result["relativePath"] = url.relativePath
             result["isFileURL"] = url.isFileURL ? "YES" : "NO"
-            // API marked unavailable for Skip: result["standardizedURL"] = url.standardized.relativeString
+            result["standardizedURL"] = url.standardized.relativeString
 
             result["pathComponents"] = url.pathComponents
             result["lastPathComponent"] = url.lastPathComponent
             result["pathExtension"] = url.pathExtension
-            // API marked unavailable for Skip: result["deletingLastPathComponent"] = url.deletingLastPathComponent().relativeString
-            // API marked unavailable for Skip: result["deletingLastPathExtension"] = url.deletingPathExtension().relativeString
+            result["deletingLastPathComponent"] = url.deletingLastPathComponent().relativeString
+            result["deletingLastPathExtension"] = url.deletingPathExtension().relativeString
         }
         return result
     }
