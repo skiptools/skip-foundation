@@ -1,3 +1,9 @@
+## 0.6.9
+
+Released 2024-05-13
+
+  - Make resourcesIndex public so external frameworks can query the indexed resources list
+
 ## 0.5.13
 
 Released 2024-03-24
