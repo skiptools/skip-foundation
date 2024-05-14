@@ -286,7 +286,7 @@ public class Bundle : Hashable {
     }
 
     /// Loads the resources index stored in the `resources.lst` file at the root of the resources folder.
-    private lazy var resourcesIndex: [String] = {
+    public lazy var resourcesIndex: [String] = {
         guard let resourceListURL = try self.resourcesIndexURL else {
             return []
         }
