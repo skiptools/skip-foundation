@@ -72,7 +72,7 @@ Support levels:
   - ✅ – Full
   - 🟢 – High
   - 🟡 – Medium 
-  - 🔴 – Low
+  - 🟠 – Low
 
 <table>
   <thead><th>Support</th><th>API</th></thead>
@@ -134,7 +134,7 @@ Support levels:
       </td>
     </tr>
    <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
         <details>
           <summary><code>CharacterSet</code></summary>
@@ -179,7 +179,7 @@ Support levels:
       <td><code>ComparisonResult</code></td>
     </tr>
    <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
         <details>
           <summary><code>CryptoKit</code></summary>
@@ -277,7 +277,7 @@ Support levels:
       <td><code>DateInterval</code></td>
     </tr>
    <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
         <details>
           <summary><code>Decimal</code></summary>
@@ -288,7 +288,7 @@ Support levels:
       </td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
         <details>
           <summary><code>DispatchQueue</code></summary>
@@ -557,7 +557,7 @@ Support levels:
       </td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
         <details>
           <summary><code>OperationQueue</code></summary>
@@ -617,7 +617,7 @@ Support levels:
       </td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
         <details>
           <summary><code>PropertyListSerialization</code></summary>
@@ -629,7 +629,7 @@ Support levels:
       </td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
         <details>
           <summary><code>RunLoop</code></summary>
