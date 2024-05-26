@@ -1,3 +1,10 @@
+## 0.6.10
+
+Released 2024-05-26
+
+  - Add Locale.Currency, Locale.Language, Locale.Region, Locale.Variant, and Locale.Script
+  - Update API support table colors
+
 ## 0.6.9
 
 Released 2024-05-13

@@ -127,6 +127,52 @@ final class LocaleTests: XCTestCase {
         ])
     }
 
+    func testLocaleFormats() throws {
+        #if !SKIP
+        // TODO
+        XCTAssertEqual("$0.40", 0.4.formatted(.currency(code: "USD")))
+        XCTAssertEqual("€1,234,567.89", 1234567.89.formatted(.currency(code: "EUR")))
+        XCTAssertEqual("1,234", 1234.formatted(.number))
+
+        XCTAssertEqual("1,234", 1234.formatted(.number))
+        XCTAssertEqual("45.678%", 0.45678.formatted(.percent))
+
+        XCTAssertEqual("1 234", 1234.formatted(.number.locale(Locale(identifier: "fr"))))
+        XCTAssertEqual("1 234,567", 1234.567.formatted(.number.locale(Locale(identifier: "fr"))))
+
+        XCTAssertEqual("1,234", 1234.formatted(.number.locale(Locale(identifier: "en_US"))))
+        XCTAssertEqual("1,234.567", 1234.567.formatted(.number.locale(Locale(identifier: "en_US"))))
+
+        XCTAssertEqual("15:00", (Date(timeIntervalSince1970: 100)..<Date(timeIntervalSince1970: 1000)).formatted(.timeDuration))
+
+
+        XCTAssertEqual("12/31/1969, 19:01", Date(timeIntervalSince1970: 100).formatted())
+        XCTAssertEqual("Dec 31, 1969", Date(timeIntervalSince1970: 100).formatted(date: .abbreviated, time: .omitted))
+
+        XCTAssertEqual("Wednesday, December 31, 1969", Date(timeIntervalSince1970: 100).formatted(date: .complete, time: .omitted))
+        XCTAssertEqual("December 31, 1969", Date(timeIntervalSince1970: 100).formatted(date: .long, time: .omitted))
+        XCTAssertEqual("12/31/1969", Date(timeIntervalSince1970: 100).formatted(date: .numeric, time: .omitted))
+        XCTAssertEqual("Dec 31, 1969", Date(timeIntervalSince1970: 100).formatted(date: .abbreviated, time: .omitted))
+
+        XCTAssertEqual("19:01:40 EST", Date(timeIntervalSince1970: 100).formatted(date: .omitted, time: .complete))
+        XCTAssertEqual("19:01", Date(timeIntervalSince1970: 100).formatted(date: .omitted, time: .shortened))
+        XCTAssertEqual("19:01:40", Date(timeIntervalSince1970: 100).formatted(date: .omitted, time: .standard))
+
+        XCTAssertEqual("A, B, and C", ["A", "B", "C"].formatted())
+        XCTAssertEqual("1, 2.3 et 3.4567", [1, 2.3, 3.4567].formatted(.list(memberStyle: .number, type: .and).locale(Locale(identifier: "fr"))))
+        XCTAssertEqual("1、2.3、3.4567", [1, 2.3, 3.4567].formatted(.list(memberStyle: .number, type: .and).locale(Locale(identifier: "ja"))))
+        XCTAssertEqual("A, B, or C", ["A", "B", "C"].formatted(.list(type: .or)))
+        XCTAssertEqual("A, B ou C", ["A", "B", "C"].formatted(.list(type: .or).locale(Locale(identifier: "fr"))))
+
+        XCTAssertEqual("12/31/1969, 19:01、12/31/1969, 19:16", [Date(timeIntervalSince1970: 100), Date(timeIntervalSince1970: 1_000)].formatted(.list(memberStyle: .dateTime, type: .and).locale(Locale(identifier: "ja"))))
+        XCTAssertEqual("31/12/1969 19:01 et 31/12/1969 19:16", [Date(timeIntervalSince1970: 100), Date(timeIntervalSince1970: 1_000)].formatted(.list(memberStyle: .dateTime.locale(Locale(identifier: "fr")), type: .and).locale(Locale(identifier: "fr"))))
+        XCTAssertEqual("31/12/1969 19:01和31/12/1969 19:16", [Date(timeIntervalSince1970: 100), Date(timeIntervalSince1970: 1_000)].formatted(.list(memberStyle: .dateTime.locale(Locale(identifier: "fr")), type: .and).locale(Locale(identifier: "zh"))))
+
+        XCTAssertEqual("A、B、またはC", ["A", "B", "C"].formatted(.list(type: .or).locale(Locale(identifier: "ja"))))
+        XCTAssertEqual("A、B、C", ["A", "B", "C"].formatted(.list(type: .and).locale(Locale(identifier: "ja"))))
+        #endif
+    }
+
     func testLocalizableStringsDictionary() throws {
         // Due to .process rules, Localizable.xcstrings is processed into indvidual Localizable.strings files during resource preparation; in order to test the actual xcstrings parser, we have a link to it with the suffix "xcstringsjson", which will get embedded direcly in the resources so we can test it here
         // let locURL = try XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"))
