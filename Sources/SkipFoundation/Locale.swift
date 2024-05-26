@@ -94,20 +94,37 @@ public struct Locale : Hashable {
         }
     }
 
+    public var currency: Currency? {
+        guard let currency = java.text.NumberFormat.getCurrencyInstance(platformValue)?.currency else { return nil }
+        return Locale.Currency(platformValue: currency)
+    }
+
+    public var currencySymbol: String? {
+        return currency?.symbol
+    }
+
+    public var language: Language {
+        Locale.Language(platformValue: platformValue)
+    }
+
     public var languageCode: String? {
-        return platformValue.getLanguage()
-    }
-
-    public var variantCode: String? {
-        return platformValue.getVariant()
-    }
-
-    public var regionCode: String? {
-        return platformValue.getCountry()
+        return language?.languageCode?.identifier
     }
 
     public var scriptCode: String? {
-        return platformValue.getScript()
+        return language?.script.identifier
+    }
+
+    public var regionCode: String? {
+        return language.region?.identifier
+    }
+
+    public var variant: Variant? {
+        Locale.Variant(platformValue: platformValue)
+    }
+
+    public var variantCode: String? {
+        return variant?.identifier
     }
 
     public func localizedString(forIdentifier targetIdentifier: String) -> String? {
@@ -130,13 +147,99 @@ public struct Locale : Hashable {
         return (locale ?? Locale(identifier: forScriptCode).platformValue).getDisplayScript(platformValue)
     }
 
-    public var currencySymbol: String? {
-        return java.text.NumberFormat.getCurrencyInstance(platformValue).currency?.symbol
-    }
+//    public func localizedString(forVariantCode: String) -> String? {
+//        let locale = try? java.util.Locale.Builder().setScript(forScriptCode).build()
+//        return (locale ?? Locale(identifier: forScriptCode).platformValue).getDisplayScript(platformValue)
+//    }
 
     public func localize(key: String, value: String?, bundle: Bundle?, tableName: String?) -> String? {
         return bundle?.localizedBundle(locale: self).localizedString(forKey: key, value: value, table: tableName)
     }
+
+    public struct Currency : Hashable {
+        internal let platformValue: java.util.Currency
+
+        public init(platformValue: java.util.Currency) {
+            self.platformValue = platformValue
+        }
+
+        public var identifier: String {
+            platformValue.getCurrencyCode()
+        }
+
+        public var symbol: String {
+            platformValue.getSymbol()
+        }
+    }
+
+    public struct Language : Hashable {
+        internal let platformValue: java.util.Locale
+
+        public init(platformValue: java.util.Locale) {
+            self.platformValue = platformValue
+        }
+
+        public var languageCode: LanguageCode {
+            LanguageCode(platformValue: platformValue)
+        }
+
+        public var script: Script {
+            Script(platformValue: platformValue)
+        }
+
+        public var region: Region? {
+            Region(platformValue: platformValue)
+        }
+    }
+
+    public struct LanguageCode : Hashable {
+        internal let platformValue: java.util.Locale
+
+        public init(platformValue: java.util.Locale) {
+            self.platformValue = platformValue
+        }
+
+        public var identifier: String {
+            platformValue.getLanguage()
+        }
+    }
+
+    public struct Variant : Hashable {
+        internal let platformValue: java.util.Locale
+
+        public init(platformValue: java.util.Locale) {
+            self.platformValue = platformValue
+        }
+
+        public var identifier: String {
+            platformValue.getVariant()
+        }
+    }
+
+    public struct Region : Hashable {
+        internal let platformValue: java.util.Locale
+
+        public init(platformValue: java.util.Locale) {
+            self.platformValue = platformValue
+        }
+
+        public var identifier: String {
+            platformValue.getCountry()
+        }
+    }
+
+    public struct Script : Hashable {
+        internal let platformValue: java.util.Locale
+
+        public init(platformValue: java.util.Locale) {
+            self.platformValue = platformValue
+        }
+
+        public var identifier: String {
+            platformValue.getScript()
+        }
+    }
+
 }
 
 extension Locale: KotlinConverting<java.util.Locale> {

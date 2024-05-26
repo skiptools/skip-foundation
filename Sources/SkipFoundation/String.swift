@@ -133,8 +133,12 @@ public func String(bytes: [UInt8], encoding: StringEncoding) -> String? {
      return byteArray.toString(encoding.rawValue)
 }
 
-public func String(contentsOf: URL) -> String {
+public func String(contentsOf: URL) throws -> String {
     return contentsOf.absoluteURL.platformValue.toURL().readText()
+}
+
+public func String(contentsOf: URL, encoding: StringEncoding) throws -> String {
+    return java.lang.String(Data(contentsOf: contentsOf).platformValue, encoding.rawValue) as kotlin.String
 }
 
 #endif

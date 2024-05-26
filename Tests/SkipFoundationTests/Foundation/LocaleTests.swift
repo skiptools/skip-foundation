@@ -16,6 +16,8 @@ final class LocaleTests: XCTestCase {
         XCTAssertEqual("fr_FR", fr.identifier)
 
         XCTAssertEqual("€", Locale(identifier: "fr_FR").currencySymbol)
+        XCTAssertEqual("EUR", Locale(identifier: "fr_FR").currency?.identifier)
+
         XCTAssertEqual("€", Locale(identifier: "pt_PT").currencySymbol)
         #if SKIP
         //XCTAssertEqual("R", Locale(identifier: "pt_BR").currencySymbol)
@@ -24,7 +26,11 @@ final class LocaleTests: XCTestCase {
         #endif
 
         XCTAssertEqual("¥", Locale(identifier: "jp_JP").currencySymbol)
+        XCTAssertEqual("JPY", Locale(identifier: "jp_JP").currency?.identifier)
+
         XCTAssertEqual("¤", Locale(identifier: "zh_ZH").currencySymbol)
+        // XCTAssertEqual(nil, Locale(identifier: "zh_ZH").currency?.identifier) // nil on Darwin, "XXX" on Java
+
         #if SKIP
         //XCTAssertEqual("", Locale(identifier: "en_US").currencySymbol)
         #else
@@ -32,23 +38,6 @@ final class LocaleTests: XCTestCase {
         #endif
 
         //XCTAssertEqual("fr", fr.languageCode)
-
-        // TODO: Android emulator tests fail
-        try failOnAndroid()
-
-        #if SKIP
-        // TODO: make it top-level "Test.plist"
-
-        // “The method getResource() returns a URL for the resource. The URL (and its representation) is specific to the implementation and the JVM (that is, the URL obtained in one runtime instance may not work in another). Its protocol is usually specific to the ClassLoader loading the resource. If the resource does not exist or is not visible due to security considerations, the methods return null.”
-        let resURL: java.net.URL = try XCTAssertNotNil(javaClass.getResource("Resources/Test.plist"))
-        let contents = try resURL.getContent()
-
-        let module = Bundle.module
-
-        // “If the client code wants to read the contents of the resource as an InputStream, it can apply the openStream() method on the URL. This is common enough to justify adding getResourceAsStream() to Class and ClassLoader. getResourceAsStream() the same as calling getResource().openStream(), except that getResourceAsStream() catches IO exceptions returns a null InputStream.”
-        let res = try XCTAssertNotNil(javaClass.getResourceAsStream("Resources/Test.plist"))
-        res.close()
-        #endif
 
         XCTAssertEqual("anglais", fr.localizedString(forLanguageCode: "en"))
         XCTAssertEqual("français", fr.localizedString(forLanguageCode: "fr"))
@@ -323,6 +312,48 @@ final class LocaleTests: XCTestCase {
         XCTAssertEqual(isJava && !isAndroid ? "簡體字" : "簡體中文", zh_HK.localizedString(forScriptCode: "Hans"))
         XCTAssertEqual(isJava && !isAndroid ? "繁體字" : "繁體中文", zh_HK.localizedString(forScriptCode: "Hant"))
 
+    }
+
+    func testLocaleVariants() throws {
+        do {
+            // Chinese (Simplified) as used in Singapore
+            let locale = Locale(identifier: "zh-Hans-SG")
+            XCTAssertEqual("zh", locale.language.languageCode?.identifier)
+            XCTAssertEqual("Hans", locale.language.script?.identifier)
+            XCTAssertEqual("SG", locale.language.region?.identifier)
+        }
+
+        do {
+            // Serbian in Latin script for Montenegro
+            let locale = Locale(identifier: "sr-Latn-ME")
+            XCTAssertEqual("sr", locale.language.languageCode?.identifier)
+            XCTAssertEqual("Latn", locale.language.script?.identifier)
+            XCTAssertEqual("ME", locale.language.region?.identifier)
+        }
+
+        do {
+            // Spanish as spoken in Latin America with a traditional orthography variant
+            let locale = Locale(identifier: "es-419-TRADITIONAL")
+            XCTAssertEqual("es", locale.language.languageCode?.identifier)
+            XCTAssertEqual("419", locale.language.region?.identifier)
+            //XCTAssertEqual("TRADITIONAL", locale.variant?.identifier)
+        }
+
+        do {
+            // German in Switzerland with a reformed orthography variant
+            let locale = Locale(identifier: "de-CH-1901")
+            XCTAssertEqual("de", locale.language.languageCode?.identifier)
+            XCTAssertEqual("CH", locale.language.region?.identifier)
+            //XCTAssertEqual("1901", locale.variant?.identifier)
+        }
+
+        do {
+            // French in Belgium with a script variant
+            let locale = Locale(identifier: "fr-BE-Latn")
+            XCTAssertEqual("fr", locale.language.languageCode?.identifier)
+            XCTAssertEqual("BE", locale.language.region?.identifier)
+            //XCTAssertEqual("Latn", locale.language.script?.identifier)
+        }
     }
 
     func testKnownLanguageCodes() throws {
