@@ -1,3 +1,9 @@
+## 0.6.11
+
+Released 2024-05-27
+
+  - Add region
+
 ## 0.6.10
 
 Released 2024-05-26
