@@ -115,8 +115,12 @@ public struct Locale : Hashable {
         return language?.script.identifier
     }
 
+    public var region: Region? {
+        language.region
+    }
+
     public var regionCode: String? {
-        return language.region?.identifier
+        return region?.identifier
     }
 
     public var variant: Variant? {
