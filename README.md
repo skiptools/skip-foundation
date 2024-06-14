@@ -148,9 +148,12 @@ Support levels:
 <li><code>static var urlPathAllowed: CharacterSet</code></li>
 <li><code>static var urlQueryAllowed: CharacterSet</code></li>
 <li><code>init()</code></li>
+<li><code>init(charactersIn: String)</code></li>
 <li><code>func insert(_ character: Unicode.Scalar) -> (inserted: Bool, memberAfterInsert: Unicode.Scalar)</code></li>
+<li><code>mutating func insert(charactersIn: String)</code></li>
 <li><code>func update(with character: Unicode.Scalar) -> Unicode.Scalar?</code></li>
 <li><code>func remove(_ character: Unicode.Scalar) -> Unicode.Scalar?</code></li>
+<li><code>mutating func remove(charactersIn: String)</code></li>
 <li><code>func contains(_ member: Unicode.Scalar) -> Bool</code></li>
 <li><code>func union(_ other: CharacterSet) -> CharacterSet</code></li>
 <li><code>mutating func formUnion(_ other: CharacterSet)</code></li>

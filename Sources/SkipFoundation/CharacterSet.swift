@@ -38,9 +38,8 @@ public struct CharacterSet : SetAlgebra, Hashable {
         self.platformValue = SkipCrash("TODO: CharacterSet")
     }
 
-    @available(*, unavailable)
     public init(charactersIn string: String) {
-        self.platformValue = SkipCrash("TODO: CharacterSet")
+        self.platformValue = Self.toPlatformValue([string])
     }
 
     @available(*, unavailable)
@@ -183,14 +182,12 @@ public struct CharacterSet : SetAlgebra, Hashable {
         fatalError("SKIP TODO: CharacterSet")
     }
 
-    @available(*, unavailable)
     public mutating func insert(charactersIn string: String) {
-        fatalError("SKIP TODO: CharacterSet")
+        platformValue.union(Self.toPlatformValue([string]))
     }
 
-    @available(*, unavailable)
     public mutating func remove(charactersIn string: String) {
-        fatalError("SKIP TODO: CharacterSet")
+        platformValue.subtract(Self.toPlatformValue([string]))
     }
 
     @available(*, unavailable)
