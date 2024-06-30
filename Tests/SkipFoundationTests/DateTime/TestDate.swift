@@ -151,7 +151,7 @@ class TestDate : XCTestCase {
                                         nanosecond: 40)
         #if SKIP
         throw XCTSkip("TODO: Skip Calendar.date(from: components)")
-        #endif
+        #else
         guard let date = Calendar(identifier: Calendar.Identifier.gregorian).date(from: components) else {
             XCTFail()
             return
@@ -173,6 +173,7 @@ class TestDate : XCTestCase {
 
         // Quarter is currently not supported by UCalendar C API, returns 0
         XCTAssertEqual(recreatedComponents.quarter, 0)
+        #endif
     }
 
     func test_Hashing() {
