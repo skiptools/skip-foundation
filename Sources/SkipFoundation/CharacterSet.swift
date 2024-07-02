@@ -6,7 +6,7 @@
 
 #if SKIP
 
-// SKIP DECLARE: class CharacterSet : SetAlgebra<CharacterSet, Unicode.Scalar>, MutableStruct
+// SKIP DECLARE: @Suppress("MUST_BE_INITIALIZED") class CharacterSet : SetAlgebra<CharacterSet, Unicode.Scalar>, MutableStruct
 public struct CharacterSet : SetAlgebra, Hashable {
     internal var platformValue: Set<UInt32>
 
