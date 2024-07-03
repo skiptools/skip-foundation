@@ -1,3 +1,8 @@
+## 0.7.0
+
+Released 2024-07-03
+
+
 ## 0.6.11
 
 Released 2024-05-27
@@ -229,7 +234,7 @@ Released 2023-09-29
 
 Released 2023-09-27
 
-  - Add ProcessInfo envrionment properties for android.os.Build.VERSION fields like SDK_INT
+  - Add ProcessInfo environment properties for android.os.Build.VERSION fields like SDK_INT
 
 ## 0.2.3
 
