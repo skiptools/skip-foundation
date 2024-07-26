@@ -367,7 +367,7 @@ class TestJSON : XCTestCase {
         }
         """, try enc(testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting, keys: .convertToSnakeCase as JSONEncoder.KeyEncodingStrategy))
         #endif
-        
+
         XCTAssertEqual(#"{"ageX":123,"nameX":"ABC"}"#, try enc(ManualPerson(name: "ABC", age: 123)))
 
         let p1 = Person(firstName: "Jon", lastName: "Doe", height: 180.5)
@@ -438,6 +438,17 @@ class TestJSON : XCTestCase {
               ]
             }
             """, try roundtrip(value: org, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
+
+        let personJSON = """
+        {
+            "firstName" : "Jon",
+            "height" : 180.5,
+            "lastName" : "Doe",
+            "age" : null
+        }
+        """
+        let decodedPerson = try JSONDecoder().decode(Person.self, from: personJSON.data(using: String.Encoding.utf8)!)
+        XCTAssertEqual(decodedPerson.firstName, "Jon")
     }
 
     func testSingleValueArrayJSONCodable() throws {
