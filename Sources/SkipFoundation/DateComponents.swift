@@ -54,9 +54,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             platformCal.time = date.platformValue
         }
 
-        if let zone = zone {
-            platformCal.timeZone = zone.platformValue
-        }
+        platformCal.timeZone = zone?.platformValue ?? calendar.timeZone?.platformValue
 
         if components?.contains(.era) != false {
             if let endDate = endDate {
@@ -103,7 +101,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
 
     /// Builds a java.util.Calendar from the fields.
     internal func createCalendarComponents() -> java.util.Calendar {
-        let c: java.util.Calendar = (self.calendar?.platformValue ?? java.util.Calendar.getInstance())
+        let c: java.util.Calendar = (self.calendar?.platformValue ?? Calendar.current.platformValue)
         let cal: java.util.Calendar = (c as java.util.Calendar).clone() as java.util.Calendar
 
         cal.setTimeInMillis(0) // clear the time and set the fields afresh
@@ -191,6 +189,59 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         let cal = createCalendarComponents()
 
         if let value = components.era {
+            cal.add(java.util.Calendar.ERA, value)
+        }
+        if let value = components.year {
+            cal.add(java.util.Calendar.YEAR, value)
+        }
+        if let value = components.quarter {
+            //cal.add(java.util.Calendar.QUARTER, value)
+            fatalError("Skip DateComponents.quarter unsupported in Skip")
+        }
+        if let value = components.month {
+            cal.add(java.util.Calendar.MONTH, value)
+        }
+        if let value = components.weekday {
+            cal.add(java.util.Calendar.DAY_OF_WEEK, value)
+        }
+        if let value = components.weekdayOrdinal {
+            //cal.add(java.util.Calendar.WEEKDAYORDINAL, value)
+            fatalError("Skip DateComponents.weekdayOrdinal unsupported in Skip")
+        }
+        if let value = components.weekOfMonth {
+            cal.add(java.util.Calendar.WEEK_OF_MONTH, value)
+        }
+        if let value = components.weekOfYear {
+            cal.add(java.util.Calendar.WEEK_OF_YEAR, value)
+        }
+        if let value = components.yearForWeekOfYear {
+            //cal.add(java.util.Calendar.YEARFORWEEKOFYEAR, value)
+            fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
+        }
+        if let value = components.day {
+            cal.add(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
+        }
+        if let value = components.hour {
+            cal.add(java.util.Calendar.HOUR_OF_DAY, value)
+        }
+        if let value = components.minute {
+            cal.add(java.util.Calendar.MINUTE, value)
+        }
+        if let value = components.second {
+            cal.add(java.util.Calendar.SECOND, value)
+        }
+        if let value = components.nanosecond {
+            fatalError("Skip DateComponents.nanosecond unsupported in Skip")
+        }
+
+        // update our fields from the rolled java.util.Calendar fields
+        self = DateComponents(fromCalendar: Calendar(platformValue: cal))
+    }
+
+    public mutating func roll(components: DateComponents) {
+        let cal = createCalendarComponents()
+
+        if let value = components.era {
             cal.roll(java.util.Calendar.ERA, value)
         }
         if let value = components.year {
@@ -241,6 +292,52 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
     }
 
     public mutating func addValue(_ value: Int, for component: Calendar.Component) {
+        let cal = createCalendarComponents()
+
+        switch component {
+        case .era:
+            cal.add(java.util.Calendar.ERA, value)
+        case .year:
+            cal.add(java.util.Calendar.YEAR, value)
+        case .month:
+            cal.add(java.util.Calendar.MONTH, value)
+        case .day:
+            cal.add(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
+        case .hour:
+            cal.add(java.util.Calendar.HOUR_OF_DAY, value)
+        case .minute:
+            cal.add(java.util.Calendar.MINUTE, value)
+        case .second:
+            cal.add(java.util.Calendar.SECOND, value)
+        case .weekday:
+            cal.add(java.util.Calendar.DAY_OF_WEEK, value)
+        case .weekdayOrdinal:
+            //cal.add(java.util.Calendar.WEEKDAYORDINAL, value)
+            fatalError("Skip DateComponents.weekdayOrdinal unsupported in Skip")
+        case .quarter:
+            //cal.add(java.util.Calendar.QUARTER, value)
+            fatalError("Skip DateComponents.quarter unsupported in Skip")
+        case .weekOfMonth:
+            cal.add(java.util.Calendar.WEEK_OF_MONTH, value)
+        case .weekOfYear:
+            cal.add(java.util.Calendar.WEEK_OF_YEAR, value)
+        case .yearForWeekOfYear:
+            //cal.add(java.util.Calendar.YEARFORWEEKOFYEAR, value)
+            fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
+        case .nanosecond:
+            break // unsupported
+        case .calendar, .timeZone: // , .isLeapMonth:
+            // Do nothing
+            break
+        @unknown default:
+            break
+        }
+
+        // update our fields from the added java.util.Calendar fields
+        self = DateComponents(fromCalendar: Calendar(platformValue: cal))
+    }
+
+    public mutating func rollValue(_ value: Int, for component: Calendar.Component) {
         let cal = createCalendarComponents()
 
         switch component {

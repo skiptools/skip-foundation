@@ -228,6 +228,51 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(dayAfterComponents.year, 2016)
         XCTAssertEqual(dayAfterComponents.month, 10)
         XCTAssertEqual(dayAfterComponents.day, 5)
+
+        let diffComponents30 = DateComponents(day: 30)
+
+        let monthAfter = calendar.date(byAdding: diffComponents30, to: thisDay, wrappingComponents: true)
+
+        let monthAfterComponents = calendar.dateComponents(Set([Calendar.Component.year, Calendar.Component.month, Calendar.Component.day]), from: monthAfter!)
+        XCTAssertEqual(monthAfterComponents.year, 2016)
+        XCTAssertEqual(monthAfterComponents.month, 10)
+        XCTAssertEqual(monthAfterComponents.day, 3)
+    }
+
+    func test_addingDates_issue182() {
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let startDate = Date(timeIntervalSince1970: 0)
+
+        do {
+            let comps = calendar.dateComponents(Set([Calendar.Component.year, Calendar.Component.month, Calendar.Component.day]), from: startDate)
+
+            XCTAssertEqual(comps.year, 1970)
+            XCTAssertEqual(comps.month, 1)
+            XCTAssertEqual(comps.day, 1)
+        }
+
+        // testing with and without wrapping
+        do {
+            let endDate = calendar.date(byAdding: .day, value: 60, to: startDate, wrappingComponents: true)!
+
+            let comps = calendar.dateComponents(Set([Calendar.Component.year, Calendar.Component.month, Calendar.Component.day]), from: endDate)
+
+            XCTAssertEqual(comps.year, 1970)
+            XCTAssertEqual(comps.month, 1)
+            XCTAssertEqual(comps.day, 30)
+        }
+
+        do {
+            let endDate = calendar.date(byAdding: .day, value: 60, to: startDate)!
+
+            let comps = calendar.dateComponents(Set([Calendar.Component.year, Calendar.Component.month, Calendar.Component.day]), from: endDate)
+
+            XCTAssertEqual(comps.year, 1970)
+            XCTAssertEqual(comps.day, 2)
+            XCTAssertEqual(comps.month, 3)
+        }
+
     }
 
     func test_addingComponents() {

@@ -236,22 +236,30 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     }
 
     public func dateComponents(_ components: Set<Calendar.Component>, from start: Date, to end: Date) -> DateComponents {
-        return DateComponents(fromCalendar: self, in: nil, from: start, to: end)
+        return DateComponents(fromCalendar: self, in: self.timeZone, from: start, to: end)
     }
 
     public func dateComponents(_ components: Set<Calendar.Component>, from date: Date) -> DateComponents {
-        return DateComponents(fromCalendar: self, in: nil, from: date, with: components)
+        return DateComponents(fromCalendar: self, in: self.timeZone, from: date, with: components)
     }
 
     public func date(byAdding components: DateComponents, to date: Date, wrappingComponents: Bool = false) -> Date? {
         var comps = DateComponents(fromCalendar: self, in: self.timeZone, from: date)
-        comps.add(components)
+        if !wrappingComponents {
+            comps.add(components)
+        } else {
+            comps.roll(components)
+        }
         return date(from: comps)
     }
 
     public func date(byAdding component: Calendar.Component, value: Int, to date: Date, wrappingComponents: Bool = false) -> Date? {
         var comps = DateComponents(fromCalendar: self, in: self.timeZone, from: date)
-        comps.addValue(value, for: component)
+        if !wrappingComponents {
+            comps.addValue(value, for: component)
+        } else {
+            comps.rollValue(value, for: component)
+        }
         return date(from: comps)
     }
 
