@@ -191,52 +191,52 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         let cal = createCalendarComponents()
 
         if let value = components.era {
-            cal.roll(java.util.Calendar.ERA, value)
+            cal.add(java.util.Calendar.ERA, value)
         }
         if let value = components.year {
-            cal.roll(java.util.Calendar.YEAR, value)
+            cal.add(java.util.Calendar.YEAR, value)
         }
         if let value = components.quarter {
-            //cal.roll(java.util.Calendar.QUARTER, value)
+            //cal.add(java.util.Calendar.QUARTER, value)
             fatalError("Skip DateComponents.quarter unsupported in Skip")
         }
         if let value = components.month {
-            cal.roll(java.util.Calendar.MONTH, value)
+            cal.add(java.util.Calendar.MONTH, value)
         }
         if let value = components.weekday {
-            cal.roll(java.util.Calendar.DAY_OF_WEEK, value)
+            cal.add(java.util.Calendar.DAY_OF_WEEK, value)
         }
         if let value = components.weekdayOrdinal {
-            //cal.roll(java.util.Calendar.WEEKDAYORDINAL, value)
+            //cal.add(java.util.Calendar.WEEKDAYORDINAL, value)
             fatalError("Skip DateComponents.weekdayOrdinal unsupported in Skip")
         }
         if let value = components.weekOfMonth {
-            cal.roll(java.util.Calendar.WEEK_OF_MONTH, value)
+            cal.add(java.util.Calendar.WEEK_OF_MONTH, value)
         }
         if let value = components.weekOfYear {
-            cal.roll(java.util.Calendar.WEEK_OF_YEAR, value)
+            cal.add(java.util.Calendar.WEEK_OF_YEAR, value)
         }
         if let value = components.yearForWeekOfYear {
-            //cal.roll(java.util.Calendar.YEARFORWEEKOFYEAR, value)
+            //cal.add(java.util.Calendar.YEARFORWEEKOFYEAR, value)
             fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
         }
         if let value = components.day {
-            cal.roll(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
+            cal.add(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
         }
         if let value = components.hour {
-            cal.roll(java.util.Calendar.HOUR_OF_DAY, value)
+            cal.add(java.util.Calendar.HOUR_OF_DAY, value)
         }
         if let value = components.minute {
-            cal.roll(java.util.Calendar.MINUTE, value)
+            cal.add(java.util.Calendar.MINUTE, value)
         }
         if let value = components.second {
-            cal.roll(java.util.Calendar.SECOND, value)
+            cal.add(java.util.Calendar.SECOND, value)
         }
         if let value = components.nanosecond {
             fatalError("Skip DateComponents.nanosecond unsupported in Skip")
         }
 
-        // update our fields from the rolled java.util.Calendar fields
+        // update our fields from the added java.util.Calendar fields
         self = DateComponents(fromCalendar: Calendar(platformValue: cal))
     }
 
@@ -245,33 +245,33 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
 
         switch component {
         case .era:
-            cal.roll(java.util.Calendar.ERA, value)
+            cal.add(java.util.Calendar.ERA, value)
         case .year:
-            cal.roll(java.util.Calendar.YEAR, value)
+            cal.add(java.util.Calendar.YEAR, value)
         case .month:
-            cal.roll(java.util.Calendar.MONTH, value)
+            cal.add(java.util.Calendar.MONTH, value)
         case .day:
-            cal.roll(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
+            cal.add(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
         case .hour:
-            cal.roll(java.util.Calendar.HOUR_OF_DAY, value)
+            cal.add(java.util.Calendar.HOUR_OF_DAY, value)
         case .minute:
-            cal.roll(java.util.Calendar.MINUTE, value)
+            cal.add(java.util.Calendar.MINUTE, value)
         case .second:
-            cal.roll(java.util.Calendar.SECOND, value)
+            cal.add(java.util.Calendar.SECOND, value)
         case .weekday:
-            cal.roll(java.util.Calendar.DAY_OF_WEEK, value)
+            cal.add(java.util.Calendar.DAY_OF_WEEK, value)
         case .weekdayOrdinal:
-            //cal.roll(java.util.Calendar.WEEKDAYORDINAL, value)
+            //cal.add(java.util.Calendar.WEEKDAYORDINAL, value)
             fatalError("Skip DateComponents.weekdayOrdinal unsupported in Skip")
         case .quarter:
-            //cal.roll(java.util.Calendar.QUARTER, value)
+            //cal.add(java.util.Calendar.QUARTER, value)
             fatalError("Skip DateComponents.quarter unsupported in Skip")
         case .weekOfMonth:
-            cal.roll(java.util.Calendar.WEEK_OF_MONTH, value)
+            cal.add(java.util.Calendar.WEEK_OF_MONTH, value)
         case .weekOfYear:
-            cal.roll(java.util.Calendar.WEEK_OF_YEAR, value)
+            cal.add(java.util.Calendar.WEEK_OF_YEAR, value)
         case .yearForWeekOfYear:
-            //cal.roll(java.util.Calendar.YEARFORWEEKOFYEAR, value)
+            //cal.add(java.util.Calendar.YEARFORWEEKOFYEAR, value)
             fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
         case .nanosecond:
             break // unsupported
@@ -282,7 +282,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             break
         }
 
-        // update our fields from the rolled java.util.Calendar fields
+        // update our fields from the added java.util.Calendar fields
         self = DateComponents(fromCalendar: Calendar(platformValue: cal))
     }
 
