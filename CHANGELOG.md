@@ -1,3 +1,12 @@
+## 0.7.1
+
+Released 2024-08-01
+
+  - Fix for https://github.com/skiptools/skip/issues/182 where we were wrapping/rolling dates rather than incrementing higher values
+  - Fix typo in Package.swift syntax
+  - Test null in JSON decoding
+  - Disable test_timerRepeats due to intermittent CI failure
+
 ## 0.7.0
 
 Released 2024-07-03
