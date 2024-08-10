@@ -311,48 +311,46 @@ public class Bundle : Hashable {
     }()
 
     /// The localized strings tables for this bundle
-    private var localizedTables: [String: [String: String]?] = [:]
+    private var localizedTables: [String: [String: String]] = [:]
 
     public func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
         synchronized(self) {
             let table = tableName ?? "Localizable"
             if let localizedTable = localizedTables[table] {
-                return localizedTable?[key] ?? value ?? key
+                return localizedTable[key] ?? value ?? key
             } else {
                 let resURL = url(forResource: table, withExtension: "strings")
                 let locTable = resURL == nil ? nil : try? PropertyListSerialization.propertyList(from: Data(contentsOf: resURL!), format: nil)
-                localizedTables[key] = locTable
-                return locTable?[key] ?? value ?? key
+                let cacheTable = locTable ?? [:]
+                localizedTables[key] = cacheTable
+                return cacheTable[key] ?? value ?? key
             }
         }
     }
 
     /// The individual loaded bundles by locale
-    private var localizedBundles: [Locale: Bundle?] = [:]
+    private var localizedBundles: [Locale: Bundle] = [:]
 
     /// Looks up the Bundle for the given locale and returns it, caching the result in the process.
     public func localizedBundle(locale: Locale) -> Bundle {
         synchronized(self) {
             if let cached = self.localizedBundles[locale] {
-                return cached ?? self
+                return cached
             }
 
             var locBundle: Bundle? = nil
             // for each identifier, attempt to load the Localizable.strings to see if it exists
             for localeid in locale.localeSearchTags {
                 //print("trying localeid: \(localeid)")
-                if locBundle == nil,
-                   let locstrURL = self.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: localeid),
-                   let locBundleLocal = try? Bundle(url: locstrURL.deletingLastPathComponent()) {
+                if locBundle == nil, let locstrURL = self.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: localeid), let locBundleLocal = try? Bundle(url: locstrURL.deletingLastPathComponent()) {
                     locBundle = locBundleLocal
                 }
             }
 
-            // cache the result of the lookup (even if it is nil)
-            self.localizedBundles[locale] = locBundle
-
-            // fall back to the top-level bundle, if available
-            return locBundle ?? self
+            // cache the result of the lookup
+            let ret = locBundle ?? self
+            self.localizedBundles[locale] = ret
+            return ret
         }
     }
 
