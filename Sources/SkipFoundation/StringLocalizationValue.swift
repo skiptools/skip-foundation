@@ -11,7 +11,7 @@ public func String(localized keyAndValue: String.LocalizationValue, table: Strin
     let key = keyAndValue.patternFormat // interpolated string: "Hello \(name)" keyed as: "Hello %@"
     let locfmt = bundle?.localizedKotlinFormatString(forKey: key, value: nil, table: table) ?? key.kotlinFormatString
     // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
-    let replaced = locfmt.format(*keyAndValue.stringInterpolation.values.kotlin(nocopy: true).toTypedArray())
+    let replaced = locfmt.format(*keyAndValue.stringInterpolation.values.toTypedArray())
     return replaced
 }
 
@@ -58,7 +58,7 @@ public struct StringLocalizationValue : ExpressibleByStringInterpolation {
         /// The type that should be used for literal segments.
         public typealias StringLiteralType = String
 
-        var values: [Any] = []
+        let values: MutableList<Any> = mutableListOf()
         var pattern = ""
 
         public init(literalCapacity: Int, interpolationCount: Int) {
@@ -70,52 +70,72 @@ public struct StringLocalizationValue : ExpressibleByStringInterpolation {
         }
 
         public mutating func appendInterpolation(_ string: String) {
-            values.append(string)
+            #if SKIP
+            values.add(string)
+            #endif
             pattern += "%@"
         }
 
         public mutating func appendInterpolation(_ int: Int) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%lld"
         }
 
         public mutating func appendInterpolation(_ int: Int16) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%d"
         }
 
         public mutating func appendInterpolation(_ int: Int64) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%lld"
         }
 
         public mutating func appendInterpolation(_ int: UInt) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%llu"
         }
 
         public mutating func appendInterpolation(_ int: UInt16) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%u"
         }
 
         public mutating func appendInterpolation(_ int: UInt64) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%llu"
         }
 
         public mutating func appendInterpolation(_ double: Double) {
-            values.append(double)
+            #if SKIP
+            values.add(double)
+            #endif
             pattern += "%lf"
         }
 
         public mutating func appendInterpolation(_ float: Float) {
-            values.append(float)
+            #if SKIP
+            values.add(float)
+            #endif
             pattern += "%f"
         }
 
         public mutating func appendInterpolation<T>(_ value: T) {
-            values.append(value as Any)
+            #if SKIP
+            values.add(value as Any)
+            #endif
             pattern += "%@"
         }
     }
