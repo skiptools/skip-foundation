@@ -311,25 +311,57 @@ public class Bundle : Hashable {
     }()
 
     /// The localized strings tables for this bundle
-    private var localizedTables: [String: [String: String]] = [:]
+    private var localizedTables: MutableMap<String, MutableMap<String, Pair<String, String>>> = mutableMapOf()
 
     public func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
+        return localizedString(forKey: key, value: value, table: tableName, isJavaFormat: false)
+    }
+
+    /// Localize the given string, returning a string suitable for Kotlin/Java formatting rather than Swift formatting.
+    public func localizedKotlinFormatString(forKey key: String, value: String?, table tableName: String?) -> String {
+        return localizedString(forKey: key, value: value, table: tableName, isJavaFormat: true)
+    }
+
+    private func localizedString(forKey key: String, value: String?, table tableName: String?, isJavaFormat: Bool) -> String {
         synchronized(self) {
             let table = tableName ?? "Localizable"
-            if let localizedTable = localizedTables[table] {
-                return localizedTable[key] ?? value ?? key
-            } else {
+            var locTable = localizedTables[table]
+            if locTable == nil {
                 let resURL = url(forResource: table, withExtension: "strings")
-                let locTable = resURL == nil ? nil : try? PropertyListSerialization.propertyList(from: Data(contentsOf: resURL!), format: nil)
-                let cacheTable = locTable ?? [:]
-                localizedTables[key] = cacheTable
-                return cacheTable[key] ?? value ?? key
+                let resTable = resURL == nil ? nil : try? PropertyListSerialization.propertyList(from: Data(contentsOf: resURL!), format: nil)
+                locTable = Self.stringFormatsTable(from: resTable)
+                localizedTables[table] = locTable!
+            }
+            if let formats = locTable?[key] {
+                return isJavaFormat ? formats.second : formats.first
+            }
+
+            if let value {
+                // We can't cache this in case different values are passed on different calls
+                return isJavaFormat ? value.kotlinFormatString : value
+            } else {
+                let formats = Pair(key, key.kotlinFormatString)
+                locTable![key] = formats
+                return isJavaFormat ? formats.second : formats.first
             }
         }
     }
 
+    private static func stringFormatsTable(from table: [String: String]?) -> MutableMap<String, Pair<String, String>> {
+        guard let table else {
+            return mutableMapOf()
+        }
+        // We cache both the format string and its Kotlin-ized version so that `localizedKotlinFormatString` doesn't
+        // have to do the conversion each time and is fast for use in `SwiftUI.Text` implicit localization
+        let formatsTable = mutableMapOf<String, Pair<String, String>>()
+        for (key, value) in table {
+            formatsTable[key] = Pair(value, value.kotlinFormatString)
+        }
+        return formatsTable
+    }
+
     /// The individual loaded bundles by locale
-    private var localizedBundles: [Locale: Bundle] = [:]
+    private var localizedBundles: MutableMap<Locale, Bundle> = mutableMapOf()
 
     /// Looks up the Bundle for the given locale and returns it, caching the result in the process.
     public func localizedBundle(locale: Locale) -> Bundle {
@@ -348,9 +380,9 @@ public class Bundle : Hashable {
             }
 
             // cache the result of the lookup
-            let ret = locBundle ?? self
-            self.localizedBundles[locale] = ret
-            return ret
+            let resBundle = locBundle ?? self
+            self.localizedBundles[locale] = resBundle
+            return resBundle
         }
     }
 
