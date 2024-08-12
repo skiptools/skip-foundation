@@ -202,7 +202,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var path: String {
-        return absoluteURL.platformValue.path
+        return absoluteURL.platformValue.path ?? ""
     }
 
     public func path(percentEncoded: Bool = true) -> String? {
