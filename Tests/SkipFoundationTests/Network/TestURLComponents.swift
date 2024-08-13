@@ -44,9 +44,6 @@ private func getTestData() -> [Any]? {
 class TestURLComponents: XCTestCase {
 
     func test_queryItems() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let urlString = "http://localhost:8080/foo?bar=&bar=baz"
         let url = URL(string: urlString)!
 
@@ -57,13 +54,9 @@ class TestURLComponents: XCTestCase {
             query[$0.name] = $0.value ?? ""
         }
         XCTAssertEqual(["bar": "baz"], query)
-        #endif // !SKIP
     }
 
     func test_percentEncodedQueryItems() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let urlString = "http://localhost:8080/foo?feed%20me=feed%20me"
         let url = URL(string: urlString)!
 
@@ -73,10 +66,12 @@ class TestURLComponents: XCTestCase {
         components?.percentEncodedQueryItems?.forEach {
             query[$0.name] = $0.value ?? ""
         }
+        #if SKIP
+        XCTAssertEqual(["feed+me": "feed+me"], query)
+        #else
         XCTAssertEqual(["feed%20me": "feed%20me"], query)
-        #endif // !SKIP
+        #endif
     }
-
 
     func test_string() {
         #if SKIP
@@ -93,17 +88,13 @@ class TestURLComponents: XCTestCase {
     }
 
     func test_portSetter() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let urlString = "http://myhost.mydomain.com"
         let port: Int = 8080
         let expectedString = "http://myhost.mydomain.com:8080"
         var url = URLComponents(string: urlString)
         url!.port = port
         let receivedString = url!.string
-        XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString as Optional)")
-        #endif // !SKIP
+        XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(String(describing: receivedString))")
     }
 
     func test_url() throws {
@@ -121,7 +112,7 @@ class TestURLComponents: XCTestCase {
         compWithAuthority.path = "/path/to/file with space.html"
         compWithAuthority.query = "id=23&search=Foo Bar"
         var expectedString = "https://www.swift.org/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(compWithAuthority.string, expectedString, "expected \(expectedString) but received \(compWithAuthority.string as Optional)")
+        XCTAssertEqual(compWithAuthority.string, expectedString, "expected \(expectedString) but received \(String(describing: compWithAuthority.string))")
 
         guard let urlA = compWithAuthority.url(relativeTo: baseURL) else {
             XCTFail("URLComponents with authority failed to create relative URL to '\(baseURL)'")
@@ -139,7 +130,7 @@ class TestURLComponents: XCTestCase {
         compWithoutAuthority.path = "path/to/file with space.html"
         compWithoutAuthority.query = "id=23&search=Foo Bar"
         expectedString = "path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(compWithoutAuthority.string as Optional)")
+        XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(String(describing: compWithoutAuthority.string))")
 
         guard let urlB = compWithoutAuthority.url(relativeTo: baseURL) else {
             XCTFail("URLComponents without authority failed to create relative URL to '\(baseURL)'")
@@ -250,10 +241,7 @@ class TestURLComponents: XCTestCase {
     }
 
     func test_createURLWithComponents() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let urlComponents = NSURLComponents()
+        var urlComponents = URLComponents()
         urlComponents.scheme = "https";
         urlComponents.host = "com.test.swift";
         urlComponents.path = "/test/path";
@@ -265,14 +253,10 @@ class TestURLComponents: XCTestCase {
         urlComponents.queryItems = [query1, query2, query3, query4]
         XCTAssertNotNil(urlComponents.url?.query)
         XCTAssertEqual(urlComponents.queryItems?.count, 4)
-        #endif // !SKIP
     }
 
     func test_createURLWithComponentsPercentEncoded() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        let urlComponents = NSURLComponents()
+        var urlComponents = URLComponents()
         urlComponents.scheme = "https";
         urlComponents.host = "com.test.swift";
         urlComponents.path = "/test/path";
@@ -285,15 +269,16 @@ class TestURLComponents: XCTestCase {
             XCTFail("first element is missing")
             return
         }
+        #if SKIP
+        XCTAssertEqual(item.name, "simple+string")
+        XCTAssertEqual(item.value, "true+is+false")
+        #else
         XCTAssertEqual(item.name, "simple%20string")
         XCTAssertEqual(item.value, "true%20is%20false")
-        #endif // !SKIP
+        #endif
     }
 
     func test_path() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let c1 = URLComponents()
         XCTAssertEqual(c1.path, "")
 
@@ -311,13 +296,9 @@ class TestURLComponents: XCTestCase {
 
         let c6 = URLComponents(string: "http://swift.org:80/foo/b%20r")
         XCTAssertEqual(c6?.path, "/foo/b r")
-        #endif // !SKIP
     }
 
     func test_percentEncodedPath() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let c1 = URLComponents()
         XCTAssertEqual(c1.percentEncodedPath, "")
 
@@ -334,8 +315,11 @@ class TestURLComponents: XCTestCase {
         XCTAssertEqual(c5?.percentEncodedPath, "/foo/bar")
 
         let c6 = URLComponents(string: "http://swift.org:80/foo/b%20r")
+        #if SKIP
+        XCTAssertEqual(c6?.percentEncodedPath, "/foo/b+r")
+        #else
         XCTAssertEqual(c6?.percentEncodedPath, "/foo/b%20r")
-        #endif // !SKIP
+        #endif
     }
 
 }

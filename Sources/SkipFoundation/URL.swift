@@ -5,7 +5,6 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-
 public typealias NSURL = URL
 
 public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting<java.net.URI> {
@@ -102,17 +101,36 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public init?(string: String, relativeTo baseURL: URL? = nil) {
-        do {
-            self.platformValue = java.net.URI(string) // throws on malformed
-            self.baseURL = baseURL
-            // Use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
-            let scheme = baseURL?.platformValue.scheme ?? self.platformValue.scheme
-            self.isDirectoryFlag = scheme == "file" && string.hasSuffix("/")
-
-        } catch {
-            // e.g., malformed URL
+        guard let url = URL(string: string, encodingInvalidCharacters: true) else {
             return nil
         }
+        self.platformValue = url.platformValue
+        self.baseURL = baseURL
+        // Use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
+        let scheme = baseURL?.platformValue.scheme ?? self.platformValue.scheme
+        self.isDirectoryFlag = scheme == "file" && string.hasSuffix("/")
+    }
+
+    public init?(string: String, encodingInvalidCharacters: Bool) {
+        do {
+            self.platformValue = java.net.URI(string) // throws on malformed
+        } catch {
+            guard encodingInvalidCharacters, let queryIndex = string.firstIndex(of: "?") else {
+                return nil
+            }
+            // As of iOS 17, URLs are automatically encoded if needed. We're only doing the query
+            let base = string.prefix(upTo: queryIndex)
+            let query = string.suffix(from: queryIndex + 1)
+            let queryItems = URLQueryItem.from(query)?.map { URLQueryItem(name: $0.name.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? "", value: $0.value?.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)) }
+            let encodedQuery = URLQueryItem.queryString(from: queryItems)
+            do {
+                self.platformValue = java.net.URI(base + "?" + (encodedQuery ?? ""))
+            } catch {
+                return nil
+            }
+        }
+        self.baseURL = nil
+        self.isDirectoryFlag = self.platformValue.scheme == "file" && string.hasSuffix("/")
     }
 
     public init(fileURLWithPath path: String, isDirectory: Bool? = nil, relativeTo base: URL? = nil) {
@@ -206,7 +224,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func path(percentEncoded: Bool = true) -> String? {
-        return percentEncoded ? absoluteURL.platformValue.path : absoluteURL.platformValue.rawPath
+        return percentEncoded ? absoluteURL.platformValue.rawPath : absoluteURL.platformValue.path
     }
 
     public var port: Int? {
@@ -223,7 +241,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func query(percentEncoded: Bool = true) -> String? {
-        return percentEncoded ? absoluteURL.platformValue.query : absoluteURL.platformValue.rawQuery
+        return percentEncoded ? absoluteURL.platformValue.rawQuery : absoluteURL.platformValue.query
     }
 
     @available(*, unavailable)
@@ -251,7 +269,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func fragment(percentEncoded: Bool = true) -> String? {
-        return percentEncoded ? absoluteURL.platformValue.fragment : absoluteURL.platformValue.rawFragment
+        return percentEncoded ? absoluteURL.platformValue.rawFragment : absoluteURL.platformValue.fragment
     }
 
     @available(*, unavailable)

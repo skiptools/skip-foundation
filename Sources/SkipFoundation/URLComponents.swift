@@ -5,54 +5,90 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 public struct URLComponents : Hashable, Equatable, Sendable {
     public init() {
     }
 
-    @available(*, unavailable)
     public init?(url: URL, resolvingAgainstBaseURL resolve: Bool) {
+        self.url = url
     }
 
-    @available(*, unavailable)
     public init?(string: String) {
+        self.init(string: string, encodingInvalidCharacters: true)
     }
 
-    @available(*, unavailable)
     public init?(string: String, encodingInvalidCharacters: Bool) {
+        guard let url = URL(string: string, encodingInvalidCharacters: encodingInvalidCharacters) else {
+            return nil
+        }
+        self.url = url
     }
 
-    @available(*, unavailable)
     public var url: URL? {
         get {
-            fatalError()
+            guard let string = self.string else {
+                return nil
+            }
+            return URL(string: string)
         }
         set {
+            self.scheme = newValue?.scheme
+            self.host = newValue?.host(percentEncoded: false)
+            self.port = newValue?.port
+            self.path = newValue?.path(percentEncoded: false) ?? ""
+            self.fragment = newValue?.fragment
+            self.queryItems = URLQueryItem.from(newValue?.query(percentEncoded: false))
         }
     }
 
-    @available(*, unavailable)
     public func url(relativeTo base: URL?) -> URL? {
-        fatalError()
+        guard let string = self.string else {
+            return nil
+        }
+        return URL(string: string, relativeTo: base)
     }
 
-    @available(*, unavailable)
     public var string: String? {
         get {
-            fatalError()
+            var string = ""
+            if let scheme {
+                string += scheme + ":"
+            }
+            if let host {
+                if scheme != nil {
+                    string += "//"
+                }
+                string += host
+                if let port {
+                    string += ":\(port)"
+                }
+            }
+            string += path
+            if let fragment {
+                string += "#" + fragment
+            }
+            if let query = URLQueryItem.queryString(from: queryItems) {
+                string += "?" + query
+            }
+            return string.isEmpty ? nil : string
         }
         set {
+            if let newValue {
+                self.url = URL(string: newValue)
+            } else {
+                self.url = nil
+            }
         }
     }
 
-    @available(*, unavailable)
-    public var scheme: String? {
-        get {
-            fatalError()
-        }
-        set {
-        }
-    }
+    public var scheme: String? = nil
+    public var host: String? = nil
+    public var port: Int? = nil
+    public var path = ""
+    public var fragment: String? = nil
+    public var queryItems: [URLQueryItem]? = nil
 
     @available(*, unavailable)
     public var user: String? {
@@ -72,48 +108,12 @@ public struct URLComponents : Hashable, Equatable, Sendable {
         }
     }
 
-    @available(*, unavailable)
-    public var host: String? {
-        get {
-            fatalError()
-        }
-        set {
-        }
-    }
-
-    @available(*, unavailable)
-    public var port: Int? {
-        get {
-            fatalError()
-        }
-        set {
-        }
-    }
-
-    @available(*, unavailable)
-    public var path: String {
-        get {
-            fatalError()
-        }
-        set {
-        }
-    }
-
-    @available(*, unavailable)
     public var query: String? {
         get {
-            fatalError()
+            return URLQueryItem.queryString(from: queryItems)
         }
         set {
-        }
-    }
-
-    @available(*, unavailable)
-    public var fragment: String? {
-        get {
-            fatalError()
-        }
-        set {
+            queryItems = URLQueryItem.from(newValue)
         }
     }
 
@@ -135,48 +135,59 @@ public struct URLComponents : Hashable, Equatable, Sendable {
         }
     }
 
-    @available(*, unavailable)
     public var percentEncodedHost: String? {
         get {
-            fatalError()
+            return host?.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlHostAllowed)
         }
         set {
+            host = newValue?.removingPercentEncoding
         }
     }
 
-    @available(*, unavailable)
     public var encodedHost: String? {
         get {
-            fatalError()
+            return percentEncodedHost
         }
         set {
+            percentEncodedHost = newValue
         }
     }
 
-    @available(*, unavailable)
     public var percentEncodedPath: String {
         get {
-            fatalError()
+            return path.split(separator: "/", omittingEmptySubsequences: false)
+                .map { $0.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) ?? "" }
+                .joined(separator: "/")
         }
         set {
+            path = newValue.removingPercentEncoding ?? ""
         }
     }
 
-    @available(*, unavailable)
     public var percentEncodedQuery: String? {
         get {
-            fatalError()
+            return URLQueryItem.queryString(from: percentEncodedQueryItems)
         }
         set {
+            self.query = newValue?.removingPercentEncoding
         }
     }
 
-    @available(*, unavailable)
     public var percentEncodedFragment: String? {
         get {
-            fatalError()
+            return fragment?.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlFragmentAllowed)
         }
         set {
+            fragment = newValue?.removingPercentEncoding
+        }
+    }
+
+    public var percentEncodedQueryItems: [URLQueryItem]? {
+        get {
+            return queryItems?.map { URLQueryItem(name: $0.name.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? "", value: $0.value?.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)) }
+        }
+        set {
+            queryItems = newValue?.map { URLQueryItem(name: $0.name.removingPercentEncoding ?? $0.name, value: $0.value?.removingPercentEncoding) }
         }
     }
 
@@ -219,35 +230,46 @@ public struct URLComponents : Hashable, Equatable, Sendable {
     public var rangeOfFragment: Range<Int>? {
         fatalError()
     }
-
-    @available(*, unavailable)
-    public var queryItems: [URLQueryItem]? {
-        get {
-            fatalError()
-        }
-        set {
-        }
-
-    }
-
-    @available(*, unavailable)
-    public var percentEncodedQueryItems: [URLQueryItem]? {
-        get {
-            fatalError()
-        }
-        set {
-        }
-    }
 }
 
 public struct URLQueryItem : Hashable, Equatable, Sendable {
-    public init(name: String, value: String?) {
-        self.name = name
-        self.value = value
-    }
-
     public var name: String
     public var value: String?
+
+    static func from(_ string: String?) -> [URLQueryItem]? {
+        guard let string, !string.isEmpty else {
+            return nil
+        }
+        do {
+            // Use okhttp's query parsing
+            guard let httpUrl = ("http://skip.tools/?" + string).toHttpUrl() else {
+                return nil
+            }
+            return (0..<httpUrl.querySize).map { index in
+                let name = httpUrl.queryParameterName(index)
+                let value = httpUrl.queryParameterValue(index)
+                return URLQueryItem(name: name, value: value)
+            }
+        } catch {
+            return nil
+        }
+    }
+
+    static func queryString(from items: [URLQueryItem]?) -> String? {
+        guard let items, !items.isEmpty else {
+            return nil
+        }
+        var query = ""
+        for item in items {
+            let name = item.name
+            let value = item.value ?? ""
+            if !query.isEmpty {
+                query += "&"
+            }
+            query += name + "=" + value
+        }
+        return query
+    }
 }
 
 #endif

@@ -746,6 +746,7 @@ Support levels:
           <ul>
 <li><code>init(_ url: URL)</code></li>
 <li><code>init?(string: String, relativeTo baseURL: URL? = nil)</code></li>
+<li><code>init?(string: String, encodingInvalidCharacters: Bool)</code></li>
 <li><code>init(fileURLWithPath path: String, isDirectory: Bool? = nil, relativeTo base: URL? = nil)</code></li>
 <li><code>static func currentDirectory() -> URL</code></li>
 <li><code>static var homeDirectory: URL</code></li>
@@ -788,6 +789,36 @@ Support levels:
 <li><code>func resolvingSymlinksInPath() -> URL</code></li>
 <li><code>mutating func resolveSymlinksInPath() -> URL</code></li>
 <li><code>func checkResourceIsReachable() throws -> Bool</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+        <details>
+          <summary><code>URLComponents</code></summary>
+          <ul>
+<li><code>init()</code></li>
+<li><code>init?(url: URL, resolvingAgainstBaseURL resolve: Bool)</code></li>
+<li><code>init?(string: String)</code></li>
+<li><code>init?(string: String, encodingInvalidCharacters: Bool)</code></li>
+<li><code>var url: URL?</code></li>
+<li><code>func url(relativeTo base: URL?) -> URL?</code></li>
+<li><code>var string: String?</code></li>
+<li><code>var scheme: String?</code></li>
+<li><code>var host: String?</code></li>
+<li><code>var port: Int?</code></li>
+<li><code>var path: String</code></li>
+<li><code>var fragment: String?</code></li>
+<li><code>var query: String?</code></li>
+<li><code>var queryItems: [URLQueryItem]?</code></li>
+<li><code>var percentEncodedHost: String?</code></li>
+<li><code>var encodedHost: String?</code></li>
+<li><code>var percentEncodedPath: String</code></li>
+<li><code>var percentEncodedQuery: String?</code></li>
+<li><code>var percentEncodedFragment: String?</code></li>
+<li><code>var percentEncodedQueryItems: [URLQueryItem]?</code></li>
           </ul>
         </details> 
       </td>
