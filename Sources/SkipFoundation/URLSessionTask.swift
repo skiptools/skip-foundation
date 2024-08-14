@@ -203,7 +203,7 @@ public class URLSessionTask {
 }
 
 public class _URLSessionDataTask : URLSessionTask {
-    var genericJob: Job?
+    var job: Job?
     var httpCall: Call?
 
     var isForResponse = false
@@ -214,7 +214,7 @@ public class _URLSessionDataTask : URLSessionTask {
         switch RequestType(request) {
         case .generic:
             let job = Job()
-            genericJob = job
+            self.job = job
             GlobalScope.launch(job) {
                 do {
                     let (data, response, connection) = genericResponse(for: request, with: url, isForResponse: isForResponse)
@@ -232,14 +232,29 @@ public class _URLSessionDataTask : URLSessionTask {
             let (client, httpRequest) = httpRequest(for: request, with: url, configuration: session.configuration, build: build)
             httpCall = client.newCall(httpRequest)
             httpCall?.enqueue(HTTPCallback(task: self, url: url))
+        case .content:
+            let job = Job()
+            self.job = job
+            GlobalScope.launch(job) {
+                do {
+                    let (data, response) = contentResponse(for: request, with: url, isForResponse: isForResponse)
+                    notifyDelegate(response: response)
+                    if let data {
+                        notifyDelegate(data: data)
+                    }
+                    completion(data: data, response: response, error: nil)
+                } catch {
+                    completion(data: nil, response: nil, error: error)
+                }
+            }
         }
     }
 
     override func close() {
         do { httpCall?.cancel() } catch {}
         httpCall = nil
-        do { genericJob?.cancel() } catch {}
-        genericJob = nil
+        do { job?.cancel() } catch {}
+        job = nil
     }
 
     private func notifyDelegate(response: URLResponse) {
@@ -618,7 +633,7 @@ public struct URLSessionTaskMetrics {
 }
 
 private enum RequestType {
-    case generic, http
+    case generic, http, content
 
     init(_ request: URLRequest) {
         guard let url = request.url else {
@@ -627,6 +642,8 @@ private enum RequestType {
         switch url.scheme?.lowercased() {
         case "http", "https", "ws", "wss":
             self = RequestType.http
+        case "content":
+            self = RequestType.content
         default:
             self = RequestType.generic
         }
@@ -741,6 +758,40 @@ private func genericResponse(for request: URLRequest, with url: URL, isForRespon
             do { inputStream?.close() } catch {}
             let bytes = outputStream.toByteArray()
             return (Data(platformValue: bytes), response, nil)
+        } onCancel: {
+            do { inputStream?.close() } catch {}
+            job.cancel()
+        }
+    }
+}
+
+// SKIP ATTRIBUTES: nodispatch
+private func contentResponse(for request: URLRequest, with url: URL, isForResponse: Bool) async throws -> (Data?, URLResponse) {
+    let job = Job()
+    return withContext(job + Dispatchers.IO) {
+        let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
+        guard !isForResponse else {
+            return (nil, response)
+        }
+        var inputStream: java.io.InputStream? = nil
+        return withTaskCancellationHandler {
+            let uri = android.net.Uri.parse(url.absoluteString)
+            let outputStream = java.io.ByteArrayOutputStream()
+            inputStream = ProcessInfo.processInfo.androidContext.getContentResolver().openInputStream(uri)
+            if let inputStream {
+                let buffer = ByteArray(1024)
+                if let stableInputStream = inputStream {
+                    var bytesRead: Int
+                    while (stableInputStream.read(buffer).also { bytesRead = $0 } != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
+                    }
+                }
+            } else {
+                throw java.util.MissingResourceException(url.absoluteString, "", "")
+            }
+            do { inputStream?.close() } catch {}
+            let bytes = outputStream.toByteArray()
+            return (Data(platformValue: bytes), response)
         } onCancel: {
             do { inputStream?.close() } catch {}
             job.cancel()

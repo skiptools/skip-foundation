@@ -90,7 +90,17 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
     }
 
     public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
-        self.platformValue = url.absoluteURL.platformValue.toURL().readBytes()
+        if url.scheme == "content" {
+            let uri = android.net.Uri.parse(url.absoluteString)
+            if let inputStream = ProcessInfo.processInfo.androidContext.getContentResolver().openInputStream(uri) {
+                self.platformValue = inputStream.readAllBytes()
+                do { inputStream.close() } catch {}
+            } else {
+                throw java.util.MissingResourceException(url.absoluteString, "", "")
+            }
+        } else {
+            self.platformValue = url.absoluteURL.platformValue.toURL().readBytes()
+        }
     }
 
     public init(_ checksum: Digest) {
