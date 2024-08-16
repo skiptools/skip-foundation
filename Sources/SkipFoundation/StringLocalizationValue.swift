@@ -15,12 +15,25 @@ public func String(localized keyAndValue: String.LocalizationValue, table: Strin
     return replaced
 }
 
-public func String(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil) -> String {
+public func String(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) -> String {
     return bundle?.localizedString(forKey: key, value: nil, table: table) ?? key
 }
 
 extension String {
     public typealias LocalizationValue = StringLocalizationValue
+}
+
+public func AttributedString(localized keyAndValue: String.LocalizationValue, /* options: AttributedString.FormattingOptions = [], */ table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) -> AttributedString {
+    let key = keyAndValue.patternFormat // interpolated string: "Hello \(name)" keyed as: "Hello %@"
+    let locfmt = bundle?.localizedKotlinFormatString(forKey: key, value: nil, table: table) ?? key.kotlinFormatString
+    // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
+    let replaced = locfmt.format(*keyAndValue.stringInterpolation.values.toTypedArray())
+    return AttributedString(markdown: replaced)
+}
+
+public func AttributedString(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) -> AttributedString {
+    let string = bundle?.localizedString(forKey: key, value: nil, table: table) ?? key
+    return AttributedString(markdown: string)
 }
 
 public struct StringLocalizationValue : ExpressibleByStringInterpolation {

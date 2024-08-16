@@ -5,9 +5,40 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import org.commonmark.node.Node
+import org.commonmark.parser.Parser
 
-@available(*, unavailable)
-public struct AttributedString {
+public struct AttributedString: Hashable {
+    // Allow e.g. SwiftUI to access our state
+    public let string: String
+    public let markdownNode: Node?
+
+    public init() {
+        string = ""
+        markdownNode = nil
+    }
+
+    public init(stringLiteral: String) {
+        string = stringLiteral
+        markdownNode = nil
+    }
+
+    public init(markdown: String) throws {
+        string = markdown
+        markdownNode = markdown.isEmpty ? nil : Parser.builder().build().parse(markdown)
+    }
+
+    public var description: String {
+        return string
+    }
+
+    public static func ==(lhs: AttributedString, rhs: AttributedString) {
+        return lhs.string == rhs.string
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(string)
+    }
 }
 
 #endif

@@ -78,6 +78,21 @@ Support levels:
   <thead><th>Support</th><th>API</th></thead>
   <tbody>
     <tr>
+      <td>🟠</td>
+      <td>
+        <details>
+          <summary><code>AttributedString</code></summary>
+          <ul>
+<li><code>init()</code></li>
+<li><code>init(stringLiteral: String)</code></li>
+<li><code>init(markdown: String)</code></li>
+<li><code>init(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil)</code></li>
+<li><code>init(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil)</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
       <td>🟡</td>
       <td>
         <details>
