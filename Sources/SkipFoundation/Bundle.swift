@@ -436,4 +436,11 @@ public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: B
     return (bundle ?? Bundle.main).localizedString(forKey: key, value: value, table: tableName)
 }
 
+/// 
+public struct LocalizedStringInfo {
+    public let string: String
+    public let kotlinFormat: String
+    public let markdownNode: MarkdownNode?
+}
+
 #endif

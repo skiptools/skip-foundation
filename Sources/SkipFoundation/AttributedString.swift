@@ -5,13 +5,10 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-import org.commonmark.node.Node
-import org.commonmark.parser.Parser
-
 public struct AttributedString: Hashable {
     // Allow e.g. SwiftUI to access our state
     public let string: String
-    public let markdownNode: Node?
+    public let markdownNode: MarkdownNode?
 
     public init() {
         string = ""
@@ -25,7 +22,7 @@ public struct AttributedString: Hashable {
 
     public init(markdown: String) throws {
         string = markdown
-        markdownNode = markdown.isEmpty ? nil : Parser.builder().build().parse(markdown)
+        markdownNode = MarkdownNode(markdown)
     }
 
     public var description: String {
