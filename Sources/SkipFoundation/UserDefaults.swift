@@ -152,9 +152,9 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         fatalError()
     }
 
-    public func double(forKey defaultName: String) -> Double? {
+    public func double(forKey defaultName: String) -> Double {
         guard let value = object(forKey: defaultName) else {
-            return nil
+            return 0.0
         }
         if let number = value as? Number {
             return number.toDouble()
@@ -163,13 +163,13 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         } else if let string = value as? String {
             return string.toDouble()
         } else {
-            return nil
+            return 0.0
         }
     }
 
-    public func integer(forKey defaultName: String) -> Int? {
+    public func integer(forKey defaultName: String) -> Int {
         guard let value = object(forKey: defaultName) else {
-            return nil
+            return 0
         }
         if let number = value as? Number {
             return number.toInt()
@@ -178,13 +178,13 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         } else if let string = value as? String {
             return string.toInt()
         } else {
-            return nil
+            return 0
         }
     }
 
-    public func bool(forKey defaultName: String) -> Bool? {
+    public func bool(forKey defaultName: String) -> Bool {
         guard let value = object(forKey: defaultName) else {
-            return nil
+            return false
         }
         if let number = value as? Number {
             return number.toDouble() == 0.0 ? false : true
@@ -194,7 +194,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
             // match the default string->bool conversion for UserDefaults
             return ["true", "yes", "1"].contains(string.lowercased())
         } else {
-            return nil
+            return false
         }
     }
 

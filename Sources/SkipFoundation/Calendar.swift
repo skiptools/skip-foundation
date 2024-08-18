@@ -417,48 +417,4 @@ extension Calendar: KotlinConverting<java.util.Calendar> {
     }
 }
 
-// Shims for testing
-internal class NSCalendar : NSObject {
-    struct Options {
-    }
-
-    enum Unit {
-        case era
-        case year
-        case month
-        case day
-        case hour
-        case minute
-        case second
-        case weekday
-        case weekdayOrdinal
-        case quarter
-        case weekOfMonth
-        case weekOfYear
-        case yearForWeekOfYear
-        case nanosecond
-        case calendar
-        case timeZone
-    }
-
-    enum Identifier {
-        case gregorian
-        case buddhist
-        case chinese
-        case coptic
-        case ethiopicAmeteMihret
-        case ethiopicAmeteAlem
-        case hebrew
-        case ISO8601
-        case indian
-        case islamic
-        case islamicCivil
-        case japanese
-        case persian
-        case republicOfChina
-        case islamicTabular
-        case islamicUmmAlQura
-    }
-}
-
 #endif
