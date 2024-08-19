@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import kotlin.math.roundToInt
 
 public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
     let platformValue: android.content.SharedPreferences
@@ -107,7 +108,13 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
 
     private func fromStoredRepresentation(_ value: Any?) -> Any? {
         guard let string = value as? String else {
-            return value
+            if let d = value as? Double {
+                return removeFloatSlop(d)
+            } else if let f = value as? Float {
+                return removeFloatSlop(f.toDouble())
+            } else {
+                return value
+            }
         }
         if string.hasPrefix(Self.dataStringPrefix) {
             return dataFromString(string.dropFirst(Self.dataStringPrefix.count))
@@ -159,7 +166,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
             return 0.0
         }
         if let number = value as? Number {
-            return number.toDouble()
+            return removeFloatSlop(number.toDouble())
         } else if let bool = value as? Bool {
             return bool ? 1.0 : 0.0
         } else if let string = value as? String {
@@ -321,6 +328,11 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
     private static let dataStringPrefix = "__data__:"
     private static let dateStringPrefix = "__date__:"
     private static let dateFormatter = ISO8601DateFormatter()
+
+    private func removeFloatSlop(_ value: Double) -> Double {
+        let factor = 100000.0
+        return (value * factor).roundToInt() / factor
+    }
 
     private func dataToString(_ data: Data) -> String {
         return data.base64EncodedString()
