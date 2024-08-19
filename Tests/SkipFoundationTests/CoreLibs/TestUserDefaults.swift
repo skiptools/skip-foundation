@@ -380,4 +380,15 @@ class TestUserDefaults : XCTestCase {
 		NotificationCenter.default.removeObserver(observer)
         #endif
 	}
+
+    func test_nilRemovesValue() {
+        let defaults = UserDefaults.standard
+        defaults.set(100, forKey: "nilkey")
+        XCTAssertEqual(100, defaults.integer(forKey: "nilkey"))
+        XCTAssertEqual("100", defaults.string(forKey: "nilkey"))
+        // SKIP NOWARN
+        defaults.set(nil, forKey: "nilkey")
+        XCTAssertEqual(0, defaults.integer(forKey: "nilkey"))
+        XCTAssertNil(defaults.string(forKey: "nilkey"))
+    }
 }

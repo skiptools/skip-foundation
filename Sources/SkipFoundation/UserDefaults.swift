@@ -66,7 +66,9 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         let prefs = platformValue.edit()
         defer { prefs.apply() }
 
-        if let v = value as? Float {
+        if value == nil {
+            prefs.remove(defaultName)
+        } else if let v = value as? Float {
             prefs.putFloat(defaultName, v)
         } else if let v = value as? Int64 {
             prefs.putLong(defaultName, v)
