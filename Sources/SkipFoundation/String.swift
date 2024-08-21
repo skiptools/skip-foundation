@@ -144,7 +144,7 @@ public func String(contentsOf: URL, encoding: StringEncoding) throws -> String {
 /// e.g.: `String(localized: "Done", table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil)`
 public func String(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil) -> String {
     let key = keyAndValue.patternFormat // interpolated string: "Hello \(name)" keyed as: "Hello %@"
-    let locfmt = bundle?.localizedKotlinFormatString(forKey: key, value: nil, table: table) ?? key.kotlinFormatString
+    let (_, locfmt, _) = bundle?.localizedInfo(forKey: key, value: nil, table: table) ?? Triple("", key.kotlinFormatString, nil)
     // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
     let replaced = locfmt.format(*keyAndValue.stringInterpolation.values.toTypedArray())
     return replaced

@@ -27,19 +27,16 @@ public struct AttributedString: Hashable {
 
     public init(localized keyAndValue: String.LocalizationValue, /* options: AttributedString.FormattingOptions = [], */ table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) {
         let key = keyAndValue.patternFormat // interpolated string: "Hello \(name)" keyed as: "Hello %@"
-        let locfmt = bundle?.localizedKotlinFormatString(forKey: key, value: nil, table: table) ?? key.kotlinFormatString
+        let (_, locfmt, locnode) = bundle?.localizedInfo(forKey: key, value: nil, table: table) ?? Triple("", key.kotlinFormatString, MarkdownNode.from(string: key))
         // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
-        let replaced = locfmt.format(*keyAndValue.stringInterpolation.values.toTypedArray())
-        //~~~
-        self.string = replaced
-        self.markdownNode = MarkdownNode.from(string: replaced)
+        self.string = locfmt.format(*keyAndValue.stringInterpolation.values.toTypedArray())
+        self.markdownNode = locnode?.format(keyAndValue.stringInterpolation.values)
     }
 
     public init(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) {
-        //~~~
-        let string = bundle?.localizedString(forKey: key, value: nil, table: table) ?? key
-        self.string = string
-        self.markdownNode = MarkdownNode.from(string: string)
+        let (locstring, _, locnode) = bundle?.localizedInfo(forKey: key, value: nil, table: table) ?? Triple(key, "", MarkdownNode.from(string: key))
+        self.string = locstring
+        self.markdownNode = locnode
     }
 
     public var description: String {

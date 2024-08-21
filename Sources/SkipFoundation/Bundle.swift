@@ -311,18 +311,14 @@ public class Bundle : Hashable {
     }()
 
     /// The localized strings tables for this bundle
-    private var localizedTables: MutableMap<String, MutableMap<String, Pair<String, String>>> = mutableMapOf()
+    private var localizedTables: MutableMap<String, MutableMap<String, Triple<String, String, MarkdownNode?>>> = mutableMapOf()
 
     public func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
-        return localizedString(forKey: key, value: value, table: tableName, isJavaFormat: false)
+        return localizedInfo(forKey: key, value: value, table: tableName).first
     }
 
     /// Localize the given string, returning a string suitable for Kotlin/Java formatting rather than Swift formatting.
-    public func localizedKotlinFormatString(forKey key: String, value: String?, table tableName: String?) -> String {
-        return localizedString(forKey: key, value: value, table: tableName, isJavaFormat: true)
-    }
-
-    private func localizedString(forKey key: String, value: String?, table tableName: String?, isJavaFormat: Bool) -> String {
+    public func localizedInfo(forKey key: String, value: String?, table tableName: String?) -> Triple<String, String, MarkdownNode?> {
         synchronized(self) {
             let table = tableName ?? "Localizable"
             var locTable = localizedTables[table]
@@ -333,29 +329,29 @@ public class Bundle : Hashable {
                 localizedTables[table] = locTable!
             }
             if let formats = locTable?[key] {
-                return isJavaFormat ? formats.second : formats.first
+                return formats
             }
 
             if let value {
                 // We can't cache this in case different values are passed on different calls
-                return isJavaFormat ? value.kotlinFormatString : value
+                return Triple(value, value.kotlinFormatString, MarkdownNode.from(string: value))
             } else {
-                let formats = Pair(key, key.kotlinFormatString)
+                let formats = Triple(key, key.kotlinFormatString, MarkdownNode.from(string: key))
                 locTable![key] = formats
-                return isJavaFormat ? formats.second : formats.first
+                return formats
             }
         }
     }
 
-    private static func stringFormatsTable(from table: [String: String]?) -> MutableMap<String, Pair<String, String>> {
+    private static func stringFormatsTable(from table: [String: String]?) -> MutableMap<String, Triple<String, String, MarkdownNode?>> {
         guard let table else {
             return mutableMapOf()
         }
-        // We cache both the format string and its Kotlin-ized version so that `localizedKotlinFormatString` doesn't
-        // have to do the conversion each time and is fast for use in `SwiftUI.Text` implicit localization
-        let formatsTable = mutableMapOf<String, Pair<String, String>>()
+        // We cache both the format string and its Kotlin-ized and parsed markdown version so that `localizedKotlinFormatInfo`
+        // doesn't have to do the conversion each time and is fast for use in `SwiftUI.Text` implicit localization
+        let formatsTable = mutableMapOf<String, Triple<String, String, MarkdownNode?>>()
         for (key, value) in table {
-            formatsTable[key] = Pair(value, value.kotlinFormatString)
+            formatsTable[key] = Triple(value, value.kotlinFormatString, MarkdownNode.from(string: value))
         }
         return formatsTable
     }
