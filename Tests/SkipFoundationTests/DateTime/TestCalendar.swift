@@ -212,6 +212,14 @@ class TestCalendar: XCTestCase {
         #endif // !SKIP
     }
 
+    func test_component() {
+        let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
+        let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4))!
+        XCTAssertEqual(calendar.component(.year, from: thisDay), 2016)
+        XCTAssertEqual(calendar.component(.month, from: thisDay), 10)
+        XCTAssertEqual(calendar.component(.day, from: thisDay), 4)
+    }
+
     func test_addingDates() {
         let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
         let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4))!

@@ -263,9 +263,8 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return date(from: comps)
     }
 
-    @available(*, unavailable)
     public func component(_ component: Calendar.Component, from date: Date) -> Int {
-        fatalError()
+        return dateComponents([component], from: date).value(for: component) ?? 0
     }
 
     @available(*, unavailable)

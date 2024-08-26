@@ -141,6 +141,7 @@ Support levels:
 <li><code>func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents</code></li>
 <li><code>func dateComponents(_ components: Set&lt;Calendar.Component>, from start: Date, to end: Date) -> DateComponents</code></li>
 <li><code>func dateComponents(_ components: Set&lt;Calendar.Component>, from date: Date) -> DateComponents</code></li>
+<li><code>func component(_ component: Calendar.Component, from date: Date) -> Int</code></li>
 <li><code>func date(byAdding components: DateComponents, to date: Date, wrappingComponents: Bool = false) -> Date?</code></li>
 <li><code>func date(byAdding component: Calendar.Component, value: Int, to date: Date, wrappingComponents: Bool = false) -> Date?</code></li>
 <li><code>func isDateInWeekend(_ date: Date) -> Bool</code></li>
