@@ -228,7 +228,10 @@ public class Bundle : Hashable {
         var res = forResource ?? ""
         if let withExtension = withExtension, !withExtension.isEmpty {
             // TODO: If `forResource` is nil, we are expected to find the first file in the bundle whose extension matches
-            res += "." + withExtension
+            if !res.hasPrefix(".") {
+                res += "."
+            }
+            res += withExtension
         } else {
             if res.isEmpty {
                 return nil
