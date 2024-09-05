@@ -26,12 +26,17 @@ final class CurrencyTests: XCTestCase {
         }
     }
 
-#if SKIP
     func testIsoCurrencies() throws {
-        for currency in Locale.Currency.isoCurrencies {
+        let isoCurrencies = Locale.Currency.isoCurrencies
+
+        let currencyCodes = isoCurrencies.map { $0.identifier }
+        XCTAssertEqual(Set(currencyCodes).sorted(), currencyCodes)
+#if SKIP
+
+        for currency in isoCurrencies {
             XCTAssertTrue(currency.isISOCurrency)
         }
-    }
 #endif
+    }
 
 }
