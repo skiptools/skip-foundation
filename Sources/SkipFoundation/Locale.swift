@@ -49,6 +49,13 @@ public struct Locale : Hashable {
         return Locale(platformValue: java.util.Locale.getDefault()) // FIXME: not the same as .system: “Use the system locale when you don’t want any localizations”
     }
 
+    public static var commonISOCurrencyCodes: [String] {
+        let availableCurrencies = Set(java.util.Currency.getAvailableCurrencies().map { $0.getCurrencyCode() })
+
+        // There is no equivalent in Android so this list is hardcoded to be equivalent to Swift.
+        return ["AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AUD", "AWG", "AZN", "BAM", "BBD", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BRL", "BSD", "BTN", "BWP", "BYN", "BZD", "CAD", "CDF", "CHF", "CLP", "CNY", "COP", "CRC", "CUC", "CUP", "CVE", "CZK", "DJF", "DKK", "DOP", "DZD", "EGP", "ERN", "ETB", "EUR", "FJD", "FKP", "GBP", "GEL", "GHS", "GIP", "GMD", "GNF", "GTQ", "GYD", "HKD", "HNL", "HRK", "HTG", "HUF", "IDR", "ILS", "INR", "IQD", "IRR", "ISK", "JMD", "JOD", "JPY", "KES", "KGS", "KHR", "KMF", "KPW", "KRW", "KWD", "KYD", "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LYD", "MAD", "MDL", "MGA", "MKD", "MMK", "MNT", "MOP", "MRU", "MUR", "MVR", "MWK", "MXN", "MYR", "MZN", "NAD", "NGN", "NIO", "NOK", "NPR", "NZD", "OMR", "PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "RON", "RSD", "RUB", "RWF", "SAR", "SBD", "SCR", "SDG", "SEK", "SGD", "SHP", "SLE", "SLL", "SOS", "SRD", "SSP", "STN", "SYP", "SZL", "THB", "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS", "UAH", "UGX", "USD", "UYU", "UZS", "VEF", "VES", "VND", "VUV", "WST", "XAF", "XCD", "XOF", "XPF", "YER", "ZAR", "ZMW"].filter { availableCurrencies.contains($0) }
+    }
+
     /// Returns an array of tags to search for a locale identifier, from most specific to least specific
     var localeSearchTags: [String] {
         // for an identifier like "fr_FR", seek "fr-FR.lproj" and "fr.lproj"
@@ -131,6 +138,13 @@ public struct Locale : Hashable {
         return variant?.identifier
     }
 
+    public func localizedString(forCurrencyCode currencyCode: String) -> String? {
+        // Swift is case-insensitive with currency codes but Java expects uppercased currency codes.
+        // Swift returns nil when provided an invalid ISO 4217 currency code
+        // but Java throws an exception.
+        try? java.util.Currency.getInstance(currencyCode.uppercased()).getDisplayName(platformValue)
+    }
+
     public func localizedString(forIdentifier targetIdentifier: String) -> String? {
         return Locale(identifier: targetIdentifier).platformValue.getDisplayName(platformValue)
     }
@@ -160,11 +174,26 @@ public struct Locale : Hashable {
         return bundle?.localizedBundle(locale: self).localizedString(forKey: key, value: value, table: tableName)
     }
 
-    public struct Currency : Hashable {
+    public struct Currency : Hashable, ExpressibleByStringLiteral {
         internal let platformValue: java.util.Currency
+
+        public static var isoCurrencies: [Currency] {
+            let currencies = Array(java.util.Currency.getAvailableCurrencies().map { Currency(platformValue: $0) })
+            return currencies.sorted {
+                $0.identifier < $1.identifier
+            }
+        }
 
         public init(platformValue: java.util.Currency) {
             self.platformValue = platformValue
+        }
+
+        public init(_ identifier: String) {
+            self.platformValue = java.util.Currency.getInstance(identifier)
+        }
+
+        public init(stringLiteral value: String) {
+            self.platformValue = java.util.Currency.getInstance(value)
         }
 
         public var identifier: String {
@@ -173,6 +202,12 @@ public struct Locale : Hashable {
 
         public var symbol: String {
             platformValue.getSymbol()
+        }
+
+        public var isISOCurrency: Bool {
+            // Currency is always an ISO 4217 currency.
+            // https://developer.android.com/reference/java/util/Currency#getInstance(java.lang.String)
+            true
         }
     }
 
