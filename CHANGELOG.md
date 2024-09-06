@@ -1,3 +1,11 @@
+## 1.1.3
+
+Released 2024-09-06
+
+  - Merge pull request #18 from tyiu/currency
+  - Fix broken tests and address code review feedback
+  - Add support for Currency
+
 ## 1.0.0
 
 Released 2024-08-15
