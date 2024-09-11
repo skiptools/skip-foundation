@@ -137,6 +137,9 @@ class TestJSON : XCTestCase {
         var stringSetField: Set<String>
     }
 
+    struct EmptyField : Equatable, Codable {
+    }
+
     struct Person : Equatable, Codable {
         var firstName: String
         var lastName: String
@@ -273,6 +276,8 @@ class TestJSON : XCTestCase {
         XCTAssertEqual(#"{"boolArrayField":[false,true]}"#, try roundtrip(value: BoolArrayField(boolArrayField: [false,true])))
         XCTAssertEqual(#"{"boolArrayArrayField":[[false,true]]}"#, try enc(BoolArrayArrayField(boolArrayArrayField: [[false,true]])))
         XCTAssertEqual(#"{"boolArrayArrayArrayField":[[[false,true],[false,true]],[[false,true],[false,true]]]}"#, try enc(BoolArrayArrayArrayField(boolArrayArrayArrayField: [[[false,true],[false,true]],[[false,true],[false,true]]])))
+
+        XCTAssertEqual(#"{}"#, try roundtrip(value: EmptyField()))
 
         let testData = MyTestData(thisIsAString: "ABC", thisIsABool: true, thisIsAnInt: 1, thisIsAnInt8: Int8(2), thisIsAnInt16: Int16(3), thisIsAnInt32: Int32(4), thisIsAnInt64: Int64(5), thisIsAUint: UInt(6), thisIsAUint8: UInt8(7), thisIsAUint16: UInt16(8), thisIsAUint32: UInt32(9), thisIsAUint64: UInt64(10), thisIsAFloat: Float(11.0), thisIsADouble: Double(12.0), thisIsADate: Date(timeIntervalSinceReferenceDate: 12345.0), thisIsAnArray: [-1,0,1], thisIsADictionary: ["X": true, "Y": false])
 
