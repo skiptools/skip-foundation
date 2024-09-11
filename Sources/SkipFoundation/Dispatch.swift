@@ -63,6 +63,7 @@ public struct DispatchQueue : Scheduler {
         }
     }
 
+    // SKIP DECLARE: fun asyncAfter(deadline: Double, unusedp: Nothing? = null, execute: () -> Unit)
     public func asyncAfter(deadline: DispatchTime, execute: () -> Void) {
         GlobalScope.launch(Dispatchers.Main) {
             delay(Int64(deadline * 1000.0) - System.currentTimeMillis())
