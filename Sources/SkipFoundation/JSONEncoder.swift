@@ -62,51 +62,61 @@ open class JSONEncoder {
 
         fileprivate static func _convertToSnakeCase(_ stringKey: String) -> String {
             guard !stringKey.isEmpty else { return stringKey }
-            fatalError("SKIP TODO: JSON snakeCase")
-//            var words: [Range<String.Index>] = []
-//            // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
-//            //
-//            // myProperty -> my_property
-//            // myURLProperty -> my_url_property
-//            //
-//            // We assume, per Swift naming conventions, that the first character of the key is lowercase.
-//            var wordStart = stringKey.startIndex
-//            var searchRange = stringKey.index(after: wordStart)..<stringKey.endIndex
-//
-//            // Find next uppercase character
-//            while let upperCaseRange = stringKey.rangeOfCharacter(from: .uppercaseLetters, options: [], range: searchRange) {
-//                let untilUpperCase = wordStart..<upperCaseRange.lowerBound
-//                words.append(untilUpperCase)
-//
-//                // Find next lowercase character
-//                searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
-//                guard let lowerCaseRange = stringKey.rangeOfCharacter(from: .lowercaseLetters, options: [], range: searchRange) else {
-//                    // There are no more lower case letters. Just end here.
-//                    wordStart = searchRange.lowerBound
-//                    break
-//                }
-//
-//                // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
-//                let nextCharacterAfterCapital = stringKey.index(after: upperCaseRange.lowerBound)
-//                if lowerCaseRange.lowerBound == nextCharacterAfterCapital {
-//                    // The next character after capital is a lower case character and therefore not a word boundary.
-//                    // Continue searching for the next upper case for the boundary.
-//                    wordStart = upperCaseRange.lowerBound
-//                } else {
-//                    // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
-//                    let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
-//                    words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
-//
-//                    // Next word starts at the capital before the lowercase we just found
-//                    wordStart = beforeLowerIndex
-//                }
-//                searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
-//            }
-//            words.append(wordStart..<searchRange.upperBound)
-//            let result = words.map({ (range) in
-//                return stringKey[range].lowercased()
-//            }).joined(separator: "_")
-//            return result
+            var words: [Range<Int>] = []
+            // The general idea of this algorithm is to split words on transition from lower to upper case, then on transition of >1 upper case characters to lowercase
+            //
+            // myProperty -> my_property
+            // myURLProperty -> my_url_property
+            //
+            // We assume, per Swift naming conventions, that the first character of the key is lowercase.
+            var wordStart = 0
+            var searchStart = 1
+            var searchEnd = stringKey.count
+
+            func indexOfCharacterCase(upper: Bool, in string: String, searchStart: Int, searchEnd: Int) -> Int? {
+                for i in searchStart..<searchEnd {
+                    let c = string[i]
+                    if (upper && c.isUppercase) || (!upper && !c.isUppercase) {
+                        return i
+                    }
+                }
+                return nil
+            }
+
+            // Find next uppercase character
+            while let upperCaseIndex = indexOfCharacterCase(upper: true, in: stringKey, searchStart: searchStart, searchEnd: searchEnd) {
+                let untilUpperCase = wordStart..<upperCaseIndex
+                words.append(untilUpperCase)
+
+                // Find next lowercase character
+                searchStart = upperCaseIndex
+                guard let lowerCaseIndex = indexOfCharacterCase(upper: false, in: stringKey, searchStart: searchStart, searchEnd: searchEnd) else {
+                    // There are no more lower case letters. Just end here.
+                    wordStart = searchStart
+                    break
+                }
+
+                // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of uppercase letters that we should treat as its own word
+                let nextCharacterAfterCapital = searchStart + 1
+                if lowerCaseIndex == nextCharacterAfterCapital {
+                    // The next character after capital is a lower case character and therefore not a word boundary.
+                    // Continue searching for the next upper case for the boundary.
+                    wordStart = upperCaseIndex
+                } else {
+                    // There was a range of >1 capital letters. Turn those into a word, stopping at the capital before the lower case character.
+                    let beforeLowerIndex = lowerCaseIndex - 1
+                    words.append(upperCaseIndex..<beforeLowerIndex)
+
+                    // Next word starts at the capital before the lowercase we just found
+                    wordStart = beforeLowerIndex
+                }
+                searchStart = lowerCaseIndex
+            }
+            words.append(wordStart..<searchEnd)
+            let result = words.map { range in
+                return stringKey[range].lowercased()
+            }.joined(separator: "_")
+            return result
         }
     }
 
@@ -455,14 +465,14 @@ private struct JSONKeyedEncodingContainer<Key: CodingKey>: KeyedEncodingContaine
         self.impl = impl
         self.object = impl.object!
         self.codingPath = codingPath
-        self.encodeKeys = keyedBy == DictionaryCodingKey.self
+        self.encodeKeys = keyedBy != DictionaryCodingKey.self
     }
 
     init(keyedBy: Any.Type, impl: JSONEncoderImpl, object: JSONFuture.RefObject, codingPath: [CodingKey]) {
         self.impl = impl
         self.object = object
         self.codingPath = codingPath
-        self.encodeKeys = keyedBy == DictionaryCodingKey.self
+        self.encodeKeys = keyedBy != DictionaryCodingKey.self
     }
 
     private func _converted(_ key: JSONEncoderKey) -> CodingKey {

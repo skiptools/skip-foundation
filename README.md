@@ -416,26 +416,12 @@ Support levels:
       </td>
     </tr>
    <tr>
-      <td>🟢</td>
-      <td>
-        <details>
-          <summary><code>JSONDecoder</code></summary>
-          <ul>
-<li>Snake case key decoding is not supported</li>
-          </ul>
-        </details> 
-      </td>
+      <td>✅</td>
+      <td><code>JSONDecoder</code></td>
     </tr>
    <tr>
-      <td>🟢</td>
-      <td>
-        <details>
-          <summary><code>JSONEncoder</code></summary>
-          <ul>
-<li>Snake case key encoding is not supported</li>
-          </ul>
-        </details> 
-      </td>
+      <td>✅</td>
+      <td><code>JSONEncoder</code></td>
     </tr>
     <tr>
       <td>✅</td>
