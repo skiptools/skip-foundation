@@ -12,7 +12,7 @@ settings:
           contents:
             - block: 'create("testLibs")'
               contents:
-                - 'version("robolectric", "4.11.1")'
+                - 'version("robolectric", "4.13")'
                 - 'library("robolectric", "org.robolectric", "robolectric").versionRef("robolectric")'
                 - 'library("json", "org.json", "json").version("20231013")'
 
