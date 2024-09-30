@@ -225,10 +225,13 @@ class TestJSON : XCTestCase {
     }
 
     /// Round-trip a type
-    @inline(__always) private func roundtrip<T>(value: T, fmt: JSONEncoder.OutputFormatting? = .sortedKeys, data: JSONEncoder.DataEncodingStrategy? = nil, date: JSONEncoder.DateEncodingStrategy? = nil, floats: JSONEncoder.NonConformingFloatEncodingStrategy? = nil, keys: JSONEncoder.KeyEncodingStrategy? = nil) throws -> String where T : Encodable, T : Decodable, T : Equatable {
+    @inline(__always) private func roundtrip<T>(value: T, fmt: JSONEncoder.OutputFormatting? = .sortedKeys, data: JSONEncoder.DataEncodingStrategy? = nil, date: JSONEncoder.DateEncodingStrategy? = nil, floats: JSONEncoder.NonConformingFloatEncodingStrategy? = nil, keys: JSONEncoder.KeyEncodingStrategy? = nil, dkeys: JSONDecoder.KeyDecodingStrategy? = nil) throws -> String where T : Encodable, T : Decodable, T : Equatable {
         let json = try enc(value, fmt: fmt, data: data, date: date, floats: floats, keys: keys)
-        let decoder = JSONDecoder()
 
+        let decoder = JSONDecoder()
+        if let dkeys {
+            decoder.keyDecodingStrategy = dkeys
+        }
         let value2 = try decoder.decode(T.self, from: json.data(using: String.Encoding.utf8)!)
         XCTAssertEqual(value, value2)
 
@@ -341,8 +344,37 @@ class TestJSON : XCTestCase {
         }
         """, try roundtrip(value: testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
         #endif
-
-        #if !SKIP
+        
+        #if SKIP
+        XCTAssertEqual("""
+        {
+          "this_is_a_bool" : true,
+          "this_is_a_date" : 12345,
+          "this_is_a_dictionary" : {
+            "X" : true,
+            "Y" : false
+          },
+          "this_is_a_double" : 12,
+          "this_is_a_float" : 11,
+          "this_is_a_string" : "ABC",
+          "this_is_a_uint" : 6,
+          "this_is_a_uint16" : 8,
+          "this_is_a_uint32" : 9,
+          "this_is_a_uint64" : 10,
+          "this_is_a_uint8" : 7,
+          "this_is_an_array" : [
+            -1,
+            0,
+            1
+          ],
+          "this_is_an_int" : 1,
+          "this_is_an_int16" : 3,
+          "this_is_an_int32" : 4,
+          "this_is_an_int64" : 5,
+          "this_is_an_int8" : 2
+        }
+        """, try enc(testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting, keys: .convertToSnakeCase as JSONEncoder.KeyEncodingStrategy))
+        #else
         XCTAssertEqual("""
         {
           "this_is_a_bool" : true,
@@ -387,6 +419,7 @@ class TestJSON : XCTestCase {
           "lastName" : "Doe"
         }
         """, try roundtrip(value: p1, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
+        XCTAssertEqual(#"{"first_name":"Jon","height":180.5,"last_name":"Doe"}"#, try roundtrip(value: p1, keys: JSONEncoder.KeyEncodingStrategy.convertToSnakeCase, dkeys: JSONDecoder.KeyDecodingStrategy.convertFromSnakeCase))
 
         let org = Org(head: p2, people: [p1, p3], departmentHeads: ["X":p2, "Y": p3], departmentMembers: ["Y":[p1], "X": [p2, p1]])
         XCTAssertEqual("""
