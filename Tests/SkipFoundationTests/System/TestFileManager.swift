@@ -1090,8 +1090,8 @@ class TestFileManager : XCTestCase {
         #else
         let filemanger = FileManager.default
         #if !os(iOS)
-        XCTAssertNil(filemanger.homeDirectory(forUser: "someuser"))
-        XCTAssertNil(filemanger.homeDirectory(forUser: ""))
+        XCTAssertTrue(filemanger.homeDirectory(forUser: "someuser") == nil || filemanger.homeDirectory(forUser: "someuser")?.absoluteString == "file:///var/empty/") // Swift 6
+        XCTAssertTrue(filemanger.homeDirectory(forUser: "") == nil || filemanger.homeDirectory(forUser: "")?.absoluteString == "file:///var/empty/") // Swift 6
         XCTAssertNotNil(filemanger.homeDirectoryForCurrentUser)
         #endif
         #endif // !SKIP
@@ -1590,7 +1590,7 @@ VIDEOS=StopgapVideos
         // are throwable, an NSError is thrown instead which is more useful.
         let fm = FileManager.default
 
-        XCTAssertNil(fm.homeDirectory(forUser: ""))
+        XCTAssertTrue(fm.homeDirectory(forUser: "") == nil || fm.homeDirectory(forUser: "")?.absoluteString == "file:///var/empty/") // Swift 6
         XCTAssertNil(NSHomeDirectoryForUser(""))
 
         XCTAssertThrowsError(try fm.contentsOfDirectory(atPath: "")) {

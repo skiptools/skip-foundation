@@ -284,9 +284,10 @@ class TestJSON : XCTestCase {
 
         let testData = MyTestData(thisIsAString: "ABC", thisIsABool: true, thisIsAnInt: 1, thisIsAnInt8: Int8(2), thisIsAnInt16: Int16(3), thisIsAnInt32: Int32(4), thisIsAnInt64: Int64(5), thisIsAUint: UInt(6), thisIsAUint8: UInt8(7), thisIsAUint16: UInt16(8), thisIsAUint32: UInt32(9), thisIsAUint64: UInt64(10), thisIsAFloat: Float(11.0), thisIsADouble: Double(12.0), thisIsADate: Date(timeIntervalSinceReferenceDate: 12345.0), thisIsAnArray: [-1,0,1], thisIsADictionary: ["X": true, "Y": false])
 
-        // TODO: Key sorting inconsistency
-        #if SKIP
-        XCTAssertEqual("""
+        // Key sorting inconsistency between Swift 6 swift-foundation and swift-corelibs foundation ("thisIsAnInt8" sorted before or after)
+        let testDataJSON = try roundtrip(value: testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting)
+
+        XCTAssertTrue(testDataJSON == """
         {
           "thisIsABool" : true,
           "thisIsADate" : 12345,
@@ -313,9 +314,7 @@ class TestJSON : XCTestCase {
           "thisIsAnInt64" : 5,
           "thisIsAnInt8" : 2
         }
-        """, try roundtrip(value: testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
-        #else
-        XCTAssertEqual("""
+        """ || testDataJSON == """
         {
           "thisIsABool" : true,
           "thisIsADate" : 12345,
@@ -342,11 +341,12 @@ class TestJSON : XCTestCase {
           "thisIsAUint32" : 9,
           "thisIsAUint64" : 10
         }
-        """, try roundtrip(value: testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting))
-        #endif
-        
-        #if SKIP
-        XCTAssertEqual("""
+        """, "unexpected testData: \(testDataJSON)")
+
+        // Key sorting inconsistency between Swift 6 swift-foundation and swift-corelibs foundation ("this_is_an_int8" sorted before or after)
+        let testDataJSONSnake = try enc(testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting, keys: .convertToSnakeCase as JSONEncoder.KeyEncodingStrategy)
+
+        XCTAssertTrue(testDataJSONSnake == """
         {
           "this_is_a_bool" : true,
           "this_is_a_date" : 12345,
@@ -373,9 +373,7 @@ class TestJSON : XCTestCase {
           "this_is_an_int64" : 5,
           "this_is_an_int8" : 2
         }
-        """, try enc(testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting, keys: .convertToSnakeCase as JSONEncoder.KeyEncodingStrategy))
-        #else
-        XCTAssertEqual("""
+        """ || testDataJSONSnake == """
         {
           "this_is_a_bool" : true,
           "this_is_a_date" : 12345,
@@ -402,8 +400,7 @@ class TestJSON : XCTestCase {
           "this_is_an_int32" : 4,
           "this_is_an_int64" : 5
         }
-        """, try enc(testData, fmt: [.prettyPrinted, .sortedKeys] as JSONEncoder.OutputFormatting, keys: .convertToSnakeCase as JSONEncoder.KeyEncodingStrategy))
-        #endif
+        """, "unexpected testDataJSONSnake: \(testDataJSONSnake)")
 
         XCTAssertEqual(#"{"ageX":123,"nameX":"ABC"}"#, try enc(ManualPerson(name: "ABC", age: 123)))
 
