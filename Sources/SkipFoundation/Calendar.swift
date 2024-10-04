@@ -228,7 +228,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
 
     public func date(from components: DateComponents) -> Date? {
         // TODO: Need to set `this` calendar in the components.calendar
-        return Date(platformValue: components.createCalendarComponents().getTime())
+        return Date(platformValue: components.createCalendarComponents(timeZone: self.timeZone).getTime())
     }
 
     public func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents {

@@ -54,8 +54,12 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             platformCal.time = date.platformValue
         }
 
-        platformCal.timeZone = zone?.platformValue ?? calendar.timeZone?.platformValue
+        let tz = zone ?? calendar.timeZone
+        platformCal.timeZone = self.timeZone?.platformValue ?? platformCal.timeZone
 
+        if components?.contains(.timeZone) != false {
+            self.timeZone = tz
+        }
         if components?.contains(.era) != false {
             if let endDate = endDate {
                 // TODO: if components.contains(.year) { dc.year = Int(ucal_getFieldDifference(ucalendar, goal, UCAL_YEAR, &status)) }
@@ -100,43 +104,56 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
     }
 
     /// Builds a java.util.Calendar from the fields.
-    internal func createCalendarComponents() -> java.util.Calendar {
+    internal func createCalendarComponents(timeZone: TimeZone? = nil) -> java.util.Calendar {
         let c: java.util.Calendar = (self.calendar?.platformValue ?? Calendar.current.platformValue)
         let cal: java.util.Calendar = (c as java.util.Calendar).clone() as java.util.Calendar
 
-        cal.setTimeInMillis(0) // clear the time and set the fields afresh
-
-        if let timeZone = self.timeZone {
+        if let timeZone = timeZone ?? self.timeZone {
             cal.setTimeZone(timeZone.platformValue)
         } else {
             cal.setTimeZone(TimeZone.current.platformValue)
         }
+
+        cal.setTimeInMillis(0) // clear the time and set the fields afresh
 
         if let era = self.era {
             cal.set(java.util.Calendar.ERA, era)
         }
         if let year = self.year {
             cal.set(java.util.Calendar.YEAR, year)
+        } else {
+            cal.set(java.util.Calendar.YEAR, 0)
         }
         if let month = self.month {
             // Foundation starts at 1, but Java: “Field number for get and set indicating the month. This is a calendar-specific value. The first month of the year in the Gregorian and Julian calendars is JANUARY which is 0; the last depends on the number of months in a year.”
             cal.set(java.util.Calendar.MONTH, month - 1)
+        } else {
+            cal.set(java.util.Calendar.MONTH, 0)
         }
         if let day = self.day {
             cal.set(java.util.Calendar.DATE, day) // i.e., DAY_OF_MONTH
+        } else {
+            cal.set(java.util.Calendar.DATE, 1)
         }
         if let hour = self.hour {
             cal.set(java.util.Calendar.HOUR_OF_DAY, hour)
+        } else {
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
         }
         if let minute = self.minute {
             cal.set(java.util.Calendar.MINUTE, minute)
+        } else {
+            cal.set(java.util.Calendar.MINUTE, 0)
         }
         if let second = self.second {
             cal.set(java.util.Calendar.SECOND, second)
+        } else {
+            cal.set(java.util.Calendar.SECOND, 0)
         }
         if let nanosecond = self.nanosecond {
-            //cal.set(java.util.Calendar.NANOSECOND, nanosecond)
-            fatalError("Skip Date Components.nanosecond unsupported in Skip")
+            cal.set(java.util.Calendar.MILLISECOND, nanosecond * 1_000_000)
+        } else {
+            cal.set(java.util.Calendar.MILLISECOND, 0)
         }
         if let weekday = self.weekday {
             cal.set(java.util.Calendar.DAY_OF_WEEK, weekday)

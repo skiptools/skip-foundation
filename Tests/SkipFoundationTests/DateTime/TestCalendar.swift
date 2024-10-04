@@ -415,6 +415,97 @@ class TestCalendar: XCTestCase {
         #endif // !SKIP
     }
 
+    func testTimeZoneDates() throws {
+        for zoneID in [
+            "America/New_York",
+            "GMT",
+            "Europe/Zurich",
+        ] {
+            let t = 1728038797.0
+            let date = Date(timeIntervalSince1970: t)
+
+            var calendar = Calendar.current
+            calendar.timeZone = try XCTUnwrap(TimeZone(identifier: zoneID))
+
+            let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second, .timeZone], from: date)
+
+            XCTAssertEqual(components.year, 2024)
+            XCTAssertEqual(components.month, 10)
+            XCTAssertEqual(components.day, 4)
+            XCTAssertEqual(components.hour, zoneID == "America/New_York" ? 6 : zoneID == "Europe/Zurich" ? 12 : 10)
+            XCTAssertEqual(components.minute, 46)
+            XCTAssertEqual(components.second, 37)
+            XCTAssertEqual(components.timeZone?.identifier, zoneID)
+
+            let date2 = calendar.date(from: components)!
+            XCTAssertEqual(date2, date)
+            XCTAssertEqual(date2.timeIntervalSince1970, date.timeIntervalSince1970)
+        }
+    }
+
+    func testDatesInCESTTimeZone() throws {
+        // check error reported at: https://skiptools.slack.com/archives/C078X69G8F2/p1728038976873919?thread_ts=1726730418.442729&cid=C078X69G8F2
+        let date = Date(timeIntervalSince1970: 1728038797.580)
+
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone(identifier: "Europe/Zurich")!
+
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+
+        XCTAssertEqual(components.year, 2024)
+        XCTAssertEqual(components.month, 10)
+        XCTAssertEqual(components.day, 4)
+
+        XCTAssertNil(components.calendar)
+        XCTAssertNil(components.timeZone)
+
+        var zdate = try XCTUnwrap(calendar.date(from: components))
+
+        let ztcomponents = calendar.dateComponents([.hour, .minute, .second], from: zdate)
+
+        XCTAssertNil(ztcomponents.calendar)
+        XCTAssertNil(ztcomponents.timeZone)
+
+        XCTAssertEqual(ztcomponents.hour, 0)
+        XCTAssertEqual(ztcomponents.minute, 0)
+        XCTAssertEqual(ztcomponents.second, 0)
+
+        XCTAssertEqual(1727992800.0, zdate.timeIntervalSince1970)
+
+        let tcomponents = calendar.dateComponents([.hour, .minute, .second], from: date)
+        XCTAssertEqual(tcomponents.hour, 12)
+        XCTAssertEqual(tcomponents.minute, 46)
+        XCTAssertEqual(tcomponents.second, 37)
+
+        XCTAssertNil(tcomponents.calendar)
+        XCTAssertNil(tcomponents.timeZone)
+
+        let zcomponents = calendar.dateComponents([.year, .month, .day], from: zdate)
+
+        XCTAssertNil(zcomponents.calendar)
+        XCTAssertNil(zcomponents.timeZone)
+
+        XCTAssertEqual(zcomponents.year, 2024)
+        XCTAssertEqual(zcomponents.month, 10)
+        XCTAssertEqual(zcomponents.day, 4) // java.lang.AssertionError: 5 != 4
+
+        func expectTime(_ t: Double, _ components: Set<Calendar.Component>) {
+            let components = calendar.dateComponents(components, from: date)
+            var dt = calendar.date(from: components)!
+            XCTAssertEqual(t, dt.timeIntervalSince1970, "incorrect time interval for calendar components: \(components)")
+        }
+
+        expectTime(1704063600.0, [.year])
+        expectTime(1727733600.0, [.year, .month])
+        expectTime(1727992800.0, [.year, .month, .day])
+        expectTime(1728036000.0, [.year, .month, .day, .hour])
+        expectTime(1728038760.0, [.year, .month, .day, .hour, .minute])
+        expectTime(1728038797.0, [.year, .month, .day, .hour, .minute, .second])
+        #if !SKIP
+        expectTime(1728038797.58, [.year, .month, .day, .hour, .minute, .second, .nanosecond])
+        #endif
+    }
+
 }
 
 
