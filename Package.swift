@@ -9,7 +9,7 @@ let package = Package(
         .library(name: "SkipFoundation", targets: ["SkipFoundation"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.tools/skip.git", from: "1.0.10"),
+        .package(url: "https://source.skip.tools/skip.git", from: "1.1.8"),
         .package(url: "https://source.skip.tools/skip-lib.git", from: "1.1.1"),
     ],
     targets: [

@@ -1,3 +1,12 @@
+## 1.1.6
+
+Released 2024-10-04
+
+  - Merge pull request #23 from skiptools/calendar-timezone-handling
+  - Calendar.dateComponents was not zeroing unset components fields
+  - Merge pull request #22 from skiptools/update-test-cases-swift6
+  - Update Foundation test cases on Darwin for Swift 6 swift-foundation differences
+
 ## 1.1.3
 
 Released 2024-09-06
