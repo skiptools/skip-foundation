@@ -36,6 +36,44 @@ public struct RunLoop : Scheduler {
 public typealias DispatchWallTime = Double
 public typealias DispatchTime = Double
 
+// Mirror Double's cast functions, which typealiasing doesn't cover
+public func DispatchWallTime(number: Number) -> DispatchWallTime {
+    return Double(number: number)
+}
+public func DispatchWallTime(number: UInt8) -> DispatchWallTime {
+    return Double(number: number)
+}
+public func DispatchWallTime(number: UInt16) -> DispatchWallTime {
+    return Double(number: number)
+}
+public func DispatchWallTime(number: UInt32) -> DispatchWallTime {
+    return Double(number: number)
+}
+public func DispatchWallTime(number: UInt64) -> DispatchWallTime {
+    return Double(number: number)
+}
+public func DispatchWallTime(string: String) -> DispatchWallTime? {
+    return Double(string: string)
+}
+public func DispatchTime(number: Number) -> DispatchTime {
+    return Double(number: number)
+}
+public func DispatchTime(number: UInt8) -> DispatchTime {
+    return Double(number: number)
+}
+public func DispatchTime(number: UInt16) -> DispatchTime {
+    return Double(number: number)
+}
+public func DispatchTime(number: UInt32) -> DispatchTime {
+    return Double(number: number)
+}
+public func DispatchTime(number: UInt64) -> DispatchTime {
+    return Double(number: number)
+}
+public func DispatchTime(string: String) -> DispatchTime? {
+    return Double(string: string)
+}
+
 extension Double {
     public static func now() -> Double {
         Double(System.currentTimeMillis()) / 1000.0
