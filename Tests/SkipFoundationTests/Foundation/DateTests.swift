@@ -24,6 +24,11 @@ final class DateTests: XCTestCase {
         XCTAssertEqual(99999.0, d2.timeIntervalSinceReferenceDate)
     }
 
+    func testTimeInterval() throws {
+        let d = Date(timeIntervalSince1970: TimeInterval(Int64(99999)))
+        XCTAssertEqual(99999.0, d.timeIntervalSince1970)
+    }
+
     func testISOFormatting() throws {
         let d = Date(timeIntervalSince1970: 172348932)
         XCTAssertEqual(172348932.0, d.timeIntervalSince1970)

@@ -10,6 +10,26 @@ public typealias NSDate = Date
 public typealias TimeInterval = Double
 public typealias CFTimeInterval = TimeInterval
 
+// Mirror Double's cast functions, which typealiasing doesn't cover
+public func TimeInterval(number: Number) -> TimeInterval {
+    return Double(number: number)
+}
+public func TimeInterval(number: UInt8) -> TimeInterval {
+    return Double(number: number)
+}
+public func TimeInterval(number: UInt16) -> TimeInterval {
+    return Double(number: number)
+}
+public func TimeInterval(number: UInt32) -> TimeInterval {
+    return Double(number: number)
+}
+public func TimeInterval(number: UInt64) -> TimeInterval {
+    return Double(number: number)
+}
+public func TimeInterval(string: String) -> TimeInterval? {
+    return Double(string: string)
+}
+
 // Mimic the constructor for `TimeInterval()` with an Int.
 public func TimeInterval(_ seconds: Int) -> TimeInterval {
     return seconds.toDouble()
