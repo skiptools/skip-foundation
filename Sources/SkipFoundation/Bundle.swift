@@ -432,10 +432,12 @@ public class Bundle : Hashable {
 }
 
 public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = Bundle.main, value: String? = nil, comment: String) -> String {
-    return (bundle ?? Bundle.main).localizedString(forKey: key, value: value, table: tableName)
+    let localBundle = (bundle ?? Bundle.main).localizedBundle(locale: .current)
+    let value = localBundle.localizedString(forKey: key, value: value, table: tableName)
+    return value
 }
 
-/// 
+/// A localized string bundle with the key, the kotlin format, and optionally a markdown node
 public struct LocalizedStringInfo {
     public let string: String
     public let kotlinFormat: String
