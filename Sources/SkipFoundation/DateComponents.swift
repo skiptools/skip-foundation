@@ -60,108 +60,81 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         if components?.contains(.timeZone) == true {
             self.timeZone = tz
         }
-
-        if endDate == nil {
-            extractComponents(from: platformCal, using: components)
-        }
-
+        
         if let endDate = endDate {
             let endPlatformCal = calendar.platformValue.clone() as java.util.Calendar
             endPlatformCal.time = endDate.platformValue
-
-            calculateDifferences(start: platformCal, end: endPlatformCal, using: components)
-        }
-    }
-
-    private func extractComponents(from platformCal: java.util.Calendar, using components: Set<Calendar.Component>?) {
-        if components?.contains(.era) == true {
-            self.era = platformCal.get(java.util.Calendar.ERA)
-        }
-        if components?.contains(.year) == true {
-            self.year = platformCal.get(java.util.Calendar.YEAR)
-        }
-        if components?.contains(.month) == true {
-            self.month = platformCal.get(java.util.Calendar.MONTH) + 1  // Java months are 0-based
-        }
-        if components?.contains(.day) == true {
-            self.day = platformCal.get(java.util.Calendar.DATE)
-        }
-        if components?.contains(.hour) == true {
-            self.hour = platformCal.get(java.util.Calendar.HOUR_OF_DAY)
-        }
-        if components?.contains(.minute) == true {
-            self.minute = platformCal.get(java.util.Calendar.MINUTE)
-        }
-        if components?.contains(.second) == true {
-            self.second = platformCal.get(java.util.Calendar.SECOND)
-        }
-        if components?.contains(.weekday) == true {
-            self.weekday = platformCal.get(java.util.Calendar.DAY_OF_WEEK)
-        }
-        if components?.contains(.weekOfMonth) == true {
-            self.weekOfMonth = platformCal.get(java.util.Calendar.WEEK_OF_MONTH)
-        }
-        if components?.contains(.weekOfYear) == true {
-            self.weekOfYear = platformCal.get(java.util.Calendar.WEEK_OF_YEAR)
-        }
-    }
-
-    private func calculateDifferences(start platformCal: java.util.Calendar, end endPlatformCal: java.util.Calendar, using components: Set<Calendar.Component>?) {
-        if components?.contains(.era) == true {
-            self.era = endPlatformCal.get(java.util.Calendar.ERA) - platformCal.get(java.util.Calendar.ERA)
-        }
-        if components?.contains(.year) == true {
-            self.year = (self.year ?? 0) + (endPlatformCal.get(java.util.Calendar.YEAR) - platformCal.get(java.util.Calendar.YEAR))
-        }
-        if components?.contains(.month) == true {
-            self.month = (self.month ?? 0) + (endPlatformCal.get(java.util.Calendar.MONTH) - platformCal.get(java.util.Calendar.MONTH))
-            if self.month! < 0 {
-                self.month! += 12
-                self.year = (self.year ?? 0) - 1
+            
+            // Calculate differences based on components
+            if components?.contains(.era) != false {
+                self.era = endPlatformCal.get(java.util.Calendar.ERA) - platformCal.get(java.util.Calendar.ERA)
+            }
+            if components?.contains(.year) != false {
+                self.year = endPlatformCal.get(java.util.Calendar.YEAR) - platformCal.get(java.util.Calendar.YEAR)
+            }
+            if components?.contains(.month) != false {
+                self.month = endPlatformCal.get(java.util.Calendar.MONTH) - platformCal.get(java.util.Calendar.MONTH)
+            }
+            if components?.contains(.day) != false {
+                self.day = endPlatformCal.get(java.util.Calendar.DATE) - platformCal.get(java.util.Calendar.DATE)
+            }
+            if components?.contains(.hour) != false {
+                self.hour = endPlatformCal.get(java.util.Calendar.HOUR_OF_DAY) - platformCal.get(java.util.Calendar.HOUR_OF_DAY)
+            }
+            if components?.contains(.minute) != false {
+                self.minute = endPlatformCal.get(java.util.Calendar.MINUTE) - platformCal.get(java.util.Calendar.MINUTE)
+            }
+            if components?.contains(.second) != false {
+                self.second = endPlatformCal.get(java.util.Calendar.SECOND) - platformCal.get(java.util.Calendar.SECOND)
+            }
+            if components?.contains(.weekday) != false {
+                self.weekday = endPlatformCal.get(java.util.Calendar.DAY_OF_WEEK) - platformCal.get(java.util.Calendar.DAY_OF_WEEK)
+            }
+            if components?.contains(.weekOfMonth) != false {
+                self.weekOfMonth = endPlatformCal.get(java.util.Calendar.WEEK_OF_MONTH) - platformCal.get(java.util.Calendar.WEEK_OF_MONTH)
+            }
+            if components?.contains(.weekOfYear) != false {
+                self.weekOfYear = endPlatformCal.get(java.util.Calendar.WEEK_OF_YEAR) - platformCal.get(java.util.Calendar.WEEK_OF_YEAR)
+            }
+        } else {
+            // If no endDate is provided, just extract the components from the current date
+            if components?.contains(.era) != false {
+                self.era = platformCal.get(java.util.Calendar.ERA)
+            }
+            if components?.contains(.year) != false {
+                self.year = platformCal.get(java.util.Calendar.YEAR)
+            }
+            if components?.contains(.month) != false {
+                self.month = platformCal.get(java.util.Calendar.MONTH) + 1
+            }
+            if components?.contains(.day) != false {
+                self.day = platformCal.get(java.util.Calendar.DATE)
+            }
+            if components?.contains(.hour) != false {
+                self.hour = platformCal.get(java.util.Calendar.HOUR_OF_DAY)
+            }
+            if components?.contains(.minute) != false {
+                self.minute = platformCal.get(java.util.Calendar.MINUTE)
+            }
+            if components?.contains(.second) != false {
+                self.second = platformCal.get(java.util.Calendar.SECOND)
+            }
+            if components?.contains(.weekday) != false {
+                self.weekday = platformCal.get(java.util.Calendar.DAY_OF_WEEK)
+            }
+            if components?.contains(.weekOfMonth) != false {
+                self.weekOfMonth = platformCal.get(java.util.Calendar.WEEK_OF_MONTH)
+            }
+            if components?.contains(.weekOfYear) != false {
+                self.weekOfYear = platformCal.get(java.util.Calendar.WEEK_OF_YEAR)
             }
         }
-        if components?.contains(.day) == true {
-            self.day = (self.day ?? 0) + (endPlatformCal.get(java.util.Calendar.DATE) - platformCal.get(java.util.Calendar.DATE))
-            if self.day! < 0 {
-                endPlatformCal.add(java.util.Calendar.MONTH, -1)
-                self.day! += endPlatformCal.getActualMaximum(java.util.Calendar.DATE)
-                self.month = (self.month ?? 0) - 1
-                if self.month! < 0 {
-                    self.month! += 12
-                    self.year = (self.year ?? 0) - 1
-                }
-            }
-        }
-        if components?.contains(.hour) == true {
-            self.hour = (self.hour ?? 0) + (endPlatformCal.get(java.util.Calendar.HOUR_OF_DAY) - platformCal.get(java.util.Calendar.HOUR_OF_DAY))
-            if self.hour! < 0 {
-                self.hour! += 24
-                self.day = (self.day ?? 0) - 1
-            }
-        }
-        if components?.contains(.minute) == true {
-            self.minute = (self.minute ?? 0) + (endPlatformCal.get(java.util.Calendar.MINUTE) - platformCal.get(java.util.Calendar.MINUTE))
-            if self.minute! < 0 {
-                self.minute! += 60
-                self.hour = (self.hour ?? 0) - 1
-            }
-        }
-        if components?.contains(.second) == true {
-            self.second = (self.second ?? 0) + (endPlatformCal.get(java.util.Calendar.SECOND) - platformCal.get(java.util.Calendar.SECOND))
-            if self.second! < 0 {
-                self.second! += 60
-                self.minute = (self.minute ?? 0) - 1
-            }
-        }
-        if components?.contains(.weekday) == true {
-            self.weekday = (self.weekday ?? 0) + (endPlatformCal.get(java.util.Calendar.DAY_OF_WEEK) - platformCal.get(java.util.Calendar.DAY_OF_WEEK))
-        }
-        if components?.contains(.weekOfMonth) == true {
-            self.weekOfMonth = (self.weekOfMonth ?? 0) + (endPlatformCal.get(java.util.Calendar.WEEK_OF_MONTH) - platformCal.get(java.util.Calendar.WEEK_OF_MONTH))
-        }
-        if components?.contains(.weekOfYear) == true {
-            self.weekOfYear = (self.weekOfYear ?? 0) + (endPlatformCal.get(java.util.Calendar.WEEK_OF_YEAR) - platformCal.get(java.util.Calendar.WEEK_OF_YEAR))
-        }
+        
+        // unsupported fields in java.util.Calendar:
+        //self.nanosecond = platformCal.get(java.util.Calendar.NANOSECOND)
+        //self.weekdayOrdinal = platformCal.get(java.util.Calendar.WEEKDAYORDINAL)
+        //self.quarter = platformCal.get(java.util.Calendar.QUARTER)
+        //self.yearForWeekOfYear = platformCal.get(java.util.Calendar.YEARFORWEEKOFYEAR)
     }
 
     /// Builds a java.util.Calendar from the fields.

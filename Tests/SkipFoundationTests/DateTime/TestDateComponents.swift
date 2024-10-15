@@ -202,8 +202,8 @@ class TestDateComponents: XCTestCase {
         )
         
         XCTAssertEqual(dateComponents.year, 0)
-        XCTAssertEqual(dateComponents.month, -2)
-        XCTAssertEqual(dateComponents.day, -16)
+        XCTAssertEqual(dateComponents.month, 2)
+        XCTAssertEqual(dateComponents.day, 16)
     }
     
     func testDateComponentsWithSelectedComponents() {
