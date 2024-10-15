@@ -134,6 +134,104 @@ class TestDateComponents: XCTestCase {
         XCTAssertTrue(dc.isValidDate)
     }
 
+
+    #if SKIP
+    // Internal DateComponents init
+    
+    func testDateComponentsInitializationWithDate() {
+        let calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        
+        var startComponents = DateComponents()
+        startComponents.year = 2024
+        startComponents.month = 10
+        startComponents.day = 15
+        guard let startDate = calendar.date(from: startComponents) else {
+            XCTFail("Failed to create start date")
+            return
+        }
+        
+        let componentsSet: Set<Calendar.Component> = [
+            Calendar.Component.year, Calendar.Component.month, Calendar.Component.day
+        ]
+        
+        let dateComponents: DateComponents = DateComponents(
+            calendar: calendar,
+            in: timeZone,
+            from: startDate,
+            with: componentsSet
+        )
+        
+        XCTAssertEqual(dateComponents.year, 2024)
+        XCTAssertEqual(dateComponents.month, 10)
+        XCTAssertEqual(dateComponents.day, 15)
+        XCTAssertEqual(dateComponents.timeZone, timeZone)
+    }
+    
+    func testDateComponentsInitializationWithStartDateAndEndDate() {
+        let calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        
+        var startComponents = DateComponents()
+        startComponents.year = 2024
+        startComponents.month = 10
+        startComponents.day = 15
+        guard let startDate = calendar.date(from: startComponents) else {
+            XCTFail("Failed to create start date")
+            return
+        }
+        
+        var endComponents = DateComponents()
+        endComponents.year = 2024
+        endComponents.month = 12
+        endComponents.day = 31
+        guard let endDate = calendar.date(from: endComponents) else {
+            XCTFail("Failed to create end date")
+            return
+        }
+        
+        let componentsSet: Set<Calendar.Component> = [
+            Calendar.Component.year, Calendar.Component.month, Calendar.Component.day
+        ]
+        let dateComponents = DateComponents(
+            fromCalendar: calendar,
+            in: timeZone,
+            from: startDate,
+            to: endDate,
+            with: componentsSet
+        )
+        
+        XCTAssertEqual(dateComponents.year, 0)
+        XCTAssertEqual(dateComponents.month, -2)
+        XCTAssertEqual(dateComponents.day, -16)
+    }
+    
+    func testDateComponentsWithSelectedComponents() {
+        let calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        
+        var startComponents = DateComponents()
+        startComponents.year = 2024
+        startComponents.month = 10
+        startComponents.day = 15
+        guard let startDate = calendar.date(from: startComponents) else {
+            XCTFail("Failed to create start date")
+            return
+        }
+        
+        let componentsSet: Set<Calendar.Component> = [Calendar.Component.month, Calendar.Component.day]
+        let dateComponents = DateComponents(
+            fromCalendar: calendar,
+            in: timeZone,
+            from: startDate,
+            with: componentsSet
+        )
+        
+        XCTAssertEqual(dateComponents.month, 10)
+        XCTAssertEqual(dateComponents.day, 15)
+        XCTAssertNil(dateComponents.year)
+    }
+    #endif
 }
 
 
