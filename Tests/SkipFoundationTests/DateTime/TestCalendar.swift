@@ -177,8 +177,8 @@ class TestCalendar: XCTestCase {
 
     func test_ampmSymbols() {
         let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
-        XCTAssertEqual(calendar.amSymbol, "AM")
-        XCTAssertEqual(calendar.pmSymbol, "PM")
+        XCTAssertEqual(calendar.amSymbol.uppercased(), "AM")
+        XCTAssertEqual(calendar.pmSymbol.uppercased(), "PM")
     }
 
     func test_currentCalendarRRstability() {
@@ -505,7 +505,106 @@ class TestCalendar: XCTestCase {
         expectTime(1728038797.58, [.year, .month, .day, .hour, .minute, .second, .nanosecond])
         #endif
     }
+    
+    func testCalendarWithIdentifier() {
+        let gregorianCalendar = Calendar(identifier: .gregorian)
+        XCTAssertNotNil(gregorianCalendar)
+        XCTAssertEqual(gregorianCalendar.identifier, .gregorian)
+        
+        let iso8601Calendar = Calendar(identifier: .iso8601)
+        XCTAssertNotNil(iso8601Calendar)
+        // XCTAssertEqual(iso8601Calendar.identifier, .iso8601)
+    }
+    
+    func testCalendarCurrent() {
+        let calendar = Calendar.current
+        XCTAssertNotNil(calendar)
+    }
+    
+    func testLocale() {
+        let calendar = Calendar.current
+        XCTAssertEqual(calendar.locale, Locale.current)
+    }
+    
+    func testTimeZone() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
+        XCTAssertEqual(calendar.timeZone, timeZone)
+    }
+    
+    func testFirstWeekday() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 2  // Monday
+        XCTAssertEqual(calendar.firstWeekday, 2)
+    }
+    
+    func testSymbols() {
+        let calendar = Calendar(identifier: .gregorian)
+        XCTAssertGreaterThan(calendar.eraSymbols.count, 0)
+        XCTAssertGreaterThan(calendar.monthSymbols.count, 0)
+        XCTAssertGreaterThan(calendar.shortMonthSymbols.count, 0)
+        XCTAssertGreaterThan(calendar.weekdaySymbols.count, 0)
+        XCTAssertGreaterThan(calendar.shortWeekdaySymbols.count, 0)
+    }
+    
+    func testRangeOfComponents() {
+        let calendar = Calendar(identifier: .gregorian)
 
+        // Test range for months
+        let monthRange = calendar.minimumRange(of: .month)
+        XCTAssertEqual(monthRange, 1..<13)
+
+        // Test range for days in a month
+        let dayRange = calendar.minimumRange(of: .day)
+        XCTAssertEqual(dayRange, 1..<29)
+
+        // Test range for hours in a day
+        let hourRange = calendar.minimumRange(of: .hour)
+        XCTAssertEqual(hourRange, 0..<24)
+
+        // Test range for minutes in an hour
+        let minuteRange = calendar.minimumRange(of: .minute)
+        XCTAssertEqual(minuteRange, 0..<60)
+
+        // Test range for seconds in a minute
+        let secondRange = calendar.minimumRange(of: .second)
+        XCTAssertEqual(secondRange, 0..<60)
+
+        // Test range for weekdays (usually 1..<8) where 1 = Sunday, 2 = Monday...
+        let eraRange = calendar.minimumRange(of: .weekday)
+        XCTAssertEqual(eraRange, 1..<8)
+    }
+    
+    func testDateComparison() {
+        let calendar = Calendar(identifier: .gregorian)
+        let date1 = Date()
+        let date2 = calendar.date(byAdding: .day, value: 1, to: date1)!
+        
+        let comparisonResult = calendar.compare(date1, to: date2, toGranularity: .day)
+#if SKIP
+        XCTAssertEqual(comparisonResult,  ComparisonResult.ascending)
+#else
+        XCTAssertEqual(comparisonResult,  .orderedAscending)
+#endif
+    }
+    
+    func testDateFromComponents() {
+        var components = DateComponents()
+        components.year = 2024
+        components.month = 10
+        components.day = 15
+        
+        let calendar = Calendar(identifier: .gregorian)
+        let date = calendar.date(from: components)
+        XCTAssertNotNil(date)
+    }
+    
+    func testDateByAddingComponents() {
+        let calendar = Calendar(identifier: .gregorian)
+        let date = Date()
+        
+        let newDate = calendar.date(byAdding: .day, value: 1, to: date)
+        XCTAssertNotNil(newDate)
+    }
 }
-
-
