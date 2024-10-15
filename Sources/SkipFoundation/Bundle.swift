@@ -14,9 +14,13 @@ public class Bundle : Hashable {
         _bundleModule
     }
     private static let _bundleModule = Bundle(for: Bundle.self)
-    fileprivate static let lprojExtension = ".lproj" // _CFBundleLprojExtensionWithDot
+    private static let lprojExtension = ".lproj" // _CFBundleLprojExtensionWithDot
 
     private let location: LocalizedStringResource.BundleDescription
+
+    internal var isLocalizedBundle: Bool {
+        bundleURL.path.hasSuffix(Self.lprojExtension + "/")
+    }
 
     public init(location: LocalizedStringResource.BundleDescription) {
         self.location = location
@@ -239,7 +243,7 @@ public class Bundle : Hashable {
             }
         }
         if let localization = localization {
-            res = localization + Bundle.lprojExtension + "/" + res
+            res = localization + Self.lprojExtension + "/" + res
         }
         if let subdirectory = subdirectory {
             res = subdirectory + "/" + res
@@ -308,8 +312,8 @@ public class Bundle : Hashable {
     public lazy var localizations: [String] = {
         resourcesIndex
             .compactMap({ $0.components(separatedBy: "/").first })
-            .filter({ $0.hasSuffix(Bundle.lprojExtension) })
-            .map({ $0.dropLast(Bundle.lprojExtension.count) })
+            .filter({ $0.hasSuffix(Self.lprojExtension) })
+            .map({ $0.dropLast(Self.lprojExtension.count) })
     }()
 
     /// The localized strings tables for this bundle
@@ -432,7 +436,7 @@ public class Bundle : Hashable {
 
 public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = Bundle.main, value: String? = nil, comment: String) -> String {
     var localBundle = bundle ?? Bundle.main
-    if bundle?.bundleURL.path.hasSuffix(Bundle.lprojExtension + "/") != true {
+    if !localBundle.isLocalizedBundle {
         // if the bundle we specified is not explicitly a already-localized bundle, then localize it for the current locale
         localBundle = localBundle.localizedBundle(locale: .current)
     }
