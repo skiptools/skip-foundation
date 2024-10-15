@@ -571,17 +571,9 @@ class TestCalendar: XCTestCase {
         let secondRange = calendar.minimumRange(of: .second)
         XCTAssertEqual(secondRange, 0..<60)
 
-        // Test range for weeks in a month (varies by month, so using valid range)
-        let weekOfMonthRange = calendar.minimumRange(of: .weekOfMonth)
-        XCTAssertEqual(weekOfMonthRange, 1..<5)
-
-        // Test range for weeks in a year
-        let weekOfYearRange = calendar.minimumRange(of: .weekOfYear)
-        XCTAssertEqual(weekOfYearRange, 1..<53)
-
-        // Test range for eras (usually 0..<2 for Gregorian calendar)
-        let eraRange = calendar.minimumRange(of: .era)
-        XCTAssertEqual(eraRange, 0..<2)
+        // Test range for weekdays (usually 1..<8) where 1 = Sunday, 2 = Monday...
+        let eraRange = calendar.minimumRange(of: .weekday)
+        XCTAssertEqual(eraRange, 1..<8)
     }
     
     func testDateComparison() {

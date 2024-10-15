@@ -202,19 +202,25 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
 
     public func minimumRange(of component: Calendar.Component) -> Range<Int>? {
         let platformCal = platformValue.clone() as java.util.Calendar
+
         switch component {
         case .year:
             // Year typically starts at 1 and has no defined maximum.
             return 1..<platformCal.getMaximum(java.util.Calendar.YEAR)
-            
         case .month:
             // Java's month is 0-based (0-11), but Swift expects 1-based (1-12).
             return 1..<(platformCal.getMaximum(java.util.Calendar.MONTH) + 2)
             
         case .day:
-            // Minimum days in a month is 1, maximum can vary (28 for February).
-            return platformCal.getMinimum(java.util.Calendar.DATE)..<platformCal.getMaximum(java.util.Calendar.DATE) + 1
+            // getMaximum() gives the largest value that field could theoretically have.
+            // getActualMaximum() gives the largest value that field actually has for the specific calendar state.
             
+            // calendar.getActualMaximum(java.util.Calendar.DATE)
+            // will return 28 because February 2023 has 28 days (it’s not a leap year).
+            platformCal.set(java.util.Calendar.MONTH, java.util.Calendar.FEBRUARY)
+            platformCal.set(java.util.Calendar.YEAR, 2023)
+            // Minimum days in a month is 1, maximum can vary (28 for February).
+            return platformCal.getMinimum(java.util.Calendar.DATE)..<platformCal.getActualMaximum(java.util.Calendar.DATE) + 1
         case .hour:
             // Hours are in the range 0-23.
             return platformCal.getMinimum(java.util.Calendar.HOUR_OF_DAY)..<(platformCal.getMaximum(java.util.Calendar.HOUR_OF_DAY) + 1)
@@ -231,14 +237,9 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             // Weekday ranges from 1 (Sunday) to 7 (Saturday).
             return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK)..<(platformCal.getMaximum(java.util.Calendar.DAY_OF_WEEK) + 1)
             
-        case .weekOfMonth:
-            // Weeks in a month range can vary (1-4 or 1-5).
-            return platformCal.getMinimum(java.util.Calendar.WEEK_OF_MONTH)..<(platformCal.getMaximum(java.util.Calendar.WEEK_OF_MONTH) + 1)
-            
-        case .weekOfYear:
-            // Weeks in a year can range from 1-52 or 1-53.
-            return platformCal.getMinimum(java.util.Calendar.WEEK_OF_YEAR)..<(platformCal.getMaximum(java.util.Calendar.WEEK_OF_YEAR) + 1)
-            
+        case .weekOfMonth, .weekOfYear:
+            // Not supported yet...
+            fatalError()    
         case .quarter:
             // There are always 4 quarters in a year.
             return 1..<5
@@ -253,13 +254,10 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         switch component {
         case .day:
             // Maximum number of days in a month can vary (e.g., 28, 29, 30, or 31 days)
-            return platformCal.getActualMinimum(java.util.Calendar.DATE)..<(platformCal.getActualMaximum(java.util.Calendar.DATE) + 1)
-        case .weekOfMonth:
-            // Weeks in a month can vary depending on the specific month
-            return platformCal.getActualMinimum(java.util.Calendar.WEEK_OF_MONTH)..<(platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_MONTH) + 1)
-        case .weekOfYear:
-            // Weeks in a year can vary (typically 52 or 53 weeks)
-            return platformCal.getActualMinimum(java.util.Calendar.WEEK_OF_YEAR)..<(platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_YEAR) + 1)
+            return platformCal.getMinimum(java.util.Calendar.DATE)..<(platformCal.getMaximum(java.util.Calendar.DATE) + 1)
+        case .weekOfMonth, .weekOfYear:
+            // Not supported yet...
+            fatalError()
         default:
             // Maximum range is usually the same logic as minimum but could differ in some cases.
             return minimumRange(of: component)
@@ -444,7 +442,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     public func startOfDay(for date: Date) -> Date {
         // Clone the calendar to avoid mutating the original
         let platformCal = platformValue.clone() as java.util.Calendar
-        platformCal.time = date.platformValue  // Set the calendar to the given date
+        platformCal.time = date.platformValue
 
         // Set the time components to the start of the day
         platformCal.set(java.util.Calendar.HOUR_OF_DAY, 0)

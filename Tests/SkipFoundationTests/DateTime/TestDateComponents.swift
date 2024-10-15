@@ -152,7 +152,7 @@ class TestDateComponents: XCTestCase {
         }
         
         let componentsSet: Set<Calendar.Component> = [
-            Calendar.Component.year, Calendar.Component.month, Calendar.Component.day
+            Calendar.Component.year, Calendar.Component.month, Calendar.Component.day, Calendar.Component.timeZone
         ]
         
         let dateComponents: DateComponents = DateComponents(
