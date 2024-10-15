@@ -14,8 +14,13 @@ public class Bundle : Hashable {
         _bundleModule
     }
     private static let _bundleModule = Bundle(for: Bundle.self)
+    private static let lprojExtension = ".lproj" // _CFBundleLprojExtensionWithDot
 
     private let location: LocalizedStringResource.BundleDescription
+
+    internal var isLocalizedBundle: Bool {
+        bundleURL.absoluteString.hasSuffix(Self.lprojExtension + "/")
+    }
 
     public init(location: LocalizedStringResource.BundleDescription) {
         self.location = location
@@ -238,9 +243,7 @@ public class Bundle : Hashable {
             }
         }
         if let localization = localization {
-            //let lprojExtension = "lproj" // _CFBundleLprojExtension
-            var lprojExtensionWithDot = ".lproj" // _CFBundleLprojExtensionWithDot
-            res = localization + lprojExtensionWithDot + "/" + res
+            res = localization + Self.lprojExtension + "/" + res
         }
         if let subdirectory = subdirectory {
             res = subdirectory + "/" + res
@@ -309,8 +312,8 @@ public class Bundle : Hashable {
     public lazy var localizations: [String] = {
         resourcesIndex
             .compactMap({ $0.components(separatedBy: "/").first })
-            .filter({ $0.hasSuffix(".lproj") })
-            .map({ $0.dropLast(".lproj".count) })
+            .filter({ $0.hasSuffix(Self.lprojExtension) })
+            .map({ $0.dropLast(Self.lprojExtension.count) })
     }()
 
     /// The localized strings tables for this bundle
@@ -432,10 +435,16 @@ public class Bundle : Hashable {
 }
 
 public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = Bundle.main, value: String? = nil, comment: String) -> String {
-    return (bundle ?? Bundle.main).localizedString(forKey: key, value: value, table: tableName)
+    var localBundle = bundle ?? Bundle.main
+    if !localBundle.isLocalizedBundle {
+        // if the bundle we specified is not explicitly a already-localized bundle, then localize it for the current locale
+        localBundle = localBundle.localizedBundle(locale: .current)
+    }
+    let value = localBundle.localizedString(forKey: key, value: value, table: tableName)
+    return value
 }
 
-/// 
+/// A localized string bundle with the key, the kotlin format, and optionally a markdown node
 public struct LocalizedStringInfo {
     public let string: String
     public let kotlinFormat: String
