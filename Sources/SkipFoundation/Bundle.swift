@@ -19,7 +19,7 @@ public class Bundle : Hashable {
     private let location: LocalizedStringResource.BundleDescription
 
     internal var isLocalizedBundle: Bool {
-        bundleURL.path.hasSuffix(Self.lprojExtension + "/")
+        bundleURL.absoluteString.hasSuffix(Self.lprojExtension + "/")
     }
 
     public init(location: LocalizedStringResource.BundleDescription) {
