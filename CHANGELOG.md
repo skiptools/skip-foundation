@@ -1,3 +1,9 @@
+## 1.1.9
+
+Released 2024-10-15
+
+  - Make mainInfoDictionary a lazy variable to prevent over-eager initialization
+
 ## 1.1.8
 
 Released 2024-10-15

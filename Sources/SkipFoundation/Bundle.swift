@@ -432,6 +432,10 @@ public class Bundle : Hashable {
 
     /// The `Bundle.main.infoDictionary` with keys synthesized from various Android metadata accessors
     private static var mainInfoDictionary: [String : Any] {
+        let packageManager = self.packageManager
+        let packageInfo = self.packageInfo
+        let applicationInfo = self.applicationInfo
+        
         var info = [String : Any]()
         info["CFBundleIdentifier"] = Self.androidContext.getPackageName()
         info["CFBundleName"] = packageManager.getApplicationLabel(applicationInfo).toString()
