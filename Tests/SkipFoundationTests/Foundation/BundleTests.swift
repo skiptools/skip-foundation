@@ -7,6 +7,7 @@ import Foundation
 import OSLog
 import XCTest
 
+// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 @available(macOS 13, iOS 16, watchOS 10, tvOS 16, *)
 final class BundleTests: XCTestCase {
     let logger: Logger = Logger(subsystem: "test", category: "BundleTests")
@@ -32,5 +33,26 @@ final class BundleTests: XCTestCase {
         //XCTAssertEqual(["BuildMachineOSBuild", "CFBundleDevelopmentRegion", "CFBundleIdentifier", "CFBundleInfoDictionaryVersion", "CFBundleName", "CFBundlePackageType", "CFBundleSupportedPlatforms", "DTCompiler", "DTPlatformBuild", "DTPlatformName", "DTPlatformVersion", "DTSDKBuild", "DTSDKName", "DTXcode", "DTXcodeBuild", "LSMinimumSystemVersion"], Set(info.keys))
         //XCTAssertEqual("Skip_SkipFoundationTests", info["CFBundleName"] as? String)
         #endif
+    }
+
+    func testMainBundleInfo() throws {
+        let info = Bundle.main.infoDictionary
+        if !isRobolectric {
+            throw XCTSkip("testMainBundleInfo only checked for Robolectric")
+        }
+
+        XCTAssertEqual("skip.foundation.test", info?["CFBundleIdentifier"] as? String) // "com.apple.dt.xctest.tool"
+        XCTAssertEqual("skip.foundation.test", info?["CFBundleName"] as? String) // "xctest"
+        XCTAssertEqual("skip.foundation.test", info?["CFBundleDisplayName"] as? String)
+        XCTAssertEqual("skip.foundation.test", info?["CFBundleExecutable"] as? String) // xctest
+
+        XCTAssertEqual("0", info?["CFBundleVersion"] as? String) // 23196
+        XCTAssertEqual("", info?["CFBundleShortVersionString"] as? String) // 16.0
+
+        XCTAssertEqual("android", info?["DTPlatformName"] as? String) // macosx
+        XCTAssertEqual("29", info?["DTPlatformVersion"] as? String) // 15.0
+        XCTAssertEqual("29", info?["MinimumOSVersion"] as? String) // nil
+        XCTAssertEqual("android29", info?["DTSDKName"] as? String) // macosx15.0.internal
+        XCTAssertEqual("robolectric", info?["BuildMachineOSBuild"] as? String) // 22A380021
     }
 }
