@@ -431,7 +431,7 @@ public class Bundle : Hashable {
     }
 
     /// The `Bundle.main.infoDictionary` with keys synthesized from various Android metadata accessors
-    private static let mainInfoDictionary: [String : Any] = {
+    private static var mainInfoDictionary: [String : Any] {
         var info = [String : Any]()
         info["CFBundleIdentifier"] = Self.androidContext.getPackageName()
         info["CFBundleName"] = packageManager.getApplicationLabel(applicationInfo).toString()
@@ -451,7 +451,7 @@ public class Bundle : Hashable {
         info["CFBundleLocalizations"] = Bundle.main.localizations
 
         return info
-    }()
+    }
 
     public var localizedInfoDictionary: [String : Any]? {
         // currently no support for localized info on Android
