@@ -1,3 +1,20 @@
+## 1.1.11
+
+Released 2024-10-15
+
+  - Merge pull request #25 from shial4/feat/date-components-missing-logic
+  - disable assertion
+  - revert
+  - address PR feedback
+  - .
+  - refactor date components
+  - another set of fixes
+  - Add missing max
+  - fix ranges
+  - fix test
+  - Add missing functionality
+  - implement handling of date field differences for date components
+
 ## 1.1.10
 
 Released 2024-10-15
