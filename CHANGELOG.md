@@ -1,3 +1,16 @@
+## 1.1.8
+
+Released 2024-10-15
+
+  - Merge pull request #27 from skiptools/main-info-dictionary
+  - And synthesized Bundle.main.infoDictionary with application metadata
+  - Merge pull request #26 from skiptools/localized-string-fix
+  - Fix NSLocalizedString to not attempt to re-localize an already localized bundle parameter
+  - Fix NSLocalizedString to not attempt to re-localize an already localized bundle parameter
+  - Fix NSLocalizedString to not attempt to re-localize an already localized bundle parameter
+  - Fix NSLocalizedString to not attempt to re-localize an already localized bundle parameter
+  - Fix NSLocalizedString to use the current locale
+
 ## 1.1.6
 
 Released 2024-10-04
