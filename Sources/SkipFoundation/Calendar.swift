@@ -204,33 +204,52 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         let platformCal = platformValue.clone() as java.util.Calendar
         switch component {
         case .year:
-            return platformCal.getMinimum(java.util.Calendar.YEAR)..<platformCal.getMaximum(java.util.Calendar.YEAR)
+            // Year typically starts at 1 and has no defined maximum.
+            return 1..<platformCal.getMaximum(java.util.Calendar.YEAR)
+            
         case .month:
-            return platformCal.getMinimum(java.util.Calendar.MONTH)..<(platformCal.getMaximum(java.util.Calendar.MONTH) + 1)
+            // Java's month is 0-based (0-11), but Swift expects 1-based (1-12).
+            return 1..<(platformCal.getMaximum(java.util.Calendar.MONTH) + 2)
+            
         case .day:
-            return platformCal.getMinimum(java.util.Calendar.DATE)..<platformCal.getMaximum(java.util.Calendar.DATE)
+            // Minimum days in a month is 1, maximum can vary (28 for February).
+            return platformCal.getMinimum(java.util.Calendar.DATE)..<platformCal.getMaximum(java.util.Calendar.DATE) + 1
+            
         case .hour:
-            return platformCal.getMinimum(java.util.Calendar.HOUR_OF_DAY)..<platformCal.getMaximum(java.util.Calendar.HOUR_OF_DAY)
+            // Hours are in the range 0-23.
+            return platformCal.getMinimum(java.util.Calendar.HOUR_OF_DAY)..<(platformCal.getMaximum(java.util.Calendar.HOUR_OF_DAY) + 1)
+            
         case .minute:
-            return platformCal.getMinimum(java.util.Calendar.MINUTE)..<platformCal.getMaximum(java.util.Calendar.MINUTE)
+            // Minutes are in the range 0-59.
+            return platformCal.getMinimum(java.util.Calendar.MINUTE)..<(platformCal.getMaximum(java.util.Calendar.MINUTE) + 1)
+            
         case .second:
-            return platformCal.getMinimum(java.util.Calendar.SECOND)..<platformCal.getMaximum(java.util.Calendar.SECOND)
+            // Seconds are in the range 0-59.
+            return platformCal.getMinimum(java.util.Calendar.SECOND)..<(platformCal.getMaximum(java.util.Calendar.SECOND) + 1)
+            
         case .weekday:
-            return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK)..<platformCal.getMaximum(java.util.Calendar.DAY_OF_WEEK)
+            // Weekday ranges from 1 (Sunday) to 7 (Saturday).
+            return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK)..<(platformCal.getMaximum(java.util.Calendar.DAY_OF_WEEK) + 1)
+            
         case .weekOfMonth:
-            return platformCal.getMinimum(java.util.Calendar.WEEK_OF_MONTH)..<platformCal.getMaximum(java.util.Calendar.WEEK_OF_MONTH)
+            // Weeks in a month range can vary (1-4 or 1-5).
+            return platformCal.getMinimum(java.util.Calendar.WEEK_OF_MONTH)..<(platformCal.getMaximum(java.util.Calendar.WEEK_OF_MONTH) + 1)
+            
         case .weekOfYear:
-            return platformCal.getMinimum(java.util.Calendar.WEEK_OF_YEAR)..<platformCal.getMaximum(java.util.Calendar.WEEK_OF_YEAR)
+            // Weeks in a year can range from 1-52 or 1-53.
+            return platformCal.getMinimum(java.util.Calendar.WEEK_OF_YEAR)..<(platformCal.getMaximum(java.util.Calendar.WEEK_OF_YEAR) + 1)
+            
         case .quarter:
-            // There are always 4 quarters in a year
+            // There are always 4 quarters in a year.
             return 1..<5
+            
         default:
             return nil
         }
     }
 
     public func maximumRange(of component: Calendar.Component) -> Range<Int>? {
-        // Maximum range is the same logic as minimum for most fields.
+        // Maximum range is usually the same logic as minimum but could differ in some cases.
         return minimumRange(of: component)
     }
     

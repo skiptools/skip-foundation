@@ -550,11 +550,38 @@ class TestCalendar: XCTestCase {
     
     func testRangeOfComponents() {
         let calendar = Calendar(identifier: .gregorian)
+
+        // Test range for months
         let monthRange = calendar.minimumRange(of: .month)
         XCTAssertEqual(monthRange, 1..<13)
-        
+
+        // Test range for days in a month
         let dayRange = calendar.minimumRange(of: .day)
-        XCTAssertNotNil(dayRange)
+        XCTAssertEqual(dayRange, 1..<29)
+
+        // Test range for hours in a day
+        let hourRange = calendar.minimumRange(of: .hour)
+        XCTAssertEqual(hourRange, 0..<24)
+
+        // Test range for minutes in an hour
+        let minuteRange = calendar.minimumRange(of: .minute)
+        XCTAssertEqual(minuteRange, 0..<60)
+
+        // Test range for seconds in a minute
+        let secondRange = calendar.minimumRange(of: .second)
+        XCTAssertEqual(secondRange, 0..<60)
+
+        // Test range for weeks in a month (varies by month, so using valid range)
+        let weekOfMonthRange = calendar.minimumRange(of: .weekOfMonth)
+        XCTAssertEqual(weekOfMonthRange, 1..<5)
+
+        // Test range for weeks in a year
+        let weekOfYearRange = calendar.minimumRange(of: .weekOfYear)
+        XCTAssertEqual(weekOfYearRange, 1..<53)
+
+        // Test range for eras (usually 0..<2 for Gregorian calendar)
+        let eraRange = calendar.minimumRange(of: .era)
+        XCTAssertEqual(eraRange, 0..<2)
     }
     
     func testDateComparison() {
