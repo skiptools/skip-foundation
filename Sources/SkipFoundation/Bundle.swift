@@ -108,14 +108,13 @@ public class Bundle : Hashable {
         let loc: LocalizedStringResource.BundleDescription = location
         switch loc {
         case .main:
-            let appContext = ProcessInfo.processInfo.androidContext
-            let className = appContext.getApplicationInfo().className
+            let className = applicationInfo.className
             // className can be null when running in emulator unit tests
             if className == nil {
                 return nil
             }
             // ClassLoader will be something like: dalvik.system.PathClassLoader[DexPathList[[zip file "/data/app/~~TsW3puiwg61p2gVvq_TiHQ==/skip.ui.test-6R4Fcu0a4CkedPWcML2mGA==/base.apk"],nativeLibraryDirectories=[/data/app/~~TsW3puiwg61p2gVvq_TiHQ==/skip.ui.test-6R4Fcu0a4CkedPWcML2mGA==/lib/arm64, /system/lib64, /system_ext/lib64]]]
-            let appClass = Class.forName(className, true, appContext.getClassLoader() ?? Thread.currentThread().getContextClassLoader())
+            let appClass = Class.forName(className, true, Self.androidContext.getClassLoader() ?? Thread.currentThread().getContextClassLoader())
             return relativeBundleURL(path: path, forClass: appClass)
         case .atURL(let url):
             return url.appendingPathComponent(path)
@@ -398,24 +397,69 @@ public class Bundle : Hashable {
         fatalError()
     }
 
-    @available(*, unavailable)
     public var bundleIdentifier: String? {
-        fatalError()
+        switch location {
+        case .main: return Self.androidContext.getPackageName()
+        default: return nil
+        }
     }
 
-    @available(*, unavailable)
+    /// The global Android context
+    private static var androidContext: android.content.Context {
+        ProcessInfo.processInfo.androidContext
+    }
+
+    private static var packageManager: android.content.pm.PackageManager {
+        androidContext.getPackageManager()
+    }
+
+    private static var packageInfo: android.content.pm.PackageInfo {
+        return packageManager.getPackageInfo(androidContext.getPackageName(), android.content.pm.PackageManager.GET_META_DATA)
+    }
+
+    private static var applicationInfo: android.content.pm.ApplicationInfo {
+        return androidContext.getApplicationInfo()
+    }
+
     public var infoDictionary: [String : Any]? {
-        fatalError()
+        // infoDictionary only supported for main bundle currently
+        if location == .main {
+            return Self.mainInfoDictionary
+        } else {
+            return nil
+        }
     }
 
-    @available(*, unavailable)
+    /// The `Bundle.main.infoDictionary` with keys synthesized from various Android metadata accessors
+    private static let mainInfoDictionary: [String : Any] = {
+        var info = [String : Any]()
+        info["CFBundleIdentifier"] = Self.androidContext.getPackageName()
+        info["CFBundleName"] = packageManager.getApplicationLabel(applicationInfo).toString()
+        info["CFBundleDisplayName"] = packageManager.getApplicationLabel(applicationInfo).toString()
+        info["CFBundleShortVersionString"] = packageInfo.versionName ?? ""
+        if android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P {
+            info["CFBundleVersion"] = packageInfo.longVersionCode.toString()
+        } else {
+            info["CFBundleVersion"] = packageInfo.versionCode.toString()
+        }
+        info["CFBundleExecutable"] = androidContext.getPackageName()
+        info["DTPlatformName"] = "android"
+        info["DTPlatformVersion"] = android.os.Build.VERSION.SDK_INT.toString()
+        info["DTSDKName"] = "android" + android.os.Build.VERSION.SDK_INT.toString()
+        info["BuildMachineOSBuild"] = android.os.Build.FINGERPRINT
+        info["MinimumOSVersion"] = applicationInfo.minSdkVersion?.toString()
+        info["CFBundleLocalizations"] = Bundle.main.localizations
+
+        return info
+    }()
+
     public var localizedInfoDictionary: [String : Any]? {
-        fatalError()
+        // currently no support for localized info on Android
+        return infoDictionary
     }
 
-    @available(*, unavailable)
     public func object(forInfoDictionaryKey key: String) -> Any? {
-        fatalError()
+        infoDictionary?[key]
     }
 
     @available(*, unavailable)
