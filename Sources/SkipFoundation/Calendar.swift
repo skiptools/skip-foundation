@@ -249,9 +249,23 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     }
 
     public func maximumRange(of component: Calendar.Component) -> Range<Int>? {
-        // Maximum range is usually the same logic as minimum but could differ in some cases.
-        return minimumRange(of: component)
+        let platformCal = platformValue.clone() as java.util.Calendar
+        switch component {
+        case .day:
+            // Maximum number of days in a month can vary (e.g., 28, 29, 30, or 31 days)
+            return platformCal.getActualMinimum(java.util.Calendar.DATE)..<(platformCal.getActualMaximum(java.util.Calendar.DATE) + 1)
+        case .weekOfMonth:
+            // Weeks in a month can vary depending on the specific month
+            return platformCal.getActualMinimum(java.util.Calendar.WEEK_OF_MONTH)..<(platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_MONTH) + 1)
+        case .weekOfYear:
+            // Weeks in a year can vary (typically 52 or 53 weeks)
+            return platformCal.getActualMinimum(java.util.Calendar.WEEK_OF_YEAR)..<(platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_YEAR) + 1)
+        default:
+            // Maximum range is usually the same logic as minimum but could differ in some cases.
+            return minimumRange(of: component)
+        }
     }
+
     
     public func range(of smaller: Calendar.Component, in larger: Calendar.Component, for date: Date) -> Range<Int>? {
         let platformCal = platformValue.clone() as java.util.Calendar
