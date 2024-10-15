@@ -156,7 +156,7 @@ class TestDateComponents: XCTestCase {
         ]
         
         let dateComponents: DateComponents = DateComponents(
-            calendar: calendar,
+            fromCalendar: calendar,
             in: timeZone,
             from: startDate,
             with: componentsSet
