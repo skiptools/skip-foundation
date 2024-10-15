@@ -379,29 +379,10 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     }
 
     public func date(from components: DateComponents) -> Date? {
-        let platformCal = platformValue.clone() as java.util.Calendar
-        if let year = components.year {
-            platformCal.set(java.util.Calendar.YEAR, year)
-        }
-        if let month = components.month {
-            platformCal.set(java.util.Calendar.MONTH, month - 1)  // Java Calendar months are 0-based
-        }
-        if let day = components.day {
-            platformCal.set(java.util.Calendar.DAY_OF_MONTH, day)
-        }
-        if let hour = components.hour {
-            platformCal.set(java.util.Calendar.HOUR_OF_DAY, hour)
-        }
-        if let minute = components.minute {
-            platformCal.set(java.util.Calendar.MINUTE, minute)
-        }
-        if let second = components.second {
-            platformCal.set(java.util.Calendar.SECOND, second)
-        }
-        
-        return Date(platformValue: platformCal.time)
+        var localComponents = components
+        localComponents.calendar = self
+        return Date(platformValue: localComponents.createCalendarComponents(timeZone: self.timeZone).getTime())
     }
-
 
     public func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents {
         return DateComponents(fromCalendar: self, in: zone ?? self.timeZone, from: date)
