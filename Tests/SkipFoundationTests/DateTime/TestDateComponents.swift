@@ -231,6 +231,47 @@ class TestDateComponents: XCTestCase {
         XCTAssertEqual(dateComponents.day, 15)
         XCTAssertNil(dateComponents.year)
     }
+    
+    func testDateComponentsWithStartAndEndDate() {
+        let calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        
+        // Start Date: 2024-10-15
+        var startComponents = DateComponents()
+        startComponents.year = 2024
+        startComponents.month = 10
+        startComponents.day = 15
+        guard let startDate = calendar.date(from: startComponents) else {
+            XCTFail("Failed to create start date")
+            return
+        }
+        
+        // End Date: 2024-12-25 (for calculating the difference)
+        var endComponents = DateComponents()
+        endComponents.year = 2024
+        endComponents.month = 12
+        endComponents.day = 25
+        guard let endDate = calendar.date(from: endComponents) else {
+            XCTFail("Failed to create end date")
+            return
+        }
+
+        let componentsSet: Set<Calendar.Component> = [
+            Calendar.Component.month, Calendar.Component.day
+        ]
+        let dateComponents = DateComponents(
+            fromCalendar: calendar,
+            in: timeZone,
+            from: startDate,
+            to: endDate,
+            with: componentsSet
+        )
+        
+        XCTAssertEqual(dateComponents.month, 2)
+        XCTAssertEqual(dateComponents.day, 10)
+        XCTAssertNil(dateComponents.year)
+    }
+
     #endif
 }
 

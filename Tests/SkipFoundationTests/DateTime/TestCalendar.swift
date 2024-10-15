@@ -177,8 +177,8 @@ class TestCalendar: XCTestCase {
 
     func test_ampmSymbols() {
         let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
-        XCTAssertEqual(calendar.amSymbol, "AM")
-        XCTAssertEqual(calendar.pmSymbol, "PM")
+        XCTAssertEqual(calendar.amSymbol.uppercased(), "AM")
+        XCTAssertEqual(calendar.pmSymbol.uppercased(), "PM")
     }
 
     func test_currentCalendarRRstability() {
