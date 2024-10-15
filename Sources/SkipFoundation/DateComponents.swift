@@ -57,7 +57,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         let tz = zone ?? calendar.timeZone
         platformCal.timeZone = self.timeZone?.platformValue ?? platformCal.timeZone
 
-        if components?.contains(.timeZone) == true {
+        if components?.contains(.timeZone) != false {
             self.timeZone = tz
         }
         
