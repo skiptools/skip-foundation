@@ -11,7 +11,6 @@ import XCTest
 @testable import func SkipFoundation.SkipFoundationPublicModuleName
 #endif
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class SkipFoundationTests: XCTestCase {
     let logger: Logger = Logger(subsystem: "test", category: "SkipFoundationTests")
 

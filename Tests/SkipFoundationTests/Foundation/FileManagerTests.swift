@@ -6,7 +6,6 @@
 import Foundation
 import XCTest
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 @available(macOS 11, iOS 14, watchOS 7, tvOS 14, *)
 final class FileManagerTests: XCTestCase {
     func testFileManager() throws {

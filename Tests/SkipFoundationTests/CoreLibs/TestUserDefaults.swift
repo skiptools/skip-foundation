@@ -17,7 +17,6 @@ import XCTest
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 class TestUserDefaults : XCTestCase {
 
 	func test_createUserDefaults() {

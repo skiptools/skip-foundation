@@ -7,7 +7,6 @@ import Foundation
 import OSLog
 import XCTest
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 @available(macOS 13, iOS 16, watchOS 10, tvOS 16, *)
 final class BundleTests: XCTestCase {
     let logger: Logger = Logger(subsystem: "test", category: "BundleTests")

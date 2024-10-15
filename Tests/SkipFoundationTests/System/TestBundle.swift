@@ -379,7 +379,6 @@ class BundlePlayground {
 }
 #endif
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 class TestBundle : XCTestCase {
 
     func test_paths() {
