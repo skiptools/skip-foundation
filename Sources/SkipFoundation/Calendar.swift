@@ -274,21 +274,25 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             if smaller == .day {
                 // Range of days in the current month
                 let numDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
-                return 1..<numDays + 1
+                return 1..<(numDays + 1)
             } else if smaller == .weekOfMonth {
                 // Range of weeks in the current month
                 let numWeeks = platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_MONTH)
-                return 1..<numWeeks + 1
+                return 1..<(numWeeks + 1)
             }
         case .year:
             if smaller == .weekOfYear {
                 // Range of weeks in the current year
-                let numWeeks = platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_YEAR)
-                return 1..<numWeeks + 1
+                // Seems like Swift always returns Maximum not for an actual date
+                let numWeeks = platformCal.getMaximum(java.util.Calendar.WEEK_OF_YEAR)
+                return 1..<(numWeeks + 1)
             } else if smaller == .day {
                 // Range of days in the current year
                 let numDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_YEAR)
-                return 1..<numDays + 1
+                return 1..<(numDays + 1)
+            } else if smaller == .month {
+                // Range of months in the current year (1 to 12)
+                return 1..<13
             }
         default:
             return nil
