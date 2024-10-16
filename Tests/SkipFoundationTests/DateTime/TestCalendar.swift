@@ -586,8 +586,13 @@ class TestCalendar: XCTestCase {
         let dayRangeInAYear = calendar.range(of: .day, in: .year, for: date)
         XCTAssertEqual(dayRangeInAYear, 1..<366)
         
-        let weekOfYearRangeInAYear = calendar.range(of: .weekOfYear, in: .year, for: date)
-        XCTAssertEqual(weekOfYearRangeInAYear, 1..<54)
+        let date53WeeksInAYear = Date(timeIntervalSince1970: 1609113600)
+        let weekOfYearRangeInAYear1 = calendar.range(of: .weekOfYear, in: .year, for: date53WeeksInAYear)
+        XCTAssertEqual(weekOfYearRangeInAYear1, 1..<54)
+        
+        let date52WeeksInAYear = date
+        let weekOfYearRangeInAYear2 = calendar.range(of: .weekOfYear, in: .year, for: date52WeeksInAYear)
+        XCTAssertEqual(weekOfYearRangeInAYear2, 1..<54)
 
         let dayRangeInAMonth = calendar.range(of: .day, in: .month, for: date)
         XCTAssertEqual(dayRangeInAMonth, 1..<32)

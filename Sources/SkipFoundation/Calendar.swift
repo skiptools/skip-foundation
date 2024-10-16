@@ -24,9 +24,19 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     private static func platformValue(for identifier: Calendar.Identifier) -> java.util.Calendar {
         switch identifier {
         case .gregorian:
-            return java.util.GregorianCalendar()
+            let platformCal = java.util.GregorianCalendar()
+            // in Swift's Gregorian the first week of the year only requires 1 day to be considered the first week.
+            platformCal.setMinimalDaysInFirstWeek(1)
+            // week starts on Sunday by default in Swift's Gregorian calendar.
+            platformCal.setFirstDayOfWeek(java.util.Calendar.SUNDAY)
+            return platformCal
         case .iso8601:
-            return java.util.Calendar.getInstance()
+            let platformCal = java.util.Calendar.getInstance()
+            // in Swift's iso8601 the first week of the year only requires 4 day to be considered the first week.
+            platformCal.setMinimalDaysInFirstWeek(4)
+            // week starts on Monday by default in Swift's iso8601 calendar.
+            platformCal.setFirstDayOfWeek(java.util.Calendar.MONDAY)
+            return platformCal
         default:
             // TODO: how to support the other calendars?
             return java.util.Calendar.getInstance()
@@ -274,23 +284,22 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             if smaller == .day {
                 // Range of days in the current month
                 let numDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
-                return 1..<numDays + 1
+                return 1..<(numDays + 1)
             } else if smaller == .weekOfMonth {
                 // Range of weeks in the current month
                 let numWeeks = platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_MONTH)
-                return 1..<numWeeks + 1
+                return 1..<(numWeeks + 1)
             }
         case .year:
             if smaller == .weekOfYear {
-                platformCal.setFirstDayOfWeek(java.util.Calendar.MONDAY)
-                platformCal.setMinimalDaysInFirstWeek(4)
                 // Range of weeks in the current year
-                let numWeeks = platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_YEAR)
-                return 1..<numWeeks + 1
+                // Seems like Swift always returns Maximum not for an actual date
+                let numWeeks = platformCal.getMaximum(java.util.Calendar.WEEK_OF_YEAR)
+                return 1..<(numWeeks + 1)
             } else if smaller == .day {
                 // Range of days in the current year
                 let numDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_YEAR)
-                return 1..<numDays + 1
+                return 1..<(numDays + 1)
             } else if smaller == .month {
                 // Range of months in the current year (1 to 12)
                 return 1..<13
