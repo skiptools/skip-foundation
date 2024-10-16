@@ -24,19 +24,9 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     private static func platformValue(for identifier: Calendar.Identifier) -> java.util.Calendar {
         switch identifier {
         case .gregorian:
-            let platformCal = java.util.GregorianCalendar()
-            // in Swift's Gregorian the first week of the year only requires 1 day to be considered the first week.
-            platformCal.setMinimalDaysInFirstWeek(1)
-            // week starts on Sunday by default in Swift's Gregorian calendar.
-            platformCal.setFirstDayOfWeek(java.util.Calendar.SUNDAY)
-            return platformCal
+            return java.util.GregorianCalendar()
         case .iso8601:
-            let platformCal = java.util.Calendar.getInstance()
-            // in Swift's iso8601 the first week of the year only requires 4 day to be considered the first week.
-            platformCal.setMinimalDaysInFirstWeek(4)
-            // week starts on Monday by default in Swift's iso8601 calendar.
-            platformCal.setFirstDayOfWeek(java.util.Calendar.MONDAY)
-            return platformCal
+            return java.util.Calendar.getInstance()
         default:
             // TODO: how to support the other calendars?
             return java.util.Calendar.getInstance()
