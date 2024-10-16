@@ -1,3 +1,13 @@
+## 1.1.12
+
+Released 2024-10-16
+
+  - Merge pull request #28 from shial4/feat/add-missing-range
+  - clena up
+  - Add some fix
+  - .
+  - Add missing rnage
+
 ## 1.1.11
 
 Released 2024-10-15
