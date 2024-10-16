@@ -282,6 +282,8 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             }
         case .year:
             if smaller == .weekOfYear {
+                platformCal.setFirstDayOfWeek(java.util.Calendar.MONDAY)
+                platformCal.setMinimalDaysInFirstWeek(4)
                 // Range of weeks in the current year
                 let numWeeks = platformCal.getActualMaximum(java.util.Calendar.WEEK_OF_YEAR)
                 return 1..<numWeeks + 1
