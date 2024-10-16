@@ -289,6 +289,9 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
                 // Range of days in the current year
                 let numDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_YEAR)
                 return 1..<numDays + 1
+            } else if smaller == .month {
+                // Range of months in the current year (1 to 12)
+                return 1..<13
             }
         default:
             return nil

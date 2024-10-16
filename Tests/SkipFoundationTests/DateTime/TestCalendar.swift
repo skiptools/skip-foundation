@@ -548,7 +548,7 @@ class TestCalendar: XCTestCase {
         XCTAssertGreaterThan(calendar.shortWeekdaySymbols.count, 0)
     }
     
-    func testRangeOfComponents() {
+    func testMinimumRangeOfComponents() {
         let calendar = Calendar(identifier: .gregorian)
 
         // Test range for months
@@ -574,6 +574,26 @@ class TestCalendar: XCTestCase {
         // Test range for weekdays (usually 1..<8) where 1 = Sunday, 2 = Monday...
         let eraRange = calendar.minimumRange(of: .weekday)
         XCTAssertEqual(eraRange, 1..<8)
+    }
+    
+    func testRangeOfComponents() {
+        let calendar = Calendar(identifier: .gregorian)
+        let date = Date(timeIntervalSince1970: 1539146705)
+
+        let monthRangeInAYear = calendar.range(of: .month, in: .year, for: date)
+        XCTAssertEqual(monthRangeInAYear, 1..<13)
+        
+        let dayRangeInAYear = calendar.range(of: .day, in: .year, for: date)
+        XCTAssertEqual(dayRangeInAYear, 1..<366)
+        
+        let weekOfYearRangeInAYear = calendar.range(of: .weekOfYear, in: .year, for: date)
+        XCTAssertEqual(weekOfYearRangeInAYear, 1..<54)
+
+        let dayRangeInAMonth = calendar.range(of: .day, in: .month, for: date)
+        XCTAssertEqual(dayRangeInAMonth, 1..<32)
+
+        let weekOfMonthRange = calendar.range(of: .weekOfMonth, in: .month, for: date)
+        XCTAssertEqual(weekOfMonthRange, 1..<6)
     }
     
     func testDateComparison() {
