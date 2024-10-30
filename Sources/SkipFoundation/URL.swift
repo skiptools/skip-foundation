@@ -65,9 +65,8 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         fatalError("desktopDirectory unimplemented in Skip")
     }
 
-    @available(*, unavailable)
     public static var applicationSupportDirectory: URL {
-        fatalError("applicationSupportDirectory unimplemented in Skip")
+        return URL(platformValue: ProcessInfo.processInfo.androidContext.getFilesDir().toURI(), isDirectory: true)
     }
 
     @available(*, unavailable)

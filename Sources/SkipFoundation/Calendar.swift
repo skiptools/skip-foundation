@@ -217,6 +217,8 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             
             // calendar.getActualMaximum(java.util.Calendar.DATE)
             // will return 28 because February 2023 has 28 days (it’s not a leap year).
+            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            clearTime(in: platformCal)
             platformCal.set(java.util.Calendar.MONTH, java.util.Calendar.FEBRUARY)
             platformCal.set(java.util.Calendar.YEAR, 2023)
             // Minimum days in a month is 1, maximum can vary (28 for February).
@@ -301,35 +303,33 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return nil
     }
 
+    private func clearTime(in calendar: java.util.Calendar) {
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+    }
+
     public func dateInterval(of component: Calendar.Component, start: inout Date, interval: inout TimeInterval, for date: Date) -> Bool {
         let platformCal = platformValue.clone() as java.util.Calendar
         platformCal.time = date.platformValue
         
         switch component {
         case .day:
-            platformCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
-            platformCal.set(java.util.Calendar.MINUTE, 0)
-            platformCal.set(java.util.Calendar.SECOND, 0)
-            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
             interval = TimeInterval(24 * 60 * 60)
             return true
         case .month:
             platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
-            platformCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
-            platformCal.set(java.util.Calendar.MINUTE, 0)
-            platformCal.set(java.util.Calendar.SECOND, 0)
-            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
             let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
             interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
             return true
         case .weekOfMonth, .weekOfYear:
             platformCal.set(java.util.Calendar.DAY_OF_WEEK, platformCal.firstDayOfWeek)
-            platformCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
-            platformCal.set(java.util.Calendar.MINUTE, 0)
-            platformCal.set(java.util.Calendar.SECOND, 0)
-            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
             interval = TimeInterval(7 * 24 * 60 * 60)
             return true
@@ -338,10 +338,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             let quarterStartMonth = (currentMonth / 3) * 3  // Find the first month of the current quarter
             platformCal.set(java.util.Calendar.MONTH, quarterStartMonth)
             platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
-            platformCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
-            platformCal.set(java.util.Calendar.MINUTE, 0)
-            platformCal.set(java.util.Calendar.SECOND, 0)
-            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
             interval = TimeInterval(platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)) * TimeInterval(24 * 60 * 60 * 3)
             return true
@@ -430,10 +427,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         platformCal.time = date.platformValue
 
         // Set the time components to the start of the day
-        platformCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
-        platformCal.set(java.util.Calendar.MINUTE, 0)
-        platformCal.set(java.util.Calendar.SECOND, 0)
-        platformCal.set(java.util.Calendar.MILLISECOND, 0)
+        clearTime(in: platformCal)
 
         // Return the new Date representing the start of the day
         return Date(platformValue: platformCal.time)
