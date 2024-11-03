@@ -7,7 +7,7 @@
 #if SKIP
 public typealias NSURL = URL
 
-public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting<java.net.URI> {
+public struct URL : Hashable, CustomStringConvertible, Codable, SwiftCustomBridged, KotlinConverting<java.net.URI> {
     internal let platformValue: java.net.URI
     private let isDirectoryFlag: Bool?
 

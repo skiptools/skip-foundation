@@ -8,7 +8,7 @@
 
 public typealias NSUUID = UUID
 
-public struct UUID : Hashable, Comparable, CustomStringConvertible, Codable, KotlinConverting<java.util.UUID> {
+public struct UUID : Hashable, Comparable, CustomStringConvertible, Codable, SwiftCustomBridged, KotlinConverting<java.util.UUID> {
     internal var platformValue: java.util.UUID
 
     public init?(uuidString: String) {

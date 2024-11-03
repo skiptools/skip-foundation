@@ -41,7 +41,7 @@ public func CFAbsoluteTimeGetCurrent() -> CFAbsoluteTime {
     Date.timeIntervalSinceReferenceDate
 }
 
-public struct Date : Hashable, CustomStringConvertible, Comparable, Codable {
+public struct Date : Hashable, CustomStringConvertible, Comparable, Codable, SwiftCustomBridged {
     internal var platformValue: java.util.Date
 
     public static let timeIntervalBetween1970AndReferenceDate: TimeInterval = 978307200.0
