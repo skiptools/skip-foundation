@@ -13,7 +13,7 @@ public protocol DataProtocol {
     var platformData: PlatformData { get }
 }
 
-public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable {
+public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, SwiftCustomBridged {
     public var platformValue: PlatformData
 
     public init(platformValue: PlatformData) {
