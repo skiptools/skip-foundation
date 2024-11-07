@@ -52,6 +52,25 @@ final class DateTests: XCTestCase {
         XCTAssertEqual("4001-01-01T00:00:00Z", Date.distantFuture.ISO8601Format())
     }
 
+    func testDateFormatting() throws {
+        func fmt(_ format: String, _ date: Date) -> String {
+            let fmt = DateFormatter()
+            fmt.timeZone = TimeZone(secondsFromGMT: 0)
+            fmt.dateFormat = format
+            return fmt.string(from: date)
+        }
+
+        let zeroHour = Date(timeIntervalSince1970: 0.0)
+
+        XCTAssertEqual("1970", fmt("yyyy", zeroHour))
+        XCTAssertEqual("1", fmt("M", zeroHour))
+        XCTAssertEqual("01", fmt("MM", zeroHour))
+        XCTAssertEqual("000", fmt("mmm", zeroHour))
+        XCTAssertEqual("01", fmt("dd", zeroHour))
+        XCTAssertEqual("70/00/01", fmt("yy/mm/dd", zeroHour))
+        XCTAssertEqual("1970-01-01 00:00:00 GMT", fmt("yyyy-MM-dd HH:mm:ss z", zeroHour))
+    }
+
     func testAbsoluteTimeGetCurrent() {
         XCTAssertNotEqual(0, CFAbsoluteTimeGetCurrent())
     }
