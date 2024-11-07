@@ -220,6 +220,25 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, S
 
     // public mutating func append<SourceType>(_ buffer: UnsafeBufferPointer<SourceType>)
 
+    public func contains(_ other: Data) -> Bool {
+        if (other.isEmpty) {
+            return true
+        }
+
+        let limit = self.count - other.count
+        if limit < 0 {
+            return false
+        }
+
+        for i in 0...limit {
+            if (platformValue.sliceArray(i..<(i + other.count)).contentEquals(other.platformValue)) {
+                return true
+            }
+        }
+        return false
+
+    }
+
     @available(*, unavailable)
     public mutating func resetBytes(in range: Range<Int>) {
     }
