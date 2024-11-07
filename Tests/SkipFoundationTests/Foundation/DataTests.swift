@@ -59,9 +59,25 @@ final class DataTests: XCTestCase {
             XCTAssertEqual("6500000001030000", str.data(using: .utf32LittleEndian)?.hex())
             XCTAssertEqual("0000006500000301", str.data(using: .utf32BigEndian)?.hex())
         }
-
     }
 
+    func testDataContains() throws {
+        XCTAssertTrue(Data().contains(Data()))
+        XCTAssertTrue(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)]).contains(Data()))
+
+        XCTAssertTrue(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)]).contains(Data([UInt8(0x02)])))
+        XCTAssertTrue(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)]).contains(Data([UInt8(0x01), UInt8(0x02)])))
+        XCTAssertTrue(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)]).contains(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)])))
+        XCTAssertTrue(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)]).contains(Data([UInt8(0x02), UInt8(0x03)])))
+        XCTAssertTrue(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)]).contains(Data([UInt8(0x03)])))
+
+        XCTAssertFalse(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)]).contains(Data([UInt8(0x04)])))
+        XCTAssertFalse(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)]).contains(Data([UInt8(0x01), UInt8(0x02), UInt8(0x03), UInt8(0x04)])))
+        XCTAssertFalse(Data([UInt8(0x01)]).contains(Data([UInt8(0x02), UInt8(0x03), UInt8(0x04)])))
+        XCTAssertFalse(Data([UInt8(0x01)]).contains(Data([UInt8(0x01), UInt8(0x02)])))
+        XCTAssertFalse(Data([UInt8(0x01)]).contains(Data([UInt8(0x02)])))
+        XCTAssertFalse(Data().contains(Data([UInt8(0x01)])))
+ }
 }
 
 extension Sequence where Element == UInt8 {
