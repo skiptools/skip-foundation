@@ -41,7 +41,7 @@ public func CFAbsoluteTimeGetCurrent() -> CFAbsoluteTime {
     Date.timeIntervalSinceReferenceDate
 }
 
-public struct Date : Hashable, CustomStringConvertible, Comparable, Codable, SwiftCustomBridged {
+public struct Date : Hashable, CustomStringConvertible, Comparable, Codable, KotlinConverting<java.util.Date>, SwiftCustomBridged {
     internal var platformValue: java.util.Date
 
     public static let timeIntervalBetween1970AndReferenceDate: TimeInterval = 978307200.0
@@ -213,9 +213,7 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable, Swi
             self.timeZone = timeZone
         }
     }
-}
 
-extension Date: KotlinConverting<java.util.Date> {
     public override func kotlin(nocopy: Bool = false) -> java.util.Date {
         return nocopy ? platformValue : platformValue.clone() as java.util.Date
     }
