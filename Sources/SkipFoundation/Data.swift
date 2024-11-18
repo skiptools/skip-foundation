@@ -13,7 +13,7 @@ public protocol DataProtocol {
     var platformData: PlatformData { get }
 }
 
-public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, SwiftCustomBridged {
+public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, KotlinConverting<kotlin.ByteArray>, SwiftCustomBridged {
     public var platformValue: PlatformData
 
     public init(platformValue: PlatformData) {
@@ -390,9 +390,7 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, S
         @available(*, unavailable)
         public static let ignoreUnknownCharacters = Base64DecodingOptions(rawValue: 1)
     }
-}
 
-extension Data: KotlinConverting<PlatformData> {
     public override func kotlin(nocopy: Bool = false) -> PlatformData {
         return nocopy ? platformValue : platformValue.copyOf()
     }
