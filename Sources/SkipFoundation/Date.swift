@@ -221,4 +221,105 @@ extension Date: KotlinConverting<java.util.Date> {
     }
 }
 
+extension Date {
+    public func formatted(date: Date.FormatStyle.DateStyle, time: Date.FormatStyle.TimeStyle) -> String {
+        let df = DateFormatter()
+
+        switch date {
+        case .omitted: df.dateStyle = .none
+        case .numeric: df.dateStyle = .short
+        case .abbreviated: df.dateStyle = .medium
+        case .long: df.dateStyle = .long
+        case .complete: df.dateStyle = .full
+        default: df.dateStyle = .short
+        }
+
+        switch time {
+        case .omitted: df.timeStyle = .none
+        case .shortened: df.timeStyle = .short
+        case .standard: df.timeStyle = .medium
+        case .complete: df.timeStyle = .full
+        default: df.timeStyle = .short
+        }
+
+        return df.string(from: self)
+    }
+
+    public func formatted() -> String {
+        return formatted(date: .numeric, time: .shortened)
+    }
+}
+
+extension Date {
+
+    /// Strategies for formatting a `Date`.
+    public struct FormatStyle : Sendable {
+
+        /// The locale to use when formatting date and time values.
+        public var locale: Locale
+
+        /// The time zone with which to specify date and time values.
+        public var timeZone: TimeZone
+
+        /// The calendar to use for date values.
+        public var calendar: Calendar
+
+        /// The capitalization formatting context used when formatting date and time values.
+        //public var capitalizationContext: FormatStyleCapitalizationContext
+
+        /// Returns a type erased attributed variant of this style.
+        //public var attributed: Date.AttributedStyle { get }
+
+        //public init(date: Date.FormatStyle.DateStyle? = nil, time: Date.FormatStyle.TimeStyle? = nil, locale: Locale = .autoupdatingCurrent, calendar: Calendar = .autoupdatingCurrent, timeZone: TimeZone = .autoupdatingCurrent, capitalizationContext: FormatStyleCapitalizationContext = .unknown)
+    }
+}
+
+extension Date.FormatStyle {
+
+    /// Predefined date styles varied in lengths or the components included. The exact format depends on the locale.
+    public struct DateStyle : Hashable, Sendable {
+        let rawValue: Int
+
+        init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        /// Excludes the date part.
+        public static let omitted: Date.FormatStyle.DateStyle = DateStyle(rawValue: 0)
+
+        /// Shows date components in their numeric form. For example, "10/21/2015".
+        public static let numeric: Date.FormatStyle.DateStyle = DateStyle(rawValue: 1)
+
+        /// Shows date components in their abbreviated form if possible. For example, "Oct 21, 2015".
+        public static let abbreviated: Date.FormatStyle.DateStyle = DateStyle(rawValue: 2)
+
+        /// Shows date components in their long form if possible. For example, "October 21, 2015".
+        public static let long: Date.FormatStyle.DateStyle = DateStyle(rawValue: 3)
+
+        /// Shows the complete day. For example, "Wednesday, October 21, 2015".
+        public static let complete: Date.FormatStyle.DateStyle = DateStyle(rawValue: 4)
+    }
+
+    /// Predefined time styles varied in lengths or the components included. The exact format depends on the locale.
+    public struct TimeStyle : Hashable, Sendable {
+        let rawValue: Int
+
+        init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        /// Excludes the time part.
+        public static let omitted: Date.FormatStyle.TimeStyle = TimeStyle(rawValue: 0)
+
+        /// For example, `04:29 PM`, `16:29`.
+        public static let shortened: Date.FormatStyle.TimeStyle = TimeStyle(rawValue: 1)
+
+        /// For example, `4:29:24 PM`, `16:29:24`.
+        public static let standard: Date.FormatStyle.TimeStyle = TimeStyle(rawValue: 2)
+
+        /// For example, `4:29:24 PM PDT`, `16:29:24 GMT`.
+        public static let complete: Date.FormatStyle.TimeStyle = TimeStyle(rawValue: 3)
+    }
+}
+
 #endif
