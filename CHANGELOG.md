@@ -1,3 +1,9 @@
+## 1.1.16
+
+Released 2024-11-27
+
+  - Check for SKIP_BRIDGE_MODULES metadata in AndroidManifest.xml at launch time and if it exists, initialize SkipBridge through reflection
+
 ## 1.1.12
 
 Released 2024-10-16
