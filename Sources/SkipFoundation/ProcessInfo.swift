@@ -6,6 +6,11 @@
 
 #if SKIP
 
+import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.functions
+import kotlin.reflect.full.__
+
 public class ProcessInfo {
     /// The global `processInfo` must be set manually at app launch with `skip.foundation.ProcessInfo.launch(context)`
     /// Otherwise error: `skip.lib.ErrorException: kotlin.UninitializedPropertyAccessException: lateinit property processInfo has not been initialized`
@@ -23,6 +28,28 @@ public class ProcessInfo {
     /// Called when an app is launched to store the global context from the `android.app.Application` subclass.
     public static func launch(context: android.content.Context) {
         ProcessInfo.processInfo.launchContext = context
+
+        // if we import SkipBridgeKt it includes an AndroidManifest.xml that defines the "SKIP_BRIDGE_MODULES" list of native modules to load
+        // since SkipBridge is not a dependency of SkipFoundation, we need to use reflection to call the
+        // skip.android.bridge.kt.AndroidBridge.initBridge function
+        if let packageManager = context.getPackageManager() {
+            if let packageInfo = packageManager.getPackageInfo(context.getPackageName(), android.content.pm.PackageManager.GET_META_DATA) {
+                if let packageMetaData = packageInfo.applicationInfo.metaData {
+                    if let bridgeModules = packageMetaData.getString("SKIP_BRIDGE_MODULES") {
+                        android.util.Log.i("SkipFoundation", "loading SKIP_BRIDGE_MODULES: \(bridgeModules)")
+                        let bridgeClass = Class.forName("skip.android.bridge.kt.AndroidBridge").kotlin
+                        android.util.Log.i("SkipFoundation", "calling bridgeClass: \(bridgeClass)")
+                        if let companionObject = bridgeClass.companionObject,
+                            let initBridge = companionObject.functions?.find({ $0.name == "initBridge" }) {
+                            android.util.Log.i("SkipFoundation", "invoking initBridge: \(initBridge)")
+                            initBridge.call(bridgeClass.companionObjectInstance, bridgeModules)
+                        } else {
+                            android.util.Log.w("SkipFoundation", "could not func skip.android.bridge.kt.AndroidBridge.initBridge")
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private var testContext: android.content.Context {
