@@ -77,7 +77,14 @@ final class DataTests: XCTestCase {
         XCTAssertFalse(Data([UInt8(0x01)]).contains(Data([UInt8(0x01), UInt8(0x02)])))
         XCTAssertFalse(Data([UInt8(0x01)]).contains(Data([UInt8(0x02)])))
         XCTAssertFalse(Data().contains(Data([UInt8(0x01)])))
- }
+    }
+
+    func testBase64EncodedString() {
+        let data = Data([UInt8(0x01), UInt8(0x02), UInt8(0x03)])
+        XCTAssertEqual("AQID", data.base64EncodedString())
+        let data2 = Data(base64Encoded: "AQID")
+        XCTAssertEqual(data, data2)
+    }
 }
 
 extension Sequence where Element == UInt8 {
