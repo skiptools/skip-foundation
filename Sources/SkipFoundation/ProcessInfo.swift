@@ -34,7 +34,7 @@ public class ProcessInfo {
         // skip.android.bridge.kt.AndroidBridge.initBridge function
         if let packageManager = context.getPackageManager() {
             if let packageInfo = packageManager.getPackageInfo(context.getPackageName(), android.content.pm.PackageManager.GET_META_DATA) {
-                if let packageMetaData = packageInfo.applicationInfo.metaData {
+                if let packageMetaData = packageInfo.applicationInfo?.metaData {
                     if let bridgeModules = packageMetaData.getString("SKIP_BRIDGE_MODULES") {
                         android.util.Log.i("SkipFoundation", "loading SKIP_BRIDGE_MODULES: \(bridgeModules)")
                         let bridgeClass = Class.forName("skip.android.bridge.kt.AndroidBridge").kotlin
