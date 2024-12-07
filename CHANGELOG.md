@@ -1,3 +1,10 @@
+## 1.2.2
+
+Released 2024-12-07
+
+  - Merge pull request #34 from skiptools/fix-removeLast
+  - Change arrayList.removeLast() to arrayList.removeLast() due to compileSDK 35 issue
+
 ## 1.1.16
 
 Released 2024-11-27
