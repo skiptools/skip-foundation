@@ -69,7 +69,9 @@ public struct IndexPath : Codable, Comparable, Hashable, CustomStringConvertible
         let dropped = IndexPath()
         dropped.arrayList.addAll(arrayList)
         if !dropped.arrayList.isEmpty() {
-            dropped.arrayList.removeLast()
+            // cannot use removeLast() anymore: https://developer.android.com/about/versions/15/behavior-changes-15#openjdk-api-changes
+            //dropped.arrayList.removeLast()
+            dropped.arrayList.removeAt(dropped.arrayList.lastIndex)
         }
         return dropped
     }
