@@ -315,11 +315,7 @@ class TestURLComponents: XCTestCase {
         XCTAssertEqual(c5?.percentEncodedPath, "/foo/bar")
 
         let c6 = URLComponents(string: "http://swift.org:80/foo/b%20r")
-        #if SKIP
-        XCTAssertEqual(c6?.percentEncodedPath, "/foo/b+r")
-        #else
         XCTAssertEqual(c6?.percentEncodedPath, "/foo/b%20r")
-        #endif
     }
 
 }
