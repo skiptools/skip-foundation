@@ -222,8 +222,8 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         return absoluteURL.platformValue.path ?? ""
     }
 
-    public func path(percentEncoded: Bool = true) -> String? {
-        return percentEncoded ? absoluteURL.platformValue.rawPath : absoluteURL.platformValue.path
+    public func path(percentEncoded: Bool = true) -> String {
+        return (percentEncoded ? absoluteURL.platformValue.rawPath : absoluteURL.platformValue.path) ?? ""
     }
 
     public var port: Int? {
