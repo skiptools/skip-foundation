@@ -37,7 +37,7 @@ public struct URLComponents : Hashable, Equatable, Sendable {
             self.scheme = newValue?.scheme
             self.host = newValue?.host(percentEncoded: false)
             self.port = newValue?.port
-            self.path = newValue?.path(percentEncoded: false) ?? ""
+            self.percentEncodedPath = newValue?.path(percentEncoded: true) ?? ""
             self.fragment = newValue?.fragment
             self.queryItems = URLQueryItem.from(newValue?.query(percentEncoded: false))
         }
@@ -65,7 +65,7 @@ public struct URLComponents : Hashable, Equatable, Sendable {
                     string += ":\(port)"
                 }
             }
-            string += path
+            string += percentEncodedPath
             if let fragment {
                 string += "#" + fragment
             }
@@ -86,7 +86,7 @@ public struct URLComponents : Hashable, Equatable, Sendable {
     public var scheme: String? = nil
     public var host: String? = nil
     public var port: Int? = nil
-    public var path = ""
+    public var percentEncodedPath = ""
     public var fragment: String? = nil
     public var queryItems: [URLQueryItem]? = nil
 
@@ -153,14 +153,12 @@ public struct URLComponents : Hashable, Equatable, Sendable {
         }
     }
 
-    public var percentEncodedPath: String {
-        get {
-            return path.split(separator: "/", omittingEmptySubsequences: false)
+    public var path: String {
+        get { percentEncodedPath.removingPercentEncoding ?? "" }
+        set {
+            percentEncodedPath = newValue.split(separator: "/", omittingEmptySubsequences: false)
                 .map { $0.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) ?? "" }
                 .joined(separator: "/")
-        }
-        set {
-            path = newValue.removingPercentEncoding ?? ""
         }
     }
 
