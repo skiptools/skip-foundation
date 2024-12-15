@@ -4,6 +4,20 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// This code is adapted from https://github.com/swiftlang/swift-corelibs-foundation/blob/main/Sources/Foundation/URL.swift which has the following license:
+
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
 #if SKIP
 public typealias NSURL = URL
 
@@ -293,7 +307,10 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
             return ""
         }
         let parts = lastPathComponent.split(separator: ".")
-        return parts.count >= 2 ? parts.last! : ""
+        guard parts.count >= 2 else {
+            return ""
+        }
+        return parts.last!
     }
 
     public var isFileURL: Bool {
@@ -301,7 +318,31 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var pathComponents: [String] {
-        return path.split(separator: "/").filter { !$0.isEmpty }
+        let path = path
+        guard !path.isEmpty else {
+            return []
+        }
+        var result = [String]()
+        var start = path.startIndex
+        if path.first == "/" {
+            result.append("/")
+            start = path.firstIndex { $0 != "/" } ?? path.endIndex
+        }
+        var end = start
+        while end != path.endIndex {
+            end = path[end...].firstIndex(of: "/") ?? path.endIndex
+            if start != end {
+                let subpath = String(path[start..<end])
+                result.append(subpath)
+            }
+            start = path[end...].firstIndex { $0 != "/" } ?? path.endIndex
+            end = start
+        }
+
+        if path.count > 2 && path.hasSuffix("//") { //TODO
+            result.append("/")
+        }
+        return result
     }
 
     public var relativePath: String {
@@ -328,17 +369,25 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         }
     }
 
+    private func _appendingPathComponent(_ pathComponent: String) -> URL{
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return self
+        }
+        var newPath = components.percentEncodedPath
+        if !newPath.hasSuffix("/") {
+            newPath += "/"
+        }
+        newPath += pathComponent
+        components.percentEncodedPath = newPath
+        return components.url(relativeTo: baseURL)!
+    }
+
     public func appendingPathComponent(_ pathComponent: String) -> URL {
-        var string = absoluteString
-        if !string.hasSuffix("/") { string = string + "/" }
-        string = string + pathComponent
-        return URL(platformValue: java.net.URI(string))
+        _appendingPathComponent(pathComponent)
     }
 
     public func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL {
-        var string = absoluteString
-        if !string.hasSuffix("/") { string = string + "/" }
-        string = string + pathComponent
+        let string = _appendingPathComponent(pathComponent).absoluteString
         return URL(platformValue: java.net.URI(string), isDirectory: isDirectory)
     }
 
@@ -361,9 +410,27 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func appendingPathExtension(_ pathExtension: String) -> URL {
-        var string = absoluteString
-        string = string + "." + pathExtension
-        return URL(platformValue: java.net.URI(string))
+        guard !pathExtension.isEmpty, !platformValue.rawPath.isEmpty else {
+            return self
+        }
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return self
+        }
+        var newPath = components.percentEncodedPath
+        var endsWithSlash = newPath.hasSuffix("/")
+        while newPath.hasSuffix("/") {
+            newPath = newPath.dropLast(1)
+        }
+        if newPath.isEmpty {
+            newPath = components.percentEncodedPath
+            endsWithSlash = false
+        }
+        newPath += ".\(pathExtension)"
+        if endsWithSlash {
+            newPath += "/"
+        }
+        components.percentEncodedPath = newPath
+        return components.url(relativeTo: baseURL)!
     }
 
     public mutating func appendPathExtension(_ pathExtension: String) {
@@ -381,14 +448,15 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func deletingLastPathComponent() -> URL {
-        var string = absoluteString
-        while string.hasSuffix("/") && !string.isEmpty {
-            string = string.dropLast(1)
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return self
         }
-        while !string.hasSuffix("/") && !string.isEmpty {
-            string = string.dropLast(1)
+        var newPath = components.percentEncodedPath.deletingLastPathComponent
+        if !newPath.isEmpty && newPath.last != "/" {
+            newPath += "/"
         }
-        return URL(platformValue: java.net.URI(string))
+        components.percentEncodedPath = newPath
+        return components.url(relativeTo: baseURL)!
     }
 
     public mutating func deleteLastPathComponent() {
@@ -396,15 +464,23 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func deletingPathExtension() -> URL {
-        let ext = pathExtension
-        var string = absoluteString
-        while string.hasSuffix("/") {
-            string = string.dropLast(1)
+        guard !pathExtension.isEmpty else {
+            return self
         }
-        if string.hasSuffix("." + ext) {
-            string = string.dropLast(ext.count + 1)
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return self
         }
-        return URL(platformValue: java.net.URI(string))
+        var newPath = components.percentEncodedPath
+        let hasTrailingSlash = newPath.hasSuffix("/")
+        guard let lastDot = newPath.lastIndex(of: ".") else {
+            return self
+        }
+        newPath = String(newPath[..<lastDot])
+        if hasTrailingSlash {
+            newPath += "/"
+        }
+        components.percentEncodedPath = newPath
+        return components.url!
     }
 
     public mutating func deletePathExtension() {
