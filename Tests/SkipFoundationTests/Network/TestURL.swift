@@ -829,10 +829,10 @@ class TestURL : XCTestCase {
         let urlsExpected = [
             ("https://www.swift.org/", "https://www.swift.org/"),
             ("https://www.swift.org/.", "https://www.swift.org/."),
-            ("https://www.swift.org/a.", "https://www.swift.org/a."),
+            ("https://www.swift.org/foo.", "https://www.swift.org/foo."),
             ("https://www.swift.org/a..b", "https://www.swift.org/a."),
             ("https://www.swift.org/.a.b", "https://www.swift.org/.a"),
-            ("https://www.swift.org/..b", "https://www.swift.org/..b"),
+            // ("https://www.swift.org/..b", "https://www.swift.org/..b"), // iOS<18,macOS<15 return "https://www.swift.org/."
             ("https://www.swift.org/.hidden", "https://www.swift.org/.hidden"),
             ("https://www.swift.org/a", "https://www.swift.org/a"),
             ("https://www.swift.org/a.ext/", "https://www.swift.org/a/"),
@@ -851,10 +851,11 @@ class TestURL : XCTestCase {
         let urlsExpected = [
             ("https://www.swift.org", []),
             ("https://www.swift.org/", ["/"]),
+            ("https://www.swift.org//", ["/"]),
+            ("https://www.swift.org///", ["/", "/"]),
             ("https://www.swift.org/bar.ext/#hash?q", ["/", "bar.ext"]),
-            ("https://www.swift.org/a%20b//c+d/", ["/", "a b", "c+d"]),
-            ("https://www.swift.org//a//", ["/", "a", "/"]),
-            ("https://www.swift.org////", ["/", "/"]),
+            ("https://www.swift.org/a%2Fb/c%20d/", ["/", "a", "b", "c d"]),
+            ("//foo///bar////baz/", ["/", "bar", "baz"]),
         ]
         for (urlString, expected) in urlsExpected {
             let url = URL(string: urlString)!

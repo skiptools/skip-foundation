@@ -338,8 +338,8 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
             start = path[end...].firstIndex { $0 != "/" } ?? path.endIndex
             end = start
         }
-
-        if path.count > 2 && path.hasSuffix("//") { //TODO
+        // Mimic swift-foundation representing any number of multiple trailing slashes with "/"
+        if path.count > 2 && path.hasSuffix("//") {
             result.append("/")
         }
         return result
