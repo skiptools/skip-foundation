@@ -247,7 +247,7 @@ public final class URLSession {
     }
 
     public func uploadTask(with request: URLRequest, fromFile url: URL, completionHandler: ((Data?, URLResponse?, Error?) -> Void)?) -> URLSessionUploadTask {
-        let file = java.io.File(url.absoluteURL.platformValue)
+        let file = java.io.File(url.absolutePlatformValue)
         let task = lock.withLock {
             let identifier = nextTaskIdentifier
             nextTaskIdentifier += 1
