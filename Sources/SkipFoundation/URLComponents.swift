@@ -34,12 +34,19 @@ public struct URLComponents : Hashable, Equatable, Sendable {
             return URL(string: string)
         }
         set {
-            self.scheme = newValue?.scheme
-            self.host = newValue?.host(percentEncoded: false)
-            self.port = newValue?.port
-            self.percentEncodedPath = newValue?.path(percentEncoded: true) ?? ""
-            self.fragment = newValue?.fragment
-            self.queryItems = URLQueryItem.from(newValue?.query(percentEncoded: false))
+            var jarURL: URL?
+            if let absoluteString = newValue?.absoluteString, absoluteString.hasPrefix("jar:file:") {
+                jarURL = URL(string: "jarfile" + absoluteString.dropFirst(8))
+                self.scheme = "jar:file"
+            } else {
+                self.scheme = newValue?.scheme
+            }
+            let validURL = jarURL ?? newValue
+            self.host = validURL?.host(percentEncoded: false)
+            self.port = validURL?.port
+            self.percentEncodedPath = validURL?.path(percentEncoded: true) ?? ""
+            self.fragment = validURL?.fragment
+            self.queryItems = URLQueryItem.from(validURL?.query(percentEncoded: false))
         }
     }
 

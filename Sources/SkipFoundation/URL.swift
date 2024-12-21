@@ -410,13 +410,16 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func appendingPathExtension(_ pathExtension: String) -> URL {
-        guard !pathExtension.isEmpty, !platformValue.rawPath.isEmpty else {
+        guard !pathExtension.isEmpty else {
             return self
         }
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
             return self
         }
         var newPath = components.percentEncodedPath
+        guard !newPath.isEmpty else {
+            return self
+        }
         var endsWithSlash = newPath.hasSuffix("/")
         while newPath.hasSuffix("/") {
             newPath = newPath.dropLast(1)
@@ -464,23 +467,28 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public func deletingPathExtension() -> URL {
-        guard !pathExtension.isEmpty else {
-            return self
-        }
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
             return self
         }
         var newPath = components.percentEncodedPath
+        guard newPath.count > 2 else {
+            return self
+        }
         let hasTrailingSlash = newPath.hasSuffix("/")
-        guard let lastDot = newPath.lastIndex(of: ".") else {
+        let lastSlash = newPath.lastIndex(of: "/")
+        let previousSlash = hasTrailingSlash ? (lastSlash != nil ? String(newPath[..<lastSlash!]).lastIndex(of: "/") : nil) : lastSlash
+        guard !newPath.hasSuffix("."), let lastDot = newPath.lastIndex(of: "."), previousSlash == nil || lastDot > previousSlash! else {
             return self
         }
         newPath = String(newPath[..<lastDot])
+        guard newPath != "/" else {
+            return self
+        }
         if hasTrailingSlash {
             newPath += "/"
         }
         components.percentEncodedPath = newPath
-        return components.url!
+        return components.url(relativeTo: baseURL)!
     }
 
     public mutating func deletePathExtension() {
