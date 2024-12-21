@@ -1,3 +1,18 @@
+## 1.2.3
+
+Released 2024-12-21
+
+  - Merge pull request #35 from ky-is/fix-unify-url-api
+  - Fix jar urls null path breaking URL helpers
+  - Test jar urls
+  - Revert "Handle jar urls as special case"
+  - Handle jar urls as special case
+  - Update and comment URL path test cases
+  - Test URL/URLComponents path APIs
+  - Fix unify URL path APIs
+  - Fix path(percentEncoded:) not optional
+  - Refactor use percentEncodedPath as canonical for URLComponents
+
 ## 1.2.2
 
 Released 2024-12-07
