@@ -781,6 +781,103 @@ class TestURL : XCTestCase {
        #endif
     }
 
+    func test_appendingPathComponent() {
+        let appendComponent = "foo"
+        let urlsExpected = [
+            ("www.swift.org", "www.swift.org/\(appendComponent)"),
+            ("https://www.swift.org/", "https://www.swift.org/\(appendComponent)"),
+            ("https://www.swift.org/a+b#hash", "https://www.swift.org/a+b/\(appendComponent)#hash"),
+            ("https://www.swift.org/a%20b/#hash?q", "https://www.swift.org/a%20b/\(appendComponent)#hash?q"),
+        ]
+        for (urlString, expected) in urlsExpected {
+            let url = URL(string: urlString)!
+            XCTAssertEqual(url.appendingPathComponent(appendComponent).absoluteString, expected)
+        }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/")!.appendingPathComponent("Localizable").absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable")
+        #endif
+    }
+
+    func test_appendingPathExtension() {
+        let ext = "foo"
+        let dotExt = ".\(ext)"
+        let urlsExpected = [
+            ("www.swift.org", "www.swift.org\(dotExt)"),
+            ("https://www.swift.org/", "https://www.swift.org/\(dotExt)"),
+            ("https://www.swift.org/a+b#hash", "https://www.swift.org/a+b\(dotExt)#hash"),
+            ("https://www.swift.org/a%20b/c/#hash?q", "https://www.swift.org/a%20b/c\(dotExt)/#hash?q"),
+        ]
+        for (urlString, expected) in urlsExpected {
+            let url = URL(string: urlString)!
+            XCTAssertEqual(url.appendingPathExtension(ext).absoluteString, expected)
+        }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable")!.appendingPathExtension("strings").absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable.strings")
+        #endif
+    }
+
+    func test_deletingLastPathComponent() {
+        let urlsExpected = [ // TODO: support relative paths
+            // ("www.swift.org", "./"),
+            // ("https://www.swift.org/", "https://www.swift.org/../"),
+            ("https://www.swift.org/a", "https://www.swift.org/"),
+            ("https://www.swift.org/a/", "https://www.swift.org/"),
+            ("https://www.swift.org/a/b#hash", "https://www.swift.org/a/#hash"),
+            ("https://www.swift.org/a/b/#hash?q", "https://www.swift.org/a/#hash?q"),
+        ]
+        for (urlString, expected) in urlsExpected {
+            let url = URL(string: urlString)!
+            XCTAssertEqual(url.deletingLastPathComponent().absoluteString, expected)
+        }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable.strings")!.deletingLastPathComponent().absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/")
+        #endif
+    }
+
+    func test_deletingPathExtension() {
+        let urlsExpected = [
+            ("https://www.swift.org/", "https://www.swift.org/"),
+            ("https://www.swift.org/.", "https://www.swift.org/."),
+            ("https://www.swift.org/foo.", "https://www.swift.org/foo."),
+            ("https://www.swift.org/a..b", "https://www.swift.org/a."),
+            ("https://www.swift.org/.a.b", "https://www.swift.org/.a"),
+            // ("https://www.swift.org/..b", "https://www.swift.org/..b"), // iOS<18,macOS<15 return "https://www.swift.org/."
+            ("https://www.swift.org/.hidden", "https://www.swift.org/.hidden"),
+            ("https://www.swift.org/a", "https://www.swift.org/a"),
+            ("https://www.swift.org/a.ext/", "https://www.swift.org/a/"),
+            ("https://www.swift.org/a.ext//", "https://www.swift.org/a.ext//"),
+            ("https://www.swift.org/a.ext/b", "https://www.swift.org/a.ext/b"),
+            ("https://www.swift.org/a/b.ext/#hash?q", "https://www.swift.org/a/b/#hash?q"),
+            ("https://www.swift.org/a/b.ext#hash?q", "https://www.swift.org/a/b#hash?q"),
+        ]
+        for (urlString, expected) in urlsExpected {
+            let url = URL(string: urlString)!
+            XCTAssertEqual(url.deletingPathExtension().absoluteString, expected)
+        }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable.strings")!.deletingPathExtension().absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable")
+        #endif
+    }
+
+    func test_pathComponents() {
+        let urlsExpected = [
+            ("https://www.swift.org", []),
+            ("https://www.swift.org/", ["/"]),
+            ("https://www.swift.org//", ["/"]),
+            ("https://www.swift.org///", ["/", "/"]),
+            ("https://www.swift.org/bar.ext/#hash?q", ["/", "bar.ext"]),
+            ("https://www.swift.org/a%2Fb/c%20d/", ["/", "a", "b", "c d"]),
+            ("//foo///bar////baz/", ["/", "bar", "baz"]),
+        ]
+        for (urlString, expected) in urlsExpected {
+            let url = URL(string: urlString)!
+            XCTAssertEqual(url.pathComponents, expected)
+        }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/")!.pathComponents, Array<String>()) // Path components will always be empty because `platformValue.path` returns null for invalid urls like the "jar:file:" scheme
+        #endif
+    }
+
     // MARK: Resource values.
 
     func test_URLResourceValues() throws {

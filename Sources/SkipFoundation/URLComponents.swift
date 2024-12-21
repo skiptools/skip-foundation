@@ -34,12 +34,19 @@ public struct URLComponents : Hashable, Equatable, Sendable {
             return URL(string: string)
         }
         set {
-            self.scheme = newValue?.scheme
-            self.host = newValue?.host(percentEncoded: false)
-            self.port = newValue?.port
-            self.path = newValue?.path(percentEncoded: false) ?? ""
-            self.fragment = newValue?.fragment
-            self.queryItems = URLQueryItem.from(newValue?.query(percentEncoded: false))
+            var jarURL: URL?
+            if let absoluteString = newValue?.absoluteString, absoluteString.hasPrefix("jar:file:") {
+                jarURL = URL(string: "jarfile" + absoluteString.dropFirst(8))
+                self.scheme = "jar:file"
+            } else {
+                self.scheme = newValue?.scheme
+            }
+            let validURL = jarURL ?? newValue
+            self.host = validURL?.host(percentEncoded: false)
+            self.port = validURL?.port
+            self.percentEncodedPath = validURL?.path(percentEncoded: true) ?? ""
+            self.fragment = validURL?.fragment
+            self.queryItems = URLQueryItem.from(validURL?.query(percentEncoded: false))
         }
     }
 
@@ -65,7 +72,7 @@ public struct URLComponents : Hashable, Equatable, Sendable {
                     string += ":\(port)"
                 }
             }
-            string += path
+            string += percentEncodedPath
             if let fragment {
                 string += "#" + fragment
             }
@@ -86,7 +93,7 @@ public struct URLComponents : Hashable, Equatable, Sendable {
     public var scheme: String? = nil
     public var host: String? = nil
     public var port: Int? = nil
-    public var path = ""
+    public var percentEncodedPath = ""
     public var fragment: String? = nil
     public var queryItems: [URLQueryItem]? = nil
 
@@ -153,14 +160,12 @@ public struct URLComponents : Hashable, Equatable, Sendable {
         }
     }
 
-    public var percentEncodedPath: String {
-        get {
-            return path.split(separator: "/", omittingEmptySubsequences: false)
+    public var path: String {
+        get { percentEncodedPath.removingPercentEncoding ?? "" }
+        set {
+            percentEncodedPath = newValue.split(separator: "/", omittingEmptySubsequences: false)
                 .map { $0.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed) ?? "" }
                 .joined(separator: "/")
-        }
-        set {
-            path = newValue.removingPercentEncoding ?? ""
         }
     }
 

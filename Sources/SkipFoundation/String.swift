@@ -4,6 +4,20 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// This code is adapted from https://github.com/swiftlang/swift-corelibs-foundation/blob/main/Sources/Foundation/URL.swift which has the following license:
+
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
 #if SKIP
 
 import net.thauvin.erik.urlencoder.UrlEncoderUtil
@@ -28,17 +42,36 @@ extension String {
     }
 
     public var deletingLastPathComponent: String {
-        let lastSeparatorIndex = lastIndexOf("/")
-        if lastSeparatorIndex == -1 || (lastSeparatorIndex == 0 && self.length == 1) {
-            return self
+        guard let lastSlash = lastIndex(of: "/") else {
+            // No slash, entire string is deleted
+            return ""
         }
-        let newPath = substring(0, lastSeparatorIndex)
-        let newLastSeparatorIndex = newPath.lastIndexOf("/")
-        if newLastSeparatorIndex == -1 {
-            return newPath
-        } else {
-            return newPath.substring(0, newLastSeparatorIndex + 1)
+
+        // Skip past consecutive slashes, if any (e.g. find "y" in "/my//path" or "h" in "/path//")
+        guard let lastNonSlash = String(self[..<lastSlash]).lastIndex(where: { $0 != "/" }) else {
+            // String consists entirely of slashes, return a single slash
+            return "/"
         }
+
+        let hasTrailingSlash = (lastSlash == index(before: endIndex))
+        guard hasTrailingSlash else {
+            // No trailing slash, return up to (including) the last non-slash character
+            return String(self[...lastNonSlash])
+        }
+
+        // We have a trailing slash, find the slash before the last component
+        guard let previousSlash = String(self[..<lastNonSlash]).lastIndex(of: "/") else {
+            // No prior slash, deleting the last component removes the entire string (e.g. "path/")
+            return ""
+        }
+
+        // Again, skip past consecutive slashes, if any (e.g. find "y" in "/my//path/")
+        guard let previousNonSlash = String(self[..<previousSlash]).lastIndex(where: { $0 != "/" }) else {
+            // String is an absolute path with a single component (e.g. "/path/" or "//path/")
+            return "/"
+        }
+
+        return String(self[...previousNonSlash])
     }
 
     public func replacingOccurrences(of search: String, with replacement: String) -> String {
