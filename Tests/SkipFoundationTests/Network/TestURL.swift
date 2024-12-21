@@ -793,6 +793,9 @@ class TestURL : XCTestCase {
             let url = URL(string: urlString)!
             XCTAssertEqual(url.appendingPathComponent(appendComponent).absoluteString, expected)
         }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/")!.appendingPathComponent("Localizable").absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable")
+        #endif
     }
 
     func test_appendingPathExtension() {
@@ -808,6 +811,9 @@ class TestURL : XCTestCase {
             let url = URL(string: urlString)!
             XCTAssertEqual(url.appendingPathExtension(ext).absoluteString, expected)
         }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable")!.appendingPathExtension("strings").absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable.strings")
+        #endif
     }
 
     func test_deletingLastPathComponent() {
@@ -823,6 +829,9 @@ class TestURL : XCTestCase {
             let url = URL(string: urlString)!
             XCTAssertEqual(url.deletingLastPathComponent().absoluteString, expected)
         }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable.strings")!.deletingLastPathComponent().absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/")
+        #endif
     }
 
     func test_deletingPathExtension() {
@@ -845,6 +854,9 @@ class TestURL : XCTestCase {
             let url = URL(string: urlString)!
             XCTAssertEqual(url.deletingPathExtension().absoluteString, expected)
         }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable.strings")!.deletingPathExtension().absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable")
+        #endif
     }
 
     func test_pathComponents() {
@@ -861,6 +873,9 @@ class TestURL : XCTestCase {
             let url = URL(string: urlString)!
             XCTAssertEqual(url.pathComponents, expected)
         }
+        #if SKIP
+        XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/")!.pathComponents, Array<String>()) // Path components will always be empty because `platformValue.path` returns null for invalid urls like the "jar:file:" scheme
+        #endif
     }
 
     // MARK: Resource values.
