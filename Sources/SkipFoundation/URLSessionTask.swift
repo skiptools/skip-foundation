@@ -717,7 +717,7 @@ private func httpURLResponse(from response: Response, with url: URL) -> HTTPURLR
 /// Use for non-HTTP requests.
 private func genericConnection(for request: URLRequest, with url: URL) throws -> java.net.URLConnection {
     // Calling openConnection does not actually connect
-    let connection = url.absolutePlatformValue.toURL().openConnection()
+    let connection = url.absoluteURL.platformValue.toURL().openConnection()
     switch request.cachePolicy {
     case URLRequest.CachePolicy.useProtocolCachePolicy:
         connection.setUseCaches(true)

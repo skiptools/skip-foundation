@@ -99,7 +99,7 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
                 throw java.util.MissingResourceException(url.absoluteString, "", "")
             }
         } else {
-            self.platformValue = url.absolutePlatformValue.toURL().readBytes()
+            self.platformValue = url.absoluteURL.platformValue.toURL().readBytes()
         }
     }
 

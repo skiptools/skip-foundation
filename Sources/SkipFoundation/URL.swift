@@ -22,18 +22,13 @@
 public typealias NSURL = URL
 
 public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting<java.net.URI>, SwiftCustomBridged {
-    private let platformValue: java.net.URI
+    internal let platformValue: java.net.URI
     private let isDirectoryFlag: Bool?
 
     public let baseURL: URL?
 
     public init(platformValue: java.net.URI, isDirectory: Bool? = nil, baseURL: URL? = nil) {
-        let string = platformValue.toString()
-        if string.hasPrefix("jar:file:") {
-            self.platformValue = java.net.URI("jarfile" + string.dropFirst(8))
-        } else {
-            self.platformValue = platformValue
-        }
+        self.platformValue = platformValue
         self.isDirectoryFlag = isDirectory
         self.baseURL = baseURL
     }
@@ -130,7 +125,6 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public init?(string: String, encodingInvalidCharacters: Bool) {
-        let string = string.hasPrefix("jar:file:") ? "jarfile" + string.dropFirst(8) : string
         do {
             self.platformValue = java.net.URI(string) // throws on malformed
         } catch {
@@ -218,12 +212,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var description: String {
-        return relativeString
-    }
-
-    internal var absolutePlatformValue: java.net.URI {
-        let string = absoluteString
-        return string.hasPrefix("jar:file:") ? java.net.URI(string) : absoluteURL.platformValue
+        return platformValue.toString()
     }
 
     /// Converts this URL to a `java.nio.file.Path`.
@@ -257,8 +246,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var scheme: String? {
-        let scheme = absoluteURL.platformValue.scheme
-        return scheme == "jarfile" ? "jar:file" : scheme
+        return absoluteURL.platformValue.scheme
     }
 
     public var query: String? {
@@ -307,7 +295,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var absoluteString: String {
-        return absoluteURL.relativeString
+        return absoluteURL.platformValue.toString()
     }
 
     public var lastPathComponent: String {
@@ -319,7 +307,10 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
             return ""
         }
         let parts = lastPathComponent.split(separator: ".")
-        return parts.count >= 2 ? parts.last! : ""
+        guard parts.count >= 2 else {
+            return ""
+        }
+        return parts.last!
     }
 
     public var isFileURL: Bool {
@@ -359,8 +350,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var relativeString: String {
-        let string = platformValue.toString()
-        return string.hasPrefix("jarfile:") ? "jar:file" + string.dropFirst(7) : string
+        return platformValue.toString()
     }
 
     public var standardizedFileURL: URL {
@@ -379,7 +369,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         }
     }
 
-    private func _appendingPathComponent(_ pathComponent: String) -> URL {
+    private func _appendingPathComponent(_ pathComponent: String) -> URL{
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
             return self
         }
@@ -526,7 +516,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
             return false
         }
         // check whether the resource can be reached by opening and closing a connection
-        absolutePlatformValue.toURL().openConnection().getInputStream().close()
+        platformValue.toURL().openConnection().getInputStream().close()
         return true
     }
 
