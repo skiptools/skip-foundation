@@ -55,16 +55,17 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         }
 
         let tz = zone ?? calendar.timeZone
-        platformCal.timeZone = self.timeZone?.platformValue ?? platformCal.timeZone
+        platformCal.timeZone = tz.platformValue
 
         if components?.contains(.timeZone) != false {
             self.timeZone = tz
         }
-        
+
         if let endDate = endDate {
             let endPlatformCal = calendar.platformValue.clone() as java.util.Calendar
             endPlatformCal.time = endDate.platformValue
-            
+            endPlatformCal.timeZone = tz.platformValue
+
             // Calculate differences based on components
             if components?.contains(.era) != false {
                 self.era = endPlatformCal.get(java.util.Calendar.ERA) - platformCal.get(java.util.Calendar.ERA)
@@ -142,52 +143,33 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         let c: java.util.Calendar = (self.calendar?.platformValue ?? Calendar.current.platformValue)
         let cal: java.util.Calendar = (c as java.util.Calendar).clone() as java.util.Calendar
 
-        if let timeZone = timeZone ?? self.timeZone {
-            cal.setTimeZone(timeZone.platformValue)
-        } else {
-            cal.setTimeZone(TimeZone.current.platformValue)
-        }
-
-        cal.setTimeInMillis(0) // clear the time and set the fields afresh
+        //cal.setLenient(false)
+        cal.clear() // clear the time and set the fields afresh
+        cal.setTimeZone((timeZone ?? self.timeZone ?? TimeZone.current).platformValue)
 
         if let era = self.era {
             cal.set(java.util.Calendar.ERA, era)
         }
+        if let yearForWeekOfYear = self.yearForWeekOfYear {
+            //cal.set(java.util.Calendar.YEARFORWEEKOFYEAR, yearForWeekOfYear)
+            fatalError("Skip Date Components.yearForWeekOfYear unsupported in Skip")
+        }
         if let year = self.year {
             cal.set(java.util.Calendar.YEAR, year)
-        } else {
-            cal.set(java.util.Calendar.YEAR, 0)
+        }
+        if let quarter = self.quarter {
+            //cal.set(java.util.Calendar.QUARTER, quarter)
+            fatalError("Skip Date Components.quarter unsupported in Skip")
         }
         if let month = self.month {
             // Foundation starts at 1, but Java: “Field number for get and set indicating the month. This is a calendar-specific value. The first month of the year in the Gregorian and Julian calendars is JANUARY which is 0; the last depends on the number of months in a year.”
             cal.set(java.util.Calendar.MONTH, month - 1)
-        } else {
-            cal.set(java.util.Calendar.MONTH, 0)
         }
-        if let day = self.day {
-            cal.set(java.util.Calendar.DATE, day) // i.e., DAY_OF_MONTH
-        } else {
-            cal.set(java.util.Calendar.DATE, 1)
+        if let weekOfYear = self.weekOfYear {
+            cal.set(java.util.Calendar.WEEK_OF_YEAR, weekOfYear)
         }
-        if let hour = self.hour {
-            cal.set(java.util.Calendar.HOUR_OF_DAY, hour)
-        } else {
-            cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
-        }
-        if let minute = self.minute {
-            cal.set(java.util.Calendar.MINUTE, minute)
-        } else {
-            cal.set(java.util.Calendar.MINUTE, 0)
-        }
-        if let second = self.second {
-            cal.set(java.util.Calendar.SECOND, second)
-        } else {
-            cal.set(java.util.Calendar.SECOND, 0)
-        }
-        if let nanosecond = self.nanosecond {
-            cal.set(java.util.Calendar.MILLISECOND, nanosecond * 1_000_000)
-        } else {
-            cal.set(java.util.Calendar.MILLISECOND, 0)
+        if let weekOfMonth = self.weekOfMonth {
+            cal.set(java.util.Calendar.WEEK_OF_MONTH, weekOfMonth)
         }
         if let weekday = self.weekday {
             cal.set(java.util.Calendar.DAY_OF_WEEK, weekday)
@@ -196,22 +178,27 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             //cal.set(java.util.Calendar.WEEKDAYORDINAL, weekdayOrdinal)
             fatalError("Skip Date Components.weekdayOrdinal unsupported in Skip")
         }
-        if let quarter = self.quarter {
-            //cal.set(java.util.Calendar.QUARTER, quarter)
-            fatalError("Skip Date Components.quarter unsupported in Skip")
+        if let day = self.day {
+            cal.set(java.util.Calendar.DATE, day) // i.e., DAY_OF_MONTH
         }
-        if let weekOfMonth = self.weekOfMonth {
-            cal.set(java.util.Calendar.WEEK_OF_MONTH, weekOfMonth)
+        if let hour = self.hour {
+            cal.set(java.util.Calendar.HOUR_OF_DAY, hour)
         }
-        if let weekOfYear = self.weekOfYear {
-            cal.set(java.util.Calendar.WEEK_OF_YEAR, weekOfYear)
+        if let minute = self.minute {
+            cal.set(java.util.Calendar.MINUTE, minute)
         }
-        if let yearForWeekOfYear = self.yearForWeekOfYear {
-            //cal.set(java.util.Calendar.YEARFORWEEKOFYEAR, yearForWeekOfYear)
-            fatalError("Skip Date Components.yearForWeekOfYear unsupported in Skip")
+        if let second = self.second {
+            cal.set(java.util.Calendar.SECOND, second)
+        }
+        if let nanosecond = self.nanosecond {
+            cal.set(java.util.Calendar.MILLISECOND, nanosecond * 1_000_000)
         }
 
         return cal
+    }
+
+    public var date: Date? {
+        Date(platformValue: createCalendarComponents().getTime())
     }
 
     public mutating func setValue(_ value: Int?, for component: Calendar.Component) {
@@ -458,52 +445,52 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
     public var description: String {
         var strs: [String] = []
         if let calendar = self.calendar {
-            strs.append("calendar \(calendar)")
+            strs.append("calendar=\(calendar)")
         }
         if let timeZone = self.timeZone {
-            strs.append("timeZone \(timeZone)")
+            strs.append("timeZone=\(timeZone.identifier)")
         }
         if let era = self.era {
-            strs.append("era \(era)")
+            strs.append("era=\(era)")
         }
         if let year = self.year {
-            strs.append("year \(year)")
+            strs.append("year=\(year)")
         }
         if let month = self.month {
-            strs.append("month \(month)")
+            strs.append("month=\(month)")
         }
         if let day = self.day {
-            strs.append("day \(day)")
+            strs.append("day=\(day)")
         }
         if let hour = self.hour {
-            strs.append("hour \(hour)")
+            strs.append("hour=\(hour)")
         }
         if let minute = self.minute {
-            strs.append("minute \(minute)")
+            strs.append("minute=\(minute)")
         }
         if let second = self.second {
-            strs.append("second \(second)")
+            strs.append("second=\(second)")
         }
         if let nanosecond = self.nanosecond {
-            strs.append("nanosecond \(nanosecond)")
+            strs.append("nanosecond=\(nanosecond)")
         }
         if let weekday = self.weekday {
-            strs.append("weekday \(weekday)")
+            strs.append("weekday=\(weekday)")
         }
         if let weekdayOrdinal = self.weekdayOrdinal {
-            strs.append("weekdayOrdinal \(weekdayOrdinal)")
+            strs.append("weekdayOrdinal=\(weekdayOrdinal)")
         }
         if let quarter = self.quarter {
-            strs.append("quarter \(quarter)")
+            strs.append("quarter=\(quarter)")
         }
         if let weekOfMonth = self.weekOfMonth {
-            strs.append("weekOfMonth \(weekOfMonth)")
+            strs.append("weekOfMonth=\(weekOfMonth)")
         }
         if let weekOfYear = self.weekOfYear {
-            strs.append("weekOfYear \(weekOfYear)")
+            strs.append("weekOfYear=\(weekOfYear)")
         }
         if let yearForWeekOfYear = self.yearForWeekOfYear {
-            strs.append("yearForWeekOfYear \(yearForWeekOfYear)")
+            strs.append("yearForWeekOfYear=\(yearForWeekOfYear)")
         }
         return strs.joined(separator: " ")
     }
