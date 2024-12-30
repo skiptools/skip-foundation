@@ -1,3 +1,10 @@
+## 1.2.4
+
+Released 2024-12-30
+
+  - Merge pull request #36 from skiptools/calendar-fix
+  - Add DateComponents.date and fixes for components offset calculation for week-of-month 5
+
 ## 1.2.3
 
 Released 2024-12-21
