@@ -304,10 +304,11 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     }
 
     private func clearTime(in calendar: java.util.Calendar) {
-        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
-        calendar.set(java.util.Calendar.MINUTE, 0)
-        calendar.set(java.util.Calendar.SECOND, 0)
-        calendar.set(java.util.Calendar.MILLISECOND, 0)
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0) // “The HOUR_OF_DAY, HOUR and AM_PM fields are handled independently and the the resolution rule for the time of day is applied. Clearing one of the fields doesn't reset the hour of day value of this Calendar. Use set(Calendar.HOUR_OF_DAY, 0) to reset the hour value.”
+        calendar.clear(java.util.Calendar.HOUR_OF_DAY)
+        calendar.clear(java.util.Calendar.MINUTE)
+        calendar.clear(java.util.Calendar.SECOND)
+        calendar.clear(java.util.Calendar.MILLISECOND)
     }
 
     public func dateInterval(of component: Calendar.Component, start: inout Date, interval: inout TimeInterval, for date: Date) -> Bool {

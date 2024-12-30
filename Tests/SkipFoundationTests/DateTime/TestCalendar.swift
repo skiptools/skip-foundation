@@ -600,12 +600,145 @@ class TestCalendar: XCTestCase {
         let weekOfMonthRange = calendar.range(of: .weekOfMonth, in: .month, for: date)
         XCTAssertEqual(weekOfMonthRange, 1..<6)
     }
-    
+
+    func testDateComponents() {
+        let calendar = Calendar(identifier: .gregorian)
+        let d = Date(timeIntervalSince1970: 1735500000.0)
+        let dc = calendar.dateComponents(in: TimeZone.gmt, from: d)
+        XCTAssertEqual(dc.year, 2024)
+        XCTAssertEqual(dc.month, 12)
+        XCTAssertEqual(dc.day, 29)
+
+        func check(_ t: TimeInterval, _ comps: DateComponents) {
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = .gmt
+            let d = Date(timeIntervalSince1970: t)
+            let dc = calendar.dateComponents(in: TimeZone.gmt, from: d)
+            XCTAssertEqual(dc.year, comps.year, "year in \(t): \(dc.year ?? 0) != \(comps.year ?? 0)")
+            XCTAssertEqual(dc.month, comps.month, "month in \(t): \(dc.month ?? 0) != \(comps.month ?? 0)")
+            XCTAssertEqual(dc.day, comps.day, "day in \(t): \(dc.day ?? 0) != \(comps.day ?? 0)")
+            XCTAssertEqual(dc.hour, comps.hour, "hour in \(t): \(dc.hour ?? 0) != \(comps.hour ?? 0)")
+            XCTAssertEqual(dc.minute, comps.minute, "minute in \(t): \(dc.minute ?? 0) != \(comps.minute ?? 0)")
+            XCTAssertEqual(dc.second, comps.second, "second in \(t): \(dc.second ?? 0) != \(comps.second ?? 0)")
+
+            let d2 = calendar.date(from: comps)!
+            XCTAssertEqual(d, d2, "date mismatch in \(t): \(d) != \(d2)")
+        }
+
+        check(0, DateComponents(year: 1970, month: 1, day: 1, hour: 0, minute: 0, second: 0))
+        check(-1234567890, DateComponents(year: 1930, month: 11, day: 18, hour: 0, minute: 28, second: 30))
+        check(2147483647, DateComponents(year: 2038, month: 1, day: 19, hour: 3, minute: 14, second: 7))
+
+        check(189302400, DateComponents(year: 1976, month: 1, day: 1, hour: 0, minute: 0, second: 0))
+        check(599529600, DateComponents(year: 1988, month: 12, day: 31, hour: 0, minute: 0, second: 0))
+        check(818035200, DateComponents(year: 1995, month: 12, day: 4, hour: 0, minute: 0, second: 0))
+
+        check(946684800, DateComponents(year: 2000, month: 1, day: 1, hour: 0, minute: 0, second: 0))
+        check(946684799, DateComponents(year: 1999, month: 12, day: 31, hour: 23, minute: 59, second: 59))
+        check(946684801, DateComponents(year: 2000, month: 1, day: 1, hour: 0, minute: 0, second: 1))
+
+        check(951782400, DateComponents(year: 2000, month: 2, day: 29, hour: 0, minute: 0, second: 0))
+        check(1078012800, DateComponents(year: 2004, month: 2, day: 29, hour: 0, minute: 0, second: 0))
+        check(1330473600, DateComponents(year: 2012, month: 2, day: 29, hour: 0, minute: 0, second: 0))
+
+        check(1288483200, DateComponents(year: 2010, month: 10, day: 31, hour: 0, minute: 0, second: 0))
+        check(1320537600, DateComponents(year: 2011, month: 11, day: 6, hour: 0, minute: 0, second: 0))
+
+        check(1199145600, DateComponents(year: 2008, month: 1, day: 1, hour: 0, minute: 0, second: 0))
+        check(1254355200, DateComponents(year: 2009, month: 10, day: 1, hour: 0, minute: 0, second: 0))
+
+        check(2524608000, DateComponents(year: 2050, month: 1, day: 1, hour: 0, minute: 0, second: 0))
+        check(2556144000, DateComponents(year: 2051, month: 1, day: 1, hour: 0, minute: 0, second: 0))
+
+        check(-2208988800, DateComponents(year: 1900, month: 1, day: 1, hour: 0, minute: 0, second: 0))
+        check(4133894400, DateComponents(year: 2100, month: 12, day: 31, hour: 0, minute: 0, second: 0))
+
+        check(4133894400, DateComponents(year: 2100, month: 12, day: 31, hour: 0, minute: 0, second: 0))
+
+        check(1735570425, DateComponents(year: 2024, month: 12, day: 30, hour: 14, minute: 53, second: 45))
+
+        check(1735521802, DateComponents(year: 2024, month: 12, day: 30, hour: 1, minute: 23, second: 22))
+    }
+
+    func testDateComponentsRoundTrip() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone.gmt
+        let t = 1735521802.0
+        let date1 = Date(timeIntervalSince1970: t)
+        let date2 = calendar.date(byAdding: .second, value: 0, to: date1, wrappingComponents: false)!
+        // java.lang.AssertionError: round-trip failed for date: 2024-12-30 01:23:22 +0000 vs. 2024-01-01 01:23:22 +0000 for comps: timeZone sun.util.calendar.ZoneInfo[id="GMT",offset=0,dstSavings=0,useDaylight=false,transitions=0,lastRule=null] era 1 year 2024 month 12 day 30 hour 1 minute 23 second 22 weekday 2 weekOfMonth 5 weekOfYear 1
+        XCTAssertEqual(date2.timeIntervalSince1970, t, "Wrong date (\(date2) == \(Int(date2.timeIntervalSince1970)) vs. \(date1) == \(Int(t)))")
+    }
+
+
+    func testDateAdd() {
+        func check(_ t1: TimeInterval, _ t2: TimeInterval, _ value: Int, _ component: Calendar.Component, wrap wrappingComponents: Bool = false) {
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = TimeZone.gmt
+            let date1 = Date(timeIntervalSince1970: t1)
+            let date2 = calendar.date(byAdding: component, value: value, to: date1, wrappingComponents: wrappingComponents)!
+            XCTAssertEqual(date2.timeIntervalSince1970, t2, "Wrong date (\(date2) == \(Int(date2.timeIntervalSince1970)) vs. \(date1) == \(Int(t2))) for adding \(value) \(component)")
+        }
+
+        check(1_735_521_802, 1_735_521_802, 0, .second)
+        check(1_735_521_802, 1_735_521_802, -0, .second)
+
+        check(1_735_521_802, 1_735_521_803, 1, .second)
+        check(1_735_521_802, 1_735_521_862, 1, .minute)
+        check(1_735_521_802, 1_735_525_402, 1, .hour)
+        check(1_735_521_802, 1_735_608_202, 1, .day)
+        check(1_735_521_802, 1_738_200_202, 1, .month)
+        check(1_735_521_802, 1_767_057_802, 1, .year)
+        check(1_735_521_802, 1_736_126_602, 1, .weekOfYear)
+        check(1_735_521_802, 1_736_126_602, 1, .weekOfMonth)
+        check(1_735_521_802, 1_735_608_202, 1, .weekday)
+
+        check(1_735_521_802, 1_735_522_801, 999, .second)
+        check(1_735_521_802, 1_735_581_742, 999, .minute)
+        check(1_735_521_802, 1_739_118_202, 999, .hour)
+        check(1_735_521_802, 1_821_835_402, 999, .day)
+        check(1_735_521_802, 4_362_513_802, 999, .month)
+        check(1_735_521_802, 33_260_808_202, 999, .year)
+        //check(1_735_521_802, 2_339_717_002, 999, .weekOfYear)
+        check(1_735_521_802, 2_339_717_002, 999, .weekOfMonth)
+        check(1_735_521_802, 1_821_835_402, 999, .weekday)
+
+        check(1_735_521_802, 1_735_520_803, -999, .second)
+        check(1_735_521_802, 1_735_461_862, -999, .minute)
+        check(1_735_521_802, 1_731_925_402, -999, .hour)
+        check(1_735_521_802, 1_649_208_202, -999, .day)
+        check(1_735_521_802, -891_642_998, -999, .month)
+        check(1_735_521_802, -29_789_418_998, -999, .year)
+        //check(1_735_521_802, 1_131_326_602, -999, .weekOfYear)
+        check(1_735_521_802, 1_131_326_602, -999, .weekOfMonth)
+        check(1_735_521_802, 1_649_208_202, -999, .weekday)
+
+        check(1_735_521_802, 1_735_521_781, 999, .second, wrap: true)
+        check(1_735_521_802, 1_735_520_542, 999, .minute, wrap: true)
+        check(1_735_521_802, 1_735_575_802, 999, .hour, wrap: true)
+        check(1_735_521_802, 1_733_448_202, 999, .day, wrap: true)
+        check(1_735_521_802, 1_711_761_802, 999, .month, wrap: true)
+        check(1_735_521_802, 33_260_808_202, 999, .year, wrap: true)
+        //check(1_735_521_802, 1_742_174_602, 999, .weekOfYear, wrap: true)
+        check(1_735_521_802, 1_734_917_002, 999, .weekOfMonth, wrap: true)
+        check(1_735_521_802, 1_735_953_802, 999, .weekday, wrap: true)
+
+        check(1_735_521_802, 1_735_521_823, -999, .second, wrap: true)
+        check(1_735_521_802, 1_735_523_062, -999, .minute, wrap: true)
+        check(1_735_521_802, 1_735_554_202, -999, .hour, wrap: true)
+        check(1_735_521_802, 1_734_917_002, -999, .day, wrap: true)
+        check(1_735_521_802, 1_727_659_402, -999, .month, wrap: true)
+        check(1_735_521_802, -29_789_418_998, -999, .year, wrap: true)
+        //check(1_735_521_802, 1_728_869_002, -999, .weekOfYear, wrap: true)
+        check(1_735_521_802, 1_733_102_602, -999, .weekOfMonth, wrap: true)
+        check(1_735_521_802, 1_735_694_602, -999, .weekday, wrap: true)
+    }
+
     func testDateComparison() {
         let calendar = Calendar(identifier: .gregorian)
         let date1 = Date()
         let date2 = calendar.date(byAdding: .day, value: 1, to: date1)!
-        
+
         let comparisonResult = calendar.compare(date1, to: date2, toGranularity: .day)
 #if SKIP
         XCTAssertEqual(comparisonResult,  ComparisonResult.ascending)
@@ -613,16 +746,121 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(comparisonResult,  .orderedAscending)
 #endif
     }
-    
+
+    func dt(_ dateString: String) -> Date? {
+        ISO8601DateFormatter().date(from: dateString)
+    }
+
     func testDateFromComponents() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+
+        var d: Date
+
         var components = DateComponents()
         components.year = 2024
-        components.month = 10
-        components.day = 15
-        
-        let calendar = Calendar(identifier: .gregorian)
-        let date = calendar.date(from: components)
-        XCTAssertNotNil(date)
+        d = calendar.date(from: components)!
+        XCTAssertEqual(dt("2024-01-01T00:00:00Z"), d)
+        XCTAssertEqual(dt("2025-01-01T00:00:00Z"), calendar.date(byAdding: .year, value: 1, to: d))
+        XCTAssertEqual(dt("2024-02-01T00:00:00Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2024-01-02T00:00:00Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2024-01-01T01:00:00Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2024-01-01T00:01:00Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2024-01-01T00:00:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        components.month = 12
+        d = calendar.date(from: components)!
+        XCTAssertEqual(dt("2024-12-01T00:00:00Z"), d)
+        XCTAssertEqual(dt("2025-12-01T00:00:00Z"), calendar.date(byAdding: .year, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T00:00:00Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-02T00:00:00Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-01T01:00:00Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-01T00:01:00Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-01T00:00:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        components.day = 27
+        d = calendar.date(from: components)!
+        XCTAssertEqual(dt("2024-12-27T00:00:00Z"), d)
+        XCTAssertEqual(dt("2024-12-27T00:00:00Z"), calendar.date(byAdding: .second, value: 0, to: d))
+        XCTAssertEqual(dt("2024-12-27T00:00:00Z"), calendar.date(byAdding: .year, value: 0, to: d))
+        XCTAssertEqual(dt("2025-12-27T00:00:00Z"), calendar.date(byAdding: .year, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-27T00:00:00Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-28T00:00:00Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-27T01:00:00Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-27T00:01:00Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-27T00:00:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        components.day = 28
+        d = calendar.date(from: components)!
+        XCTAssertEqual(dt("2024-12-28T00:00:00Z"), d)
+        XCTAssertEqual(dt("2024-12-28T00:00:00Z"), calendar.date(byAdding: .second, value: 0, to: d))
+        XCTAssertEqual(dt("2024-12-28T00:00:00Z"), calendar.date(byAdding: .year, value: 0, to: d))
+        XCTAssertEqual(dt("2024-12-28T00:00:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-29T00:00:00Z"), calendar.date(byAdding: .day, value: 1, to: d)) // 2023-12-31 00:00:00
+        XCTAssertEqual(dt("2025-01-28T00:00:00Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2025-12-28T00:00:00Z"), calendar.date(byAdding: .year, value: 1, to: d)) // 2024-12-29 00:00:00
+        XCTAssertEqual(dt("2025-01-28T00:00:00Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-29T00:00:00Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-28T01:00:00Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-28T00:01:00Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-28T00:00:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        components.day = 29
+        d = calendar.date(from: components)!
+        XCTAssertEqual(dt("2024-12-29T00:00:00Z"), d)
+        XCTAssertEqual(dt("2025-12-29T00:00:00Z"), calendar.date(byAdding: .year, value: 1, to: d)) // 2024-01-02 00:00:00
+        XCTAssertEqual(dt("2025-01-29T00:00:00Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-30T00:00:00Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-29T01:00:00Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-29T00:01:00Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-29T00:00:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        components.day = 31
+        d = calendar.date(from: components)!
+        XCTAssertEqual(dt("2024-12-31T00:00:00Z"), d)
+        XCTAssertEqual(dt("2025-12-31T00:00:00Z"), calendar.date(byAdding: .year, value: 1, to: d)) // 2025-01-02 00:00:00
+        XCTAssertEqual(dt("2025-01-31T00:00:00Z"), calendar.date(byAdding: .month, value: 1, to: d)) // 2024-02-02 00:00:00
+        XCTAssertEqual(dt("2025-01-01T00:00:00Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-31T01:00:00Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-31T00:01:00Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-31T00:00:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        components.hour = 23
+        d = calendar.date(from: components)!
+       XCTAssertEqual(dt("2024-12-31T23:00:00Z"), d)
+        XCTAssertEqual(dt("2025-12-31T23:00:00Z"), calendar.date(byAdding: .year, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-31T23:00:00Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T23:00:00Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T00:00:00Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-31T23:01:00Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-31T23:00:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        components.minute = 59
+        d = calendar.date(from: components)!
+        XCTAssertEqual(dt("2024-12-31T23:59:00Z"), d)
+        XCTAssertEqual(dt("2025-12-31T23:59:00Z"), calendar.date(byAdding: .year, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-31T23:59:00Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T23:59:00Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T00:59:00Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T00:00:00Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2024-12-31T23:59:01Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        components.second = 59
+        d = calendar.date(from: components)!
+        XCTAssertEqual(dt("2024-12-31T23:59:59Z"), d)
+        XCTAssertEqual(dt("2025-12-31T23:59:59Z"), calendar.date(byAdding: .year, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-31T23:59:59Z"), calendar.date(byAdding: .month, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T23:59:59Z"), calendar.date(byAdding: .day, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T00:59:59Z"), calendar.date(byAdding: .hour, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T00:00:59Z"), calendar.date(byAdding: .minute, value: 1, to: d))
+        XCTAssertEqual(dt("2025-01-01T00:00:00Z"), calendar.date(byAdding: .second, value: 1, to: d))
+
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = .gmt
+
+        XCTAssertEqual(dt("2000-01-01T00:00:00Z"), DateComponents(calendar: cal, timeZone: .gmt, year: 2000).date)
+        XCTAssertEqual(dt("1999-12-31T18:15:00Z"), DateComponents(calendar: cal, timeZone: TimeZone(identifier: "Asia/Kathmandu"), year: 2000).date)
+
     }
     
     func testDateByAddingComponents() {
