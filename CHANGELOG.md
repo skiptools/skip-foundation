@@ -1,3 +1,10 @@
+## 1.2.5
+
+Released 2025-01-03
+
+  - Merge pull request #37 from skiptools/timer-fix
+  - Fix repeating timer to fire after interval rather than immediately
+
 ## 1.2.4
 
 Released 2024-12-30
