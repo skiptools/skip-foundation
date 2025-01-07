@@ -18,6 +18,9 @@ public class NumberFormatter: Formatter {
         self.groupingSize = 0
     }
 
+    @available(*, unavailable)
+    override public var formattingContext: Formatter.Context = .unknown
+
     private var _numberStyle: NumberFormatter.Style = .none
 
     public var description: String {

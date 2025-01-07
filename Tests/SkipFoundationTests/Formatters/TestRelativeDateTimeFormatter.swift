@@ -109,6 +109,22 @@ class TestRelativeDateTimeFormatter: XCTestCase {
         XCTAssertEqual(formatter.string(for: Date(timeIntervalSinceNow: 0)), "now")
     }
 
+    func test_formattingContext() {
+        formatter.dateTimeStyle = .named
+        formatter.formattingContext = .beginningOfSentence
+        XCTAssertEqual(formatter.localizedString(fromTimeInterval: 0), "Now")
+        formatter.formattingContext = .listItem
+        XCTAssertEqual(formatter.localizedString(fromTimeInterval: 0), "now")
+//        formatter.formattingContext = .dynamic
+//        XCTAssertEqual(formatter.attributedString(for: Date.now, withDefaultAttributes: nil), NSAttributedString("now"))
+        formatter.formattingContext = .middleOfSentence
+        XCTAssertEqual(formatter.localizedString(fromTimeInterval: 0), "now")
+        formatter.formattingContext = .standalone
+        XCTAssertEqual(formatter.localizedString(fromTimeInterval: 0), "now")
+        formatter.formattingContext = .unknown
+        XCTAssertEqual(formatter.localizedString(fromTimeInterval: 0), "now")
+    }
+
     func test_numericFull() {
         formatter.dateTimeStyle = .numeric
         formatter.unitsStyle = .full

@@ -48,13 +48,19 @@ public class RelativeDateTimeFormatter: Formatter {
         }
     }
 
+    override public var formattingContext: Formatter.Context {
+        didSet {
+            updatePlatformValue()
+        }
+    }
+
     public init () {
         locale = .current
     }
 
     private func updatePlatformValue() {
         let ulocale = locale != nil ? android.icu.util.ULocale.forLocale(locale!.platformValue) : android.icu.util.ULocale.getDefault()
-        platformValue = android.icu.text.RelativeDateTimeFormatter.getInstance(ulocale, nil, relativeDateTimeFormatterStyle, android.icu.text.DisplayContext.CAPITALIZATION_FOR_MIDDLE_OF_SENTENCE)
+        platformValue = android.icu.text.RelativeDateTimeFormatter.getInstance(ulocale, nil, relativeDateTimeFormatterStyle, formattingContext.capitalization)
     }
 
     public func localizedString(from dateComponents: DateComponents) -> String {
