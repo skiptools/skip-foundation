@@ -203,11 +203,13 @@ class TestRelativeDateTimeFormatter: XCTestCase {
         }
     }
 
-    @available(macOS 15, iOS 18, watchOS 11, tvOS 18, *)
     func test_namedAbbreviated() {
         #if SKIP
         throw XCTSkip("TODO")
         #else
+        if !#available(macOS 15, iOS 18, watchOS 11, tvOS 18, *) { 
+            throw XCTSkip("Expected formats presume macOS 15+/iOS 18+ conventions")
+        }
         formatter.dateTimeStyle = .named
         formatter.unitsStyle = .abbreviated
         for (_, _, namedAbbreviated, dateComponents, timeInterval) in customFormatting {
