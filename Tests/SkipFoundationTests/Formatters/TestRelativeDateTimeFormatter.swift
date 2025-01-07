@@ -203,30 +203,40 @@ class TestRelativeDateTimeFormatter: XCTestCase {
         }
     }
 
+    private func platformAbbreviatedOutputFormat(abbreviated: String, short: String) -> String {
+        #if !SKIP
+        if #available(macOS 15, iOS 18, watchOS 11, tvOS 18, *) {
+            return abbreviated
+        }
+        #endif
+        return short
+    }
+
     func test_namedAbbreviated() {
         #if SKIP
         throw XCTSkip("TODO")
         #else
-        if !#available(macOS 15, iOS 18, watchOS 11, tvOS 18, *) { 
-            throw XCTSkip("Expected formats presume macOS 15+/iOS 18+ conventions")
-        }
         formatter.dateTimeStyle = .named
         formatter.unitsStyle = .abbreviated
-        for (_, _, namedAbbreviated, dateComponents, timeInterval) in customFormatting {
+        for (_, namedShort, namedAbbreviated, dateComponents, timeInterval) in customFormatting {
+            let namedAbbreviated = platformAbbreviatedOutputFormat(abbreviated: namedAbbreviated, short: namedShort)
             XCTAssertEqual(formatter.localizedString(fromTimeInterval: timeInterval), namedAbbreviated)
             XCTAssertEqual(formatter.localizedString(from: dateComponents), namedAbbreviated)
         }
-        for (_, _, namedAbbreviated, dateComponents, _) in customDateComponents {
+        for (_, namedShort, namedAbbreviated, dateComponents, _) in customDateComponents {
+            let namedAbbreviated = platformAbbreviatedOutputFormat(abbreviated: namedAbbreviated, short: namedShort)
             XCTAssertEqual(formatter.localizedString(from: dateComponents), namedAbbreviated)
         }
         for direction in [-1, 1] {
-            for (_, _, namedAbbreviated, dateComponents, timeInterval) in reversableRelativeTimes {
-                let (timeInterval, dateComponents, namedAbbreviated) = applyReversable(interval: timeInterval, components: dateComponents, direction: direction, formatString: namedAbbreviated)
+            for (_, namedShort, _namedAbbreviated, dateComponents, timeInterval) in reversableRelativeTimes {
+                let _namedAbbreviated = platformAbbreviatedOutputFormat(abbreviated: _namedAbbreviated, short: namedShort)
+                let (timeInterval, dateComponents, namedAbbreviated) = applyReversable(interval: timeInterval, components: dateComponents, direction: direction, formatString: _namedAbbreviated)
                 XCTAssertEqual(formatter.localizedString(fromTimeInterval: timeInterval), namedAbbreviated)
                 XCTAssertEqual(formatter.localizedString(from: dateComponents), namedAbbreviated)
             }
-            for (_, _, namedAbbreviated, dateComponents, timeInterval) in reversableDateComponents {
-                let (_, dateComponents, namedAbbreviated) = applyReversable(interval: timeInterval, components: dateComponents, direction: direction, formatString: namedAbbreviated)
+            for (_, namedShort, _namedAbbreviated, dateComponents, timeInterval) in reversableDateComponents {
+                let _namedAbbreviated = platformAbbreviatedOutputFormat(abbreviated: _namedAbbreviated, short: namedShort)
+                let (_, dateComponents, namedAbbreviated) = applyReversable(interval: timeInterval, components: dateComponents, direction: direction, formatString: _namedAbbreviated)
                 XCTAssertEqual(formatter.localizedString(from: dateComponents), namedAbbreviated)
             }
         }
