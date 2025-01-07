@@ -203,6 +203,7 @@ class TestRelativeDateTimeFormatter: XCTestCase {
         }
     }
 
+    @available(macOS 15, iOS 18, watchOS 11, tvOS 18, *)
     func test_namedAbbreviated() {
         #if SKIP
         throw XCTSkip("TODO")
