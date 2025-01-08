@@ -205,7 +205,7 @@ class TestRelativeDateTimeFormatter: XCTestCase {
 
     private func platformAbbreviatedOutputFormat(abbreviated: String, short: String) -> String {
         #if !SKIP
-        if #available(macOS 15, iOS 18, watchOS 11, tvOS 18, *) {
+        if #available(macOS 14, iOS 17, watchOS 10, tvOS 17, *) {
             return abbreviated
         }
         #endif
