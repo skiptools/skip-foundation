@@ -1,3 +1,15 @@
+## 1.2.6
+
+Released 2025-01-07
+
+  - Merge pull request #38 from ky-is/add-relativedatetimeformatter
+  - Fix abbreviated supported first platform version
+  - Detect abbreviated output format based on platform
+  - Update TestRelativeDateTimeFormatter.swift
+  - Disable abbreviated style on OS versions with old behavior
+  - Add Formatter.Context
+  - Add RelativeDateTimeFormatter
+
 ## 1.2.5
 
 Released 2025-01-03
