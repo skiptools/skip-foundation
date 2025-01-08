@@ -36,13 +36,41 @@ public class Formatter {
         return false
     }
 
-    @available(*, unavailable)
-    public var formattingContext: Any {
-        fatalError()
-    }
+    public var formattingContext: Formatter.Context = .unknown
 
     @available(*, unavailable)
     public func getObjectValue(_ obj: Any?, for string: String, range rangep: Any?, unusedp: Nothing? = nil) throws {
+    }
+}
+
+extension Formatter {
+    public enum Context: Int {
+        case unknown = 0
+        @available(*, unavailable)
+        case dynamic = 1
+        case standalone = 2
+        case listItem = 3
+        case beginningOfSentence = 4
+        case middleOfSentence = 5
+
+        internal var capitalization: android.icu.text.DisplayContext {
+            switch self {
+            case .beginningOfSentence:
+                android.icu.text.DisplayContext.CAPITALIZATION_FOR_BEGINNING_OF_SENTENCE
+//            case .dynamic:
+//                android.icu.text.DisplayContext.CAPITALIZATION_NONE
+            case .listItem:
+                android.icu.text.DisplayContext.CAPITALIZATION_FOR_UI_LIST_OR_MENU
+            case .middleOfSentence:
+                android.icu.text.DisplayContext.CAPITALIZATION_FOR_MIDDLE_OF_SENTENCE
+            case .standalone:
+                android.icu.text.DisplayContext.CAPITALIZATION_FOR_STANDALONE
+            case .unknown:
+                android.icu.text.DisplayContext.CAPITALIZATION_NONE
+            default:
+                android.icu.text.DisplayContext.CAPITALIZATION_NONE
+            }
+        }
     }
 }
 

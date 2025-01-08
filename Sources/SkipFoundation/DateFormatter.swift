@@ -93,6 +93,9 @@ public class DateFormatter: Formatter {
         }
     }
 
+    @available(*, unavailable)
+    override public var formattingContext: Formatter.Context = .unknown
+
     internal init(platformValue: java.text.DateFormat) {
         _platformValue = platformValue
         isLenient = platformValue.isLenient
