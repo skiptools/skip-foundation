@@ -95,6 +95,28 @@
         }
       }
     },
+    "lower-case" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UPPER-CASE"
+          }
+        }
+      }
+    },
+    "lower-case %@ string" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UPPER-CASE %@ STRING"
+          }
+        }
+      }
+    },
     "Multi-Line String!\nWith some \"quoted\" text." : {
       "extractionState" : "manual",
       "localizations" : {
