@@ -7,15 +7,25 @@
 #if SKIP
 
 public final class LocalizedStringResource: Hashable {
-    public let key: String
-    public let defaultValue: String? // TODO: String.LocalizationValue
-    public let table: String?
-    public var locale: Locale?
-    public var bundle: BundleDescription?
-    public var comment: String?
+    public let keyAndValue: String.LocalizationValue
+    public var defaultValue: String.LocalizationValue? = nil
+    public var table: String? = nil
+    public var locale: Locale? = nil
+    public var bundle: BundleDescription? = nil
+    public var comment: String? = nil
 
-    public init(_ key: String, defaultValue: String? = nil, table: String? = nil, locale: Locale? = nil, bundle: BundleDescription? = nil, comment: String? = nil) {
-        self.key = key
+    /// The raw string used to create the keyAndValue `String.LocalizationValue`
+    public var key: String {
+        keyAndValue.patternFormat
+    }
+
+    public init(stringLiteral: String) {
+        self.keyAndValue = String.LocalizationValue(stringLiteral)
+        self.bundle = .main
+    }
+
+    public init(_ keyAndValue: String.LocalizationValue, defaultValue: String.LocalizationValue? = nil, table: String? = nil, locale: Locale? = nil, bundle: BundleDescription? = nil, comment: String? = nil) {
+        self.keyAndValue = keyAndValue
         self.defaultValue = defaultValue
         self.table = table
         self.locale = locale
@@ -24,7 +34,7 @@ public final class LocalizedStringResource: Hashable {
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.key == rhs.key
+        lhs.keyAndValue == rhs.keyAndValue
         && lhs.defaultValue == rhs.defaultValue
         && lhs.table == rhs.table
         && lhs.locale == rhs.locale
@@ -33,7 +43,7 @@ public final class LocalizedStringResource: Hashable {
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(key.hashCode())
+        hasher.combine(keyAndValue.hashCode())
         if let defaultValue = defaultValue {
             hasher.combine(defaultValue.hashCode())
         }
@@ -62,6 +72,10 @@ public final class LocalizedStringResource: Hashable {
             case .forClass(let c): return "bundle: \(c)"
             case .atURL(let url): return "bundle: \(url)"
             }
+        }
+
+        public var bundle: Bundle {
+            Bundle(location: self)
         }
     }
 }

@@ -174,13 +174,21 @@ public func String(contentsOf: URL, encoding: StringEncoding) throws -> String {
     return java.lang.String(Data(contentsOf: contentsOf).platformValue, encoding.rawValue) as kotlin.String
 }
 
-/// e.g.: `String(localized: "Done", table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil)`
-public func String(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil) -> String {
+private func localizationValue(keyAndValue: String.LocalizationValue, bundle: Bundle, defaultValue: String?, tableName: String?) -> String {
     let key = keyAndValue.patternFormat // interpolated string: "Hello \(name)" keyed as: "Hello %@"
-    let (_, locfmt, _) = bundle?.localizedInfo(forKey: key, value: nil, table: table) ?? Triple("", key.kotlinFormatString, nil)
+    let (_, locfmt, _) = bundle.localizedInfo(forKey: key, value: defaultValue, table: tableName)
     // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
     let replaced = locfmt.format(*keyAndValue.stringInterpolation.values.toTypedArray())
     return replaced
+}
+
+public func String(localized resource: LocalizedStringResource) -> String {
+    localizationValue(keyAndValue: resource.keyAndValue, bundle: resource.bundle?.bundle ?? Bundle.main, defaultValue: resource.defaultValue?.patternFormat.kotlinFormatString, tableName: resource.table)
+}
+
+/// e.g.: `String(localized: "Done", table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil)`
+public func String(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil) -> String {
+    localizationValue(keyAndValue: keyAndValue, bundle: bundle ?? Bundle.main, defaultValue: nil, tableName: table)
 }
 
 public func String(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) -> String {

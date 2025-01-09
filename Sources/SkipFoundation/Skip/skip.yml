@@ -21,7 +21,7 @@ build:
       contents:
         - 'implementation(platform("com.squareup.okhttp3:okhttp-bom:4.12.0"))'
         - 'implementation("com.squareup.okhttp3:okhttp")'
-        - 'implementation("org.commonmark:commonmark:0.23.0")'
-        - 'implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.23.0")'
+        - 'implementation("org.commonmark:commonmark:0.24.0")'
+        - 'implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.24.0")'
         # needed to run local tests that use the JSON parser with a full Robolectric shadow environment
         - 'testImplementation(testLibs.json)'

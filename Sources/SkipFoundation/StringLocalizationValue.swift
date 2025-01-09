@@ -8,6 +8,7 @@
 extension String {
     public typealias LocalizationValue = StringLocalizationValue
 }
+#endif
 
 public struct StringLocalizationValue : ExpressibleByStringInterpolation {
     /// A type that represents a string literal.
@@ -15,7 +16,7 @@ public struct StringLocalizationValue : ExpressibleByStringInterpolation {
     /// Valid types for `StringLiteralType` are `String` and `StaticString`.
     public typealias StringLiteralType = String
 
-    fileprivate var stringInterpolation: StringLocalizationValue.StringInterpolation
+    public let stringInterpolation: StringLocalizationValue.StringInterpolation
 
     public init(_ value: String) { 
         var interp = StringLocalizationValue.StringInterpolation(literalCapacity: 0, interpolationCount: 0)
@@ -44,8 +45,11 @@ public struct StringLocalizationValue : ExpressibleByStringInterpolation {
         /// The type that should be used for literal segments.
         public typealias StringLiteralType = String
 
-        let values: MutableList<Any> = mutableListOf()
-        var pattern = ""
+        #if SKIP
+        // public so it can be accessed from SkipUI
+        public let values: MutableList<AnyHashable> = mutableListOf()
+        #endif
+        public var pattern = ""
 
         public init(literalCapacity: Int, interpolationCount: Int) {
         }
@@ -126,5 +130,3 @@ public struct StringLocalizationValue : ExpressibleByStringInterpolation {
         }
     }
 }
-
-#endif
