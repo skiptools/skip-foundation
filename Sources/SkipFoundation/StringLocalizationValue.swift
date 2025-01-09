@@ -55,8 +55,10 @@ public struct StringLocalizationValue : ExpressibleByStringInterpolation {
         }
 
         public mutating func appendLiteral(_ literal: String) {
+            #if SKIP
             // need to escape out Java-specific format marker
             pattern += literal.replacingOccurrences(of: "%", with: "%%")
+            #endif
         }
 
         public mutating func appendInterpolation(_ string: String) {
