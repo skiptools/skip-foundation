@@ -757,6 +757,11 @@ final class LocaleTests: XCTestCase {
     }
 
     func testLocalizedStringResource() throws {
+        if isMacOS && !isJava {
+            // note that this *does* work when running from Xcode but not SwiftPM; always works on iOS some tests needs to be run through the Xcode toolchain
+            throw XCTSkip("does not work when run from SwiftPM because the Localizable.xcstrings file is not converted to strings")
+        }
+
         XCTAssertEqual("XYZ", String(localized: LocalizedStringResource(stringLiteral: "XYZ")))
         XCTAssertEqual("ABC", String(localized: LocalizedStringResource(String.LocalizationValue("ABC"), table: nil, locale: Locale.current, bundle: LocalizedStringResource.BundleDescription.main, comment: nil)))
         XCTAssertEqual("LMN", String(localized: LocalizedStringResource("QRS", defaultValue: String.LocalizationValue("LMN"), table: nil, locale: Locale(identifier: "fr"), bundle: LocalizedStringResource.BundleDescription.main, comment: "comment")))
