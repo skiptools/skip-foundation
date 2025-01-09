@@ -1,3 +1,9 @@
+## 1.2.7
+
+Released 2025-01-09
+
+  - Add LocalizedStringResource (#39)
+
 ## 1.2.6
 
 Released 2025-01-07
