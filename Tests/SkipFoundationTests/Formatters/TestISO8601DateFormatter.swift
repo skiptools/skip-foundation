@@ -19,17 +19,11 @@ import XCTest
 //
 
 class TestISO8601DateFormatter: XCTestCase {
-    
-
-    // difference in Foundation and Java week formatting: Java is offset by 1
-    // difference in handling of fractional seconds between Java and Foundation
-    #if SKIP
-    let wk = "W41"
-    let fs = "713"
-    #else
-    let wk = "W40"
-    let fs = "071"
-    #endif
+    // Difference in Foundation and Robolectric Java week formatting: Java is offset by 1
+    // Difference in handling of fractional seconds between Robolectric Java and Foundation
+    // Note that Android is correct for fractional seconds, whereas the local Java used by Robolectric is wrong
+    let wk = isJava ? "W41" : "W40"
+    let fs = isRobolectric ? "713" : "071"
 
     func test_stringFromDate() {
         let formatter = DateFormatter()
@@ -128,7 +122,13 @@ class TestISO8601DateFormatter: XCTestCase {
          The following tests cover various cases when changing the .formatOptions property with a different TimeZone set.
          */
 
-        isoFormatter.timeZone = TimeZone(identifier: "PST")
+        // was "PST", but that is considered legacy, and returns GMT on Android (although it works in Robolectric)
+        guard let pstTimeZone = TimeZone(identifier: "America/Los_Angeles") else {
+            XCTFail("Failed to create instance of TimeZone using PST identifier")
+            return
+        }
+
+        isoFormatter.timeZone = pstTimeZone
 
         isoFormatter.formatOptions = [.withInternetDateTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08T15:31:00-07:00")
@@ -282,7 +282,8 @@ class TestISO8601DateFormatter: XCTestCase {
          The following tests cover various cases when changing the .formatOptions property with a different TimeZone set.
          */
 
-        guard let pstTimeZone = TimeZone(identifier: "PST") else {
+        // was "PST", but that is considered legacy, and returns GMT on Android (although it works in Robolectric)
+        guard let pstTimeZone = TimeZone(identifier: "America/Los_Angeles") else {
             XCTFail("Failed to create instance of TimeZone using PST identifier")
             return
         }

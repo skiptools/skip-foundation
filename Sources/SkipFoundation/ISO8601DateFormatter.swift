@@ -98,6 +98,7 @@ public class ISO8601DateFormatter : DateFormatter {
             if parse {
                 builder.appendPattern("[XXX][XX][X]")
             } else {
+                //builder.appendPattern(withColon ? "XXX" : "XX") // same as below
                 builder.appendOffset(withColon ? "+HH:MM" : "+HHMM", "Z")
             }
         }
