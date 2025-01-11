@@ -191,6 +191,26 @@ class TestISO8601DateFormatter: XCTestCase {
 
         result = f.date(from: "12345")
         XCTAssertNil(result)
+
+
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        result = f.date(from: "2025-01-11T15:30:24.390+00:00")
+        XCTAssertNotNil(result)
+        if let stringResult = result?.description {
+            XCTAssertEqual(stringResult, "2025-01-11 15:30:24 +0000")
+        }
+
+        result = f.date(from: "2025-01-11T15:30:24.1+00:00")
+        XCTAssertNotNil(result)
+        if let stringResult = result?.description {
+            XCTAssertEqual(stringResult, "2025-01-11 15:30:24 +0000")
+        }
+
+        result = f.date(from: "2025-01-11T15:30:24.390858+00:00")
+        XCTAssertNotNil(result)
+        if let stringResult = result?.description {
+            XCTAssertEqual(stringResult, "2025-01-11 15:30:24 +0000")
+        }
     }
 
 
