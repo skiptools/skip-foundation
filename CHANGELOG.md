@@ -1,3 +1,9 @@
+## 1.2.9
+
+Released 2025-01-11
+
+  - Support ISO8601.Options for parsing and formatting (#40)
+
 ## 1.2.8
 
 Released 2025-01-09
