@@ -1,3 +1,9 @@
+## 1.2.10
+
+Released 2025-01-11
+
+  - Support JSON encoding/decoding of Decimal (#41)
+
 ## 1.2.9
 
 Released 2025-01-11
