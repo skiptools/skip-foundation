@@ -20,6 +20,17 @@ import XCTest
 
 class TestISO8601DateFormatter: XCTestCase {
     
+
+    // difference in Foundation and Java week formatting: Java is offset by 1
+    // difference in handling of fractional seconds between Java and Foundation
+    #if SKIP
+    let wk = "W41"
+    let fs = "713"
+    #else
+    let wk = "W40"
+    let fs = "071"
+    #endif
+
     func test_stringFromDate() {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm:ss.SSSS zzz"
@@ -37,85 +48,81 @@ class TestISO8601DateFormatter: XCTestCase {
         /*
          The following tests cover various cases when changing the .formatOptions property.
          */
-//        isoFormatter.formatOptions = ISO8601DateFormatter.Options.withInternetDateTime
+        isoFormatter.formatOptions = ISO8601DateFormatter.Options.withInternetDateTime
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08T22:31:00Z")
-
-        #if SKIP
-        throw XCTSkip("SKIP TODO: test_stringFromDate")
-        #else
 
         isoFormatter.formatOptions = [ISO8601DateFormatter.Options.withInternetDateTime, ISO8601DateFormatter.Options.withSpaceBetweenDateAndTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08 22:31:00Z")
 
         isoFormatter.formatOptions = ISO8601DateFormatter.Options.withFullTime
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "22:31:00Z")
-        
+
         isoFormatter.formatOptions = [ISO8601DateFormatter.Options.withFullTime, ISO8601DateFormatter.Options.withFractionalSeconds]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "22:31:00.071Z")
-        
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "22:31:00.\(fs)Z")
+
         isoFormatter.formatOptions = ISO8601DateFormatter.Options.withFullDate
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08")
-        
+
         isoFormatter.formatOptions = [ISO8601DateFormatter.Options.withFullTime, ISO8601DateFormatter.Options.withFullDate]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08T22:31:00Z")
-        
+
         isoFormatter.formatOptions = [ISO8601DateFormatter.Options.withFullTime, ISO8601DateFormatter.Options.withFullDate, ISO8601DateFormatter.Options.withSpaceBetweenDateAndTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08 22:31:00Z")
-        
+
         isoFormatter.formatOptions = [.withFullTime, .withFullDate, .withSpaceBetweenDateAndTime, .withFractionalSeconds]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08 22:31:00.071Z")
-        
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08 22:31:00.\(fs)Z")
+
         isoFormatter.formatOptions = [.withDay, .withTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "282T223100")
-        
+
         isoFormatter.formatOptions = [.withDay, .withTime, .withFractionalSeconds]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "282T223100.071")
-        
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "282T223100.\(fs)")
+
         isoFormatter.formatOptions = [.withWeekOfYear, .withTime]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "W40T223100")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "\(wk)T223100")
 
         isoFormatter.formatOptions = [.withMonth, .withTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "10T223100")
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withTime]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "W4006T223100")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "\(wk)06T223100")
 
         isoFormatter.formatOptions = [.withDay, .withMonth, .withTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "1008T223100")
 
         isoFormatter.formatOptions = [.withWeekOfYear, .withMonth, .withTime]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W40T223100")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10\(wk)T223100")
 
         isoFormatter.formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W40T22:31:00")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10\(wk)T22:31:00")
 
         isoFormatter.formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime, .withSpaceBetweenDateAndTime]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W40 22:31:00")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10\(wk) 22:31:00")
 
         isoFormatter.formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime, .withSpaceBetweenDateAndTime, .withDashSeparatorInDate]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40 22:31:00")
-        
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-\(wk) 22:31:00")
+
         isoFormatter.formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime, .withSpaceBetweenDateAndTime, .withDashSeparatorInDate, .withFractionalSeconds]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40 22:31:00.071")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-\(wk) 22:31:00.\(fs)")
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "W4006")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "\(wk)06")
 
         isoFormatter.formatOptions = [.withDay, .withMonth]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "1008")
 
         isoFormatter.formatOptions = [.withWeekOfYear, .withMonth]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W40")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10\(wk)")
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withMonth]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W4006")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10\(wk)06")
 
         // .withFractionalSeconds should be ignored if neither .withTime or .withFullTime are specified
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withFractionalSeconds]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W4006")
-        
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10\(wk)06")
+
         isoFormatter.formatOptions = [.withMonth, .withDay, .withWeekOfYear, .withDashSeparatorInDate]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40-06")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-\(wk)-06")
 
         /*
          The following tests cover various cases when changing the .formatOptions property with a different TimeZone set.
@@ -125,7 +132,7 @@ class TestISO8601DateFormatter: XCTestCase {
 
         isoFormatter.formatOptions = [.withInternetDateTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08T15:31:00-07:00")
-        
+
         isoFormatter.formatOptions = [.withTime, .withTimeZone]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "153100-0700")
 
@@ -133,19 +140,19 @@ class TestISO8601DateFormatter: XCTestCase {
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "282-0700")
 
         isoFormatter.formatOptions = [.withWeekOfYear, .withTimeZone]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "W40-0700")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "\(wk)-0700")
 
         isoFormatter.formatOptions = [.withMonth, .withTimeZone]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-0700")
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withTimeZone]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "W4006-0700")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "\(wk)06-0700")
 
         isoFormatter.formatOptions = [.withDay, .withMonth, .withTimeZone]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "1008-0700")
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withTimeZone]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W4006-0700")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10\(wk)06-0700")
 
         isoFormatter.formatOptions = [.withFullDate, .withTimeZone]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08-0700")
@@ -154,20 +161,15 @@ class TestISO8601DateFormatter: XCTestCase {
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "15:31:00-07:00")
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withTimeZone, .withColonSeparatorInTimeZone]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W4006-07:00")
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10\(wk)06-07:00")
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withTimeZone, .withColonSeparatorInTimeZone, .withDashSeparatorInDate]
-        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40-06-07:00")
-        #endif // !SKIP
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-\(wk)-06-07:00")
     }
-    
-    
-    
+
+
+
     func test_dateFromString() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        
         let f = ISO8601DateFormatter()
         var result = f.date(from: "2016-10-08T00:00:00Z")
         XCTAssertNotNil(result)
@@ -180,7 +182,7 @@ class TestISO8601DateFormatter: XCTestCase {
         if let stringResult = result?.description {
             XCTAssertEqual(stringResult, "2016-10-07 18:00:00 +0000")
         }
-        
+
         result = f.date(from: "2016-10-08T00:00:00-0600")
         XCTAssertNotNil(result)
         if let stringResult = result?.description {
@@ -189,17 +191,11 @@ class TestISO8601DateFormatter: XCTestCase {
 
         result = f.date(from: "12345")
         XCTAssertNil(result)
-
-        #endif // !SKIP
     }
-    
-    
-    
+
+
+
     func test_stringFromDateClass() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
-        
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm zzz"
         let dateString = "2016/10/08 22:31 GMT"
@@ -244,43 +240,43 @@ class TestISO8601DateFormatter: XCTestCase {
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "282T223100")
 
         formatOptions = [.withWeekOfYear, .withTime]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "W40T223100")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "\(wk)T223100")
 
         formatOptions = [.withMonth, .withTime]
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10T223100")
 
         formatOptions = [.withDay, .withWeekOfYear, .withTime]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "W4006T223100")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "\(wk)06T223100")
 
         formatOptions = [.withDay, .withMonth, .withTime]
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "1008T223100")
 
         formatOptions = [.withWeekOfYear, .withMonth, .withTime]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10W40T223100")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10\(wk)T223100")
 
         formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10W40T22:31:00")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10\(wk)T22:31:00")
 
         formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime, .withSpaceBetweenDateAndTime]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10W40 22:31:00")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10\(wk) 22:31:00")
 
         formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime, .withSpaceBetweenDateAndTime, .withDashSeparatorInDate]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10-W40 22:31:00")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10-\(wk) 22:31:00")
 
         formatOptions = [.withDay, .withWeekOfYear]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "W4006")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "\(wk)06")
 
         formatOptions = [.withDay, .withMonth]
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "1008")
 
         formatOptions = [.withWeekOfYear, .withMonth]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10W40")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10\(wk)")
 
         formatOptions = [.withDay, .withWeekOfYear, .withMonth]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10W4006")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10\(wk)06")
 
         formatOptions = [.withMonth, .withDay, .withWeekOfYear, .withDashSeparatorInDate]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10-W40-06")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10-\(wk)-06")
 
         /*
          The following tests cover various cases when changing the .formatOptions property with a different TimeZone set.
@@ -301,19 +297,19 @@ class TestISO8601DateFormatter: XCTestCase {
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "282-0700")
 
         formatOptions = [.withWeekOfYear, .withTimeZone]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "W40-0700")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "\(wk)-0700")
 
         formatOptions = [.withMonth, .withTimeZone]
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "10-0700")
 
         formatOptions = [.withDay, .withWeekOfYear, .withTimeZone]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "W4006-0700")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "\(wk)06-0700")
 
         formatOptions = [.withDay, .withMonth, .withTimeZone]
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "1008-0700")
 
         formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withTimeZone]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "10W4006-0700")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "10\(wk)06-0700")
 
         formatOptions = [.withFullDate, .withTimeZone]
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "2016-10-08-0700")
@@ -322,11 +318,10 @@ class TestISO8601DateFormatter: XCTestCase {
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "15:31:00-07:00")
 
         formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withTimeZone, .withColonSeparatorInTimeZone]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "10W4006-07:00")
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "10\(wk)06-07:00")
 
         formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withTimeZone, .withColonSeparatorInTimeZone, .withDashSeparatorInDate]
-        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "10-W40-06-07:00")
-        #endif // !SKIP
+        XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "10-\(wk)-06-07:00")
     }
 
     #if !SKIP
