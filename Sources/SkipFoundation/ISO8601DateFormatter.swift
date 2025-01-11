@@ -15,13 +15,24 @@ import java.time.temporal.ChronoField
 import java.time.temporal.TemporalAccessor
 
 public class ISO8601DateFormatter : DateFormatter {
+    private var dateParser: DateTimeFormatter
+    private var dateFormatter: DateTimeFormatter
+
     public override init() {
         super.init()
         self.formatOptions = .withInternetDateTime
         self.timeZone = TimeZone(identifier: "UTC")
+        self.dateParser = buildDateFormatter(parse: true)
+        self.dateFormatter = buildDateFormatter(parse: false)
     }
 
-    public var formatOptions: Options = Options(rawValue: UInt(0))
+    public var formatOptions: Options = Options(rawValue: UInt(0)) {
+        didSet {
+            // re-build the parser and formatter whenever the formatting options change
+            self.dateParser = buildDateFormatter(parse: true)
+            self.dateFormatter = buildDateFormatter(parse: false)
+        }
+    }
 
     private func buildDateFormatter(parse: Bool) -> DateTimeFormatter {
         var builder = DateTimeFormatterBuilder()
@@ -74,11 +85,7 @@ public class ISO8601DateFormatter : DateFormatter {
         let hasTime = withTime || withInternetDateTime || formatOptions.contains(.withFullTime)
         if hasTime {
             if hasDate {
-                if formatOptions.contains(.withSpaceBetweenDateAndTime) {
-                    builder.appendLiteral(" ")
-                } else {
-                    builder.appendLiteral("T")
-                }
+                builder.appendLiteral(formatOptions.contains(.withSpaceBetweenDateAndTime) ? " " : "T")
             }
 
             let withColon = formatOptions.contains(.withColonSeparatorInTime)
@@ -89,7 +96,8 @@ public class ISO8601DateFormatter : DateFormatter {
             builder.appendValue(ChronoField.SECOND_OF_MINUTE, 2)
 
             if formatOptions.contains(.withFractionalSeconds) {
-                builder.appendFraction(ChronoField.NANO_OF_SECOND, 0, 3, true);
+                // fractions are formatted to 3 digits, but are parsed at any length
+                builder.appendFraction(ChronoField.NANO_OF_SECOND, 0, parse ? 9 : 3, true)
             }
         }
 
@@ -107,9 +115,9 @@ public class ISO8601DateFormatter : DateFormatter {
     }
 
     public override func date(from string: String) -> Date? {
-        // TODO: return nil for exceptions, like: java.time.format.DateTimeParseException: Text '2016-10-08T00:00:00+0600' could not be parsed, unparsed text found at index 22
+        // return nil for exceptions, like: java.time.format.DateTimeParseException: Text '2016-10-08T00:00:00+0600' could not be parsed, unparsed text found at index 22
         do {
-            if let accessor: TemporalAccessor = buildDateFormatter(parse: true).parse(string),
+            if let accessor: TemporalAccessor = dateParser.parse(string),
                let date = java.util.Date.from(Instant.from(accessor)) {
                 return Date(platformValue: date)
             } else {
@@ -123,7 +131,7 @@ public class ISO8601DateFormatter : DateFormatter {
     }
 
     public override func string(from date: Date) -> String {
-        return buildDateFormatter(parse: false).format(date.platformValue.toInstant().atZone(timeZone?.platformValue.toZoneId()))
+        return dateFormatter.format(date.platformValue.toInstant().atZone(timeZone?.platformValue.toZoneId()))
     }
 
     public override func string(for obj: Any?) -> String? {

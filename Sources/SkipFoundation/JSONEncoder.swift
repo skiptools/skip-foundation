@@ -352,6 +352,8 @@ extension JSONEncoderImpl: _SpecialTreatmentEncoder {
             return try self.wrapData(data, for: nil)
         case let url as URL:
             return .string(url.absoluteString)
+        case let decimal as Decimal:
+            return .number(decimal.toPlainString())
         default:
             try encodable.encode(to: self)
             return self.value ?? .object([:])
@@ -385,6 +387,8 @@ extension _SpecialTreatmentEncoder {
             return try self.wrapData(data, for: additionalKey)
         case let url as URL:
             return .string(url.absoluteString)
+        case let decimal as Decimal:
+            return .number(decimal.toPlainString())
         default:
             let encoder = self.getEncoder(for: additionalKey)
             // SKIP REPLACE: (encodable as Encodable).encode(encoder)

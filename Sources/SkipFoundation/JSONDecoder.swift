@@ -222,6 +222,9 @@ private struct JSONDecoderImpl: Decoder {
         if type == URL.self {
             return try self.unwrapURL() as! T
         }
+        if type == Decimal.self {
+            return try self.unwrapDecimal() as! T
+        }
 
         /* SKIP INSERT:
         val decodableCompanion = type.companionObjectInstance as? DecodableCompanion<*>
@@ -230,6 +233,17 @@ private struct JSONDecoderImpl: Decoder {
         }
         */
         throw createTypeMismatchError(type: Decodable.self, value: self.json)
+    }
+
+    private func unwrapDecimal() throws -> Decimal {
+        let container = JSONSingleValueDecodingContainer(impl: self, codingPath: self.codingPath, json: self.json)
+        do {
+            let string = try container.decode(String.self)
+            return Decimal(string)
+        } catch {
+            let double = try container.decode(Double.self)
+            return Decimal(double)
+        }
     }
 
     private func unwrapDate() throws -> Date {

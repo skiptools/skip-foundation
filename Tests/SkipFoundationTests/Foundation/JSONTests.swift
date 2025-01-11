@@ -31,6 +31,10 @@ class TestJSON : XCTestCase {
         var doubleField: Double
     }
 
+    struct DecimalField : Equatable, Codable {
+        var decimalField: Decimal
+    }
+
     struct DataField : Equatable, Codable {
         var dataField: Data
     }
@@ -225,7 +229,7 @@ class TestJSON : XCTestCase {
     }
 
     /// Round-trip a type
-    @inline(__always) private func roundtrip<T>(value: T, fmt: JSONEncoder.OutputFormatting? = .sortedKeys, data: JSONEncoder.DataEncodingStrategy? = nil, date: JSONEncoder.DateEncodingStrategy? = nil, floats: JSONEncoder.NonConformingFloatEncodingStrategy? = nil, keys: JSONEncoder.KeyEncodingStrategy? = nil, dkeys: JSONDecoder.KeyDecodingStrategy? = nil) throws -> String where T : Encodable, T : Decodable, T : Equatable {
+    @inline(__always) private func roundtrip<T>(value: T, fmt: JSONEncoder.OutputFormatting? = .sortedKeys, data: JSONEncoder.DataEncodingStrategy? = nil, date: JSONEncoder.DateEncodingStrategy? = nil, floats: JSONEncoder.NonConformingFloatEncodingStrategy? = nil, keys: JSONEncoder.KeyEncodingStrategy? = nil, dkeys: JSONDecoder.KeyDecodingStrategy? = nil, checkeq: Bool = true) throws -> String where T : Encodable, T : Decodable, T : Equatable {
         let json = try enc(value, fmt: fmt, data: data, date: date, floats: floats, keys: keys)
 
         let decoder = JSONDecoder()
@@ -233,7 +237,9 @@ class TestJSON : XCTestCase {
             decoder.keyDecodingStrategy = dkeys
         }
         let value2 = try decoder.decode(T.self, from: json.data(using: String.Encoding.utf8)!)
-        XCTAssertEqual(value, value2)
+        if checkeq {
+            XCTAssertEqual(value, value2, "roundtripped value did not match through JSON: \(json)")
+        }
 
         return json
     }
@@ -279,6 +285,48 @@ class TestJSON : XCTestCase {
         XCTAssertEqual(#"{"boolArrayField":[false,true]}"#, try roundtrip(value: BoolArrayField(boolArrayField: [false,true])))
         XCTAssertEqual(#"{"boolArrayArrayField":[[false,true]]}"#, try enc(BoolArrayArrayField(boolArrayArrayField: [[false,true]])))
         XCTAssertEqual(#"{"boolArrayArrayArrayField":[[[false,true],[false,true]],[[false,true],[false,true]]]}"#, try enc(BoolArrayArrayArrayField(boolArrayArrayArrayField: [[[false,true],[false,true]],[[false,true],[false,true]]])))
+
+        XCTAssertEqual(#"{"decimalField":0}"#, try roundtrip(value: DecimalField(decimalField: Decimal(0))))
+        XCTAssertEqual(#"{"decimalField":1}"#, try roundtrip(value: DecimalField(decimalField: Decimal(1))))
+        XCTAssertEqual(#"{"decimalField":-1}"#, try roundtrip(value: DecimalField(decimalField: Decimal(-1))))
+
+        XCTAssertEqual(#"{"decimalField":1234567890987654321}"#, try roundtrip(value: DecimalField(decimalField: Decimal(1234567890987654321)), checkeq: false))
+        XCTAssertEqual(#"{"decimalField":1234567890987654321}"#, try roundtrip(value: DecimalField(decimalField: Decimal(string: "1234567890987654321")!), checkeq: false))
+
+        #if SKIP
+        XCTAssertEqual(#"{"decimalField":0.00000000000010000000000000000303737455634003709136034716842278413651001756079494953155517578125}"#, try roundtrip(value: DecimalField(decimalField: Decimal(0.0000000000001)), checkeq: false))
+        #else
+        XCTAssertEqual(#"{"decimalField":0.00000000000009999999999999997952}"#, try roundtrip(value: DecimalField(decimalField: Decimal(0.0000000000001))))
+        #endif
+        //XCTAssertEqual(#"{"decimalField":0}"#, try roundtrip(value: DecimalField(decimalField: Decimal.nan))) // BigDecimal cannot represent nan
+
+        let onePointTwoString = DecimalField(decimalField: try XCTUnwrap(Decimal(string: "1.2")))
+        XCTAssertEqual(#"{"decimalField":1.2}"#, try roundtrip(value: onePointTwoString))
+
+        let onePointTwoDouble = DecimalField(decimalField: Decimal(1.2))
+        #if SKIP
+        XCTAssertEqual(#"{"decimalField":1.1999999999999999555910790149937383830547332763671875}"#, try roundtrip(value: onePointTwoDouble, checkeq: false))
+        #else
+        XCTAssertEqual(#"{"decimalField":1.2}"#, try roundtrip(value: onePointTwoDouble))
+        #endif
+
+        let decimalPiString = try XCTUnwrap(Decimal(string: "3.14159"))
+        XCTAssertEqual(#"{"decimalField":3.14159}"#, try roundtrip(value: DecimalField(decimalField: decimalPiString)))
+
+        let decimalPiShort = Decimal(3.14159)
+        #if SKIP
+        XCTAssertEqual(#"{"decimalField":3.14158999999999988261834005243144929409027099609375}"#, try roundtrip(value: DecimalField(decimalField: decimalPiShort), checkeq: false))
+        #else
+        XCTAssertEqual(#"{"decimalField":3.14159}"#, try roundtrip(value: DecimalField(decimalField: decimalPiShort)))
+        #endif
+
+        let decimalPiLong = Decimal(3.14159265358979323846264338327950288419)
+        // common up to 3.141592653589793
+        #if SKIP
+        XCTAssertEqual(#"{"decimalField":3.141592653589793115997963468544185161590576171875}"#, try roundtrip(value: DecimalField(decimalField: decimalPiLong), checkeq: false))
+        #else
+        XCTAssertEqual(#"{"decimalField":3.141592653589793792}"#, try roundtrip(value: DecimalField(decimalField: decimalPiLong)))
+        #endif
 
         XCTAssertEqual(#"{}"#, try roundtrip(value: EmptyField()))
 
