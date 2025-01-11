@@ -190,17 +190,19 @@ class TestDecimal: XCTestCase {
     }
 
     func test_Description() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         XCTAssertEqual("0", Decimal().description)
         XCTAssertEqual("0", Decimal(0).description)
-        XCTAssertEqual("10", Decimal(_exponent: 1, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0)).description)
         XCTAssertEqual("10", Decimal(10).description)
-        XCTAssertEqual("123.458", Decimal(_exponent: -3, _length: 2, _isNegative: 0, _isCompact:1, _reserved: 0, _mantissa: (57922, 1, 0, 0, 0, 0, 0, 0)).description)
         XCTAssertEqual("123.458", Decimal(123.458).description)
         XCTAssertEqual("123", Decimal(UInt8(123)).description)
         XCTAssertEqual("45", Decimal(Int8(45)).description)
+
+        #if SKIP
+        throw XCTSkip("No NSDecimalNumber in Skip")
+        #else
+        XCTAssertEqual("10", Decimal(_exponent: 1, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (1, 0, 0, 0, 0, 0, 0, 0)).description)
+        XCTAssertEqual("123.458", Decimal(_exponent: -3, _length: 2, _isNegative: 0, _isCompact:1, _reserved: 0, _mantissa: (57922, 1, 0, 0, 0, 0, 0, 0)).description)
+
         XCTAssertEqual("3.14159265358979323846264338327950288419", Decimal.pi.description)
         XCTAssertEqual("-30000000000", Decimal(sign: .minus, exponent: 10, significand: Decimal(3)).description)
         XCTAssertEqual("300000", Decimal(sign: .plus, exponent: 5, significand: Decimal(3)).description)
@@ -208,6 +210,7 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual("-5", Decimal(signOf: Decimal(-3), magnitudeOf: Decimal(5)).description)
         XCTAssertEqual("5", Decimal(signOf: Decimal(3), magnitudeOf: Decimal(-5)).description)
         XCTAssertEqual("-5", Decimal(signOf: Decimal(-3), magnitudeOf: Decimal(-5)).description)
+        
         XCTAssertEqual("5", NSDecimalNumber(decimal: Decimal(5)).description)
         XCTAssertEqual("-5", NSDecimalNumber(decimal: Decimal(-5)).description)
         XCTAssertEqual("3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", Decimal.greatestFiniteMagnitude.description)

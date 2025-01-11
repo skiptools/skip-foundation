@@ -237,8 +237,13 @@ private struct JSONDecoderImpl: Decoder {
 
     private func unwrapDecimal() throws -> Decimal {
         let container = JSONSingleValueDecodingContainer(impl: self, codingPath: self.codingPath, json: self.json)
-        let double = try container.decode(Double.self)
-        return Decimal(double)
+        do {
+            let string = try container.decode(String.self)
+            return Decimal(string)
+        } catch {
+            let double = try container.decode(Double.self)
+            return Decimal(double)
+        }
     }
 
     private func unwrapDate() throws -> Date {

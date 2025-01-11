@@ -44,6 +44,14 @@ public func NSNumber(_ v: UInt64, unusedp: ()? = nil) -> NSNumber { v as NSNumbe
 public func NSNumber(_ v: Float, unusedp: ()? = nil) -> NSNumber { v as NSNumber }
 public func NSNumber(_ v: Double, unusedp: ()? = nil) -> NSNumber { v as NSNumber }
 
+public func Decimal(string: String, locale: Locale? = nil) -> Decimal? {
+    do {
+        return java.math.BigDecimal(string)
+    } catch { // NumberFormatException - if val is not a valid representation of a BigDecimal.
+        return nil
+    }
+}
+
 public extension java.math.BigDecimal {
 //    static let zero = java.math.BigDecimal(0)
 //    static let pi = java.math.BigDecimal("3.14159265358979323846264338327950288419")

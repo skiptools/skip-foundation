@@ -289,7 +289,10 @@ class TestJSON : XCTestCase {
         XCTAssertEqual(#"{"decimalField":0}"#, try roundtrip(value: DecimalField(decimalField: Decimal(0))))
         XCTAssertEqual(#"{"decimalField":1}"#, try roundtrip(value: DecimalField(decimalField: Decimal(1))))
         XCTAssertEqual(#"{"decimalField":-1}"#, try roundtrip(value: DecimalField(decimalField: Decimal(-1))))
+
         XCTAssertEqual(#"{"decimalField":1234567890987654321}"#, try roundtrip(value: DecimalField(decimalField: Decimal(1234567890987654321)), checkeq: false))
+        XCTAssertEqual(#"{"decimalField":1234567890987654321}"#, try roundtrip(value: DecimalField(decimalField: Decimal(string: "1234567890987654321")!), checkeq: false))
+
         #if SKIP
         XCTAssertEqual(#"{"decimalField":0.00000000000010000000000000000303737455634003709136034716842278413651001756079494953155517578125}"#, try roundtrip(value: DecimalField(decimalField: Decimal(0.0000000000001)), checkeq: false))
         #else
@@ -297,12 +300,18 @@ class TestJSON : XCTestCase {
         #endif
         //XCTAssertEqual(#"{"decimalField":0}"#, try roundtrip(value: DecimalField(decimalField: Decimal.nan))) // BigDecimal cannot represent nan
 
-        let onePointTwo = DecimalField(decimalField: Decimal(1.2))
+        let onePointTwoString = DecimalField(decimalField: try XCTUnwrap(Decimal(string: "1.2")))
+        XCTAssertEqual(#"{"decimalField":1.2}"#, try roundtrip(value: onePointTwoString))
+
+        let onePointTwoDouble = DecimalField(decimalField: Decimal(1.2))
         #if SKIP
-        XCTAssertEqual(#"{"decimalField":1.1999999999999999555910790149937383830547332763671875}"#, try roundtrip(value: onePointTwo))
+        XCTAssertEqual(#"{"decimalField":1.1999999999999999555910790149937383830547332763671875}"#, try roundtrip(value: onePointTwoDouble, checkeq: false))
         #else
-        XCTAssertEqual(#"{"decimalField":1.2}"#, try roundtrip(value: onePointTwo))
+        XCTAssertEqual(#"{"decimalField":1.2}"#, try roundtrip(value: onePointTwoDouble))
         #endif
+
+        let decimalPiString = try XCTUnwrap(Decimal(string: "3.14159"))
+        XCTAssertEqual(#"{"decimalField":3.14159}"#, try roundtrip(value: DecimalField(decimalField: decimalPiString)))
 
         let decimalPiShort = Decimal(3.14159)
         #if SKIP
