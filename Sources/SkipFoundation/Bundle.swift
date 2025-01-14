@@ -251,9 +251,20 @@ public class Bundle : Hashable {
         return relativeBundleURL(path: res)
     }
 
-    @available(*, unavailable)
     public func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String? = nil, localization localizationName: String? = nil) -> [URL]? {
-        fatalError()
+        var filteredResources = resourcesIndex
+        if let localization = localizationName {
+            filteredResources = filteredResources.filter { $0.hasPrefix("\(localization)\(Self.lprojExtension)/") }
+        }
+        if let subpath {
+            filteredResources = filteredResources.filter { $0.hasPrefix("\(subpath)/") }
+        }
+        if let ext {
+            let extWithDot = ext.hasPrefix(".") ? ext : ".\(ext)"
+            filteredResources = filteredResources.filter { $0.hasSuffix(extWithDot) }
+        }
+        let resourceURLs = filteredResources.compactMap { relativeBundleURL(path: $0) }
+        return resourceURLs.isEmpty ? nil : resourceURLs
     }
 
     @available(*, unavailable)
