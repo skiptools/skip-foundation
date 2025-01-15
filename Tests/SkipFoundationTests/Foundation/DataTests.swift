@@ -85,6 +85,16 @@ final class DataTests: XCTestCase {
         let data2 = Data(base64Encoded: "AQID")
         XCTAssertEqual(data, data2)
     }
+
+    func testByteArrays() {
+        let inbytes = [UInt8(8), UInt8(9), UInt8(10)]
+        let data = Data(inbytes)
+        let outbytes = [UInt8](data)
+        XCTAssertEqual(outbytes, inbytes)
+
+        let outbytes2: [UInt8] = .init(data)
+        XCTAssertEqual(outbytes2, inbytes)
+    }
 }
 
 extension Sequence where Element == UInt8 {
