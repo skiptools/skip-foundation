@@ -396,4 +396,8 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
     }
 }
 
+/// Mimic an `Array<UInt8>` constructor that accepts a `Data` as an array of bytes.
+// SKIP INSERT: fun <T> Array(data: Data): Array<T> = data.bytes as Array<T>
+// SKIP INSERT: fun Array.Companion.init(data: Data) = data.bytes
+
 #endif
