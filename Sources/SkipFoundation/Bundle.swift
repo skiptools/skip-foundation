@@ -19,7 +19,7 @@ public class Bundle : Hashable {
     private let location: LocalizedStringResource.BundleDescription
 
     internal var isLocalizedBundle: Bool {
-        bundleURL.absoluteString.hasSuffix(Self.lprojExtension + "/")
+        bundleURLOptional?.absoluteString.hasSuffix(Self.lprojExtension + "/") == true
     }
 
     public init(location: LocalizedStringResource.BundleDescription) {
@@ -93,13 +93,16 @@ public class Bundle : Hashable {
     }
 
     public var bundleURL: URL {
+        bundleURLOptional!
+    }
+
+    var bundleURLOptional: URL? {
         let loc: LocalizedStringResource.BundleDescription = location
         switch loc {
         case .atURL(let url):
             return url
-        case.main, .forClass:
-            return relativeBundleURL(Self.resourceIndexFileName)!
-                .deletingLastPathComponent()
+        case .main, .forClass:
+            return relativeBundleURL(Self.resourceIndexFileName)?.deletingLastPathComponent()
         }
     }
 
@@ -329,12 +332,37 @@ public class Bundle : Hashable {
     /// The localized strings tables for this bundle
     private var localizedTables: MutableMap<String, MutableMap<String, Triple<String, String, MarkdownNode?>>> = mutableMapOf()
 
-    public func localizedString(forKey key: String, value: String?, table tableName: String?) -> String {
-        return localizedInfo(forKey: key, value: value, table: tableName).first
+    public func localizedString(forKey key: String, value: String?, table tableName: String?, locale: Locale? = nil) -> String {
+        return localizedInfo(forKey: key, value: value, table: tableName, locale: locale)?.first ?? value ?? key
+    }
+
+    /// Check for the localized key for the given Locale's localized bundle, falling back to the "base.lproj" bundle and then just checking the top-level bundle.
+    /// The result will be cached for future lookup.
+    public func localizedInfo(forKey key: String, value: String?, table tableName: String?, locale: Locale?) -> Triple<String, String, MarkdownNode?> {
+        if self.isLocalizedBundle {
+            // when the bundle is itself already a localized Bundle (e.g., from a top-level bundle the use gets "fr.lproj", then we ignore the local parameter and instead look it up directly in the current bundle
+            if let info = self.lookupLocalizableString(forKey: key, value: value, table: tableName, fallback: true) {
+                return info
+            }
+        }
+
+        // attempt to get the given locale's bundle, fall back to the "base.lproj" locale, and then fall back to self
+        if let info = localizedBundle(locale: locale ?? Locale.current)?.lookupLocalizableString(forKey: key, value: value, table: tableName) {
+            return info
+        }
+
+        // attempt to look up the string in the baseLocale ("base.lproj"), and fall back to the current bundle if it is not present
+        if let info = (localizedBundle(locale: Locale.baseLocale) ?? self).lookupLocalizableString(forKey: key, value: value, table: tableName) {
+            return info
+        }
+
+        // create a fallback key if it could not be found in any of the localized bundles
+        let info = self.lookupLocalizableString(forKey: key, value: value, table: tableName, fallback: true)!
+        return info
     }
 
     /// Localize the given string, returning a string suitable for Kotlin/Java formatting rather than Swift formatting.
-    public func localizedInfo(forKey key: String, value: String?, table tableName: String?) -> Triple<String, String, MarkdownNode?> {
+    private func lookupLocalizableString(forKey key: String, value: String?, table tableName: String?, fallback: Bool = false) -> Triple<String, String, MarkdownNode?>? {
         synchronized(self) {
             let table = tableName ?? "Localizable"
             var locTable = localizedTables[table]
@@ -348,13 +376,17 @@ public class Bundle : Hashable {
                 return formats
             }
 
+            // If we have specified a fallback bundle (e.g., for a default localization), then call into that
             if let value {
                 // We can't cache this in case different values are passed on different calls
                 return Triple(value, value.kotlinFormatString, MarkdownNode.from(string: value))
-            } else {
+            } else if fallback {
+                // only cache the miss if we specify fallback; this is so we can cache this only for the top-level bundle
                 let formats = Triple(key, key.kotlinFormatString, MarkdownNode.from(string: key))
                 locTable![key] = formats
                 return formats
+            } else {
+                return nil
             }
         }
     }
@@ -494,13 +526,7 @@ public class Bundle : Hashable {
 }
 
 public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle? = Bundle.main, value: String? = nil, comment: String) -> String {
-    var localBundle = bundle ?? Bundle.main
-    if !localBundle.isLocalizedBundle {
-        // if the bundle we specified is not explicitly a already-localized bundle, then localize it for the current locale
-        localBundle = localBundle.localizedBundle(locale: .current)
-    }
-    let value = localBundle.localizedString(forKey: key, value: value, table: tableName)
-    return value
+    return (bundle ?? Bundle.main).localizedString(forKey: key, value: value, table: tableName, locale: .current)
 }
 
 /// A localized string bundle with the key, the kotlin format, and optionally a markdown node

@@ -253,6 +253,7 @@ Support levels:
           <ul>
 <li>Formatting functions not supported with the exception of:</li>
 <li><code>func ISO8601Format(_ style: Date.ISO8601FormatStyle = .iso8601) -> String</code></li>
+<li><code>func formatted(date: Date.FormatStyle.DateStyle, time: Date.FormatStyle.TimeStyle) -> String</code></li>
           </ul>
         </details> 
       </td>
@@ -629,6 +630,20 @@ Support levels:
           <ul>
 <li><code>static func propertyList(from: Data, options: PropertyListSerialization.ReadOptions = [], format: Any?) throws -> [String: String]?</code></li>
 <li>Ignores any given <code>options</code> and <code>format</code></li>
+          </ul>
+        </details> 
+      </td>
+    </tr>
+    <tr>
+      <td>🟠</td>
+      <td>
+        <details>
+          <summary><code>RelativeDateTimeFormatter</code></summary>
+          <ul>
+<li><code>localizedString(from dateComponents: DateComponents) -> String</code></li>
+<li><code>func localizedString(fromTimeInterval timeInterval: TimeInterval) -> String</code></li>
+<li><code>func localizedString(for date: Date, relativeTo referenceDate: Date) -> String</code></li>
+<li><code>func string(for obj: Any?) -> String?</code></li>
           </ul>
         </details> 
       </td>

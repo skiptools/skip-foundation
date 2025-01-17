@@ -759,22 +759,46 @@ final class LocaleTests: XCTestCase {
     func testLocalizedStringResource() throws {
         if isMacOS && !isJava {
             // note that this *does* work when running from Xcode but not SwiftPM; always works on iOS some tests needs to be run through the Xcode toolchain
-            throw XCTSkip("does not work when run from SwiftPM because the Localizable.xcstrings file is not converted to strings")
+            if Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: "en") == nil {
+                throw XCTSkip("does not work when run from SwiftPM because the Localizable.xcstrings file is not converted to strings")
+            }
         }
 
         XCTAssertEqual("XYZ", String(localized: LocalizedStringResource(stringLiteral: "XYZ")))
         XCTAssertEqual("ABC", String(localized: LocalizedStringResource(String.LocalizationValue("ABC"), table: nil, locale: Locale.current, bundle: LocalizedStringResource.BundleDescription.main, comment: nil)))
         XCTAssertEqual("LMN", String(localized: LocalizedStringResource("QRS", defaultValue: String.LocalizationValue("LMN"), table: nil, locale: Locale(identifier: "fr"), bundle: LocalizedStringResource.BundleDescription.main, comment: "comment")))
 
-        let bundleURL = try XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: "en"), "could not locate en.lproj in Bundle.module: \(String(describing: Bundle.module.resourceURL))")
+        #if SKIP
+        // check that both "en" and the auto-generated "base" locales exist and perform the correct lookups
+        let baseLocaleNames = ["en", "base"]
+        #else
+        let baseLocaleNames = ["en"]
+        #endif
+        for localeName in baseLocaleNames {
+            let bundleURL = try XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: localeName), "could not locate \(localeName).lproj in Bundle.module: \(String(describing: Bundle.module.resourceURL))")
 
-        let bundle = try XCTUnwrap(Bundle(url: bundleURL.deletingLastPathComponent()), "cannot locate en.lproj bundle resource")
-        let bundleDescription = LocalizedStringResource.BundleDescription.atURL(bundleURL.deletingLastPathComponent())
+            let bundle = try XCTUnwrap(Bundle(url: bundleURL.deletingLastPathComponent()), "cannot locate en.lproj bundle resource")
+            let bundleDescription = LocalizedStringResource.BundleDescription.atURL(bundleURL.deletingLastPathComponent())
 
-        XCTAssertEqual("UPPER-CASE", String(localized: LocalizedStringResource("lower-case", bundle: bundleDescription)))
-        let abc = "abc"
-        XCTAssertEqual("UPPER-CASE abc STRING", String(localized: LocalizedStringResource("lower-case \(abc) string", bundle: bundleDescription)))
+            XCTAssertEqual("UPPER-CASE", String(localized: LocalizedStringResource("lower-case", bundle: bundleDescription)))
+            let abc = "abc"
+            XCTAssertEqual("UPPER-CASE abc STRING", String(localized: LocalizedStringResource("lower-case \(abc) string", bundle: bundleDescription)))
+        }
 
+        if !isJava {
+            // the remaining tests only seem to work for Skip; Cocoa doesn't seem to work (although it should)
+            return
+        }
+        let moduleBundle = LocalizedStringResource.BundleDescription.forClass(Self.self)
+
+        XCTAssertEqual("UPPER-CASE", String(localized: LocalizedStringResource("lower-case", bundle: moduleBundle)))
+
+        // tests the behavior of fallbacks: "en" defines "lower-case" as "UPPER-CASE"
+        XCTAssertEqual("UPPER-CASE", String(localized: LocalizedStringResource("lower-case", locale: Locale(identifier: "en"), bundle: moduleBundle)))
+        // "fr" has some localizations by does not translate "lower-case", so the expected behavior is to just return the key name
+        //XCTAssertEqual("lower-case", String(localized: LocalizedStringResource("lower-case", locale: Locale(identifier: "fr"), bundle: moduleBundle)))
+        // "sk" is not localized at all, so the expected behavior is to fall back to base.lproj, which is en, and so "lower-case" will be translated as "UPPER-CASE"
+        XCTAssertEqual("UPPER-CASE", String(localized: LocalizedStringResource("lower-case", locale: Locale(identifier: "sk"), bundle: moduleBundle)))
     }
 }
 

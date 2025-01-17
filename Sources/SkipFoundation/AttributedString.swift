@@ -27,14 +27,14 @@ public struct AttributedString: Hashable {
 
     public init(localized keyAndValue: String.LocalizationValue, /* options: AttributedString.FormattingOptions = [], */ table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) {
         let key = keyAndValue.patternFormat // interpolated string: "Hello \(name)" keyed as: "Hello %@"
-        let (_, locfmt, locnode) = bundle?.localizedInfo(forKey: key, value: nil, table: table) ?? Triple("", key.kotlinFormatString, MarkdownNode.from(string: key))
+        let (_, locfmt, locnode) = (bundle ?? Bundle.main).localizedInfo(forKey: key, value: nil, table: table, locale: locale)
         // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
         self.string = locfmt.format(*keyAndValue.stringInterpolation.values.toTypedArray())
         self.markdownNode = locnode?.format(keyAndValue.stringInterpolation.values)
     }
 
     public init(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) {
-        let (locstring, _, locnode) = bundle?.localizedInfo(forKey: key, value: nil, table: table) ?? Triple(key, "", MarkdownNode.from(string: key))
+        let (locstring, _, locnode) = (bundle ?? Bundle.main).localizedInfo(forKey: key, value: nil, table: table, locale: locale)
         self.string = locstring
         self.markdownNode = locnode
     }
