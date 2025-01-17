@@ -1,3 +1,9 @@
+## 1.2.12
+
+Released 2025-01-17
+
+  - Localized strings will fall back to the default locale for unhandled locales (#45)
+
 ## 1.2.10
 
 Released 2025-01-11
