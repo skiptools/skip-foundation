@@ -174,25 +174,25 @@ public func String(contentsOf: URL, encoding: StringEncoding) throws -> String {
     return java.lang.String(Data(contentsOf: contentsOf).platformValue, encoding.rawValue) as kotlin.String
 }
 
-private func localizationValue(keyAndValue: String.LocalizationValue, bundle: Bundle, defaultValue: String?, tableName: String?) -> String {
+private func localizationValue(keyAndValue: String.LocalizationValue, bundle: Bundle, defaultValue: String?, tableName: String?, locale: Locale?) -> String {
     let key = keyAndValue.patternFormat // interpolated string: "Hello \(name)" keyed as: "Hello %@"
-    let (_, locfmt, _) = bundle.localizedInfo(forKey: key, value: defaultValue, table: tableName)
+    let (_, locfmt, _) = bundle.localizedInfo(forKey: key, value: defaultValue, table: tableName, locale: locale)
     // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
     let replaced = locfmt.format(*keyAndValue.stringInterpolation.values.toTypedArray())
     return replaced
 }
 
 public func String(localized resource: LocalizedStringResource) -> String {
-    localizationValue(keyAndValue: resource.keyAndValue, bundle: resource.bundle?.bundle ?? Bundle.main, defaultValue: resource.defaultValue?.patternFormat.kotlinFormatString, tableName: resource.table)
+    localizationValue(keyAndValue: resource.keyAndValue, bundle: resource.bundle?.bundle ?? Bundle.main, defaultValue: resource.defaultValue?.patternFormat.kotlinFormatString, tableName: resource.table, locale: resource.locale)
 }
 
 /// e.g.: `String(localized: "Done", table: nil, bundle: Bundle.module, locale: Locale(identifier: "en"), comment: nil)`
 public func String(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil) -> String {
-    localizationValue(keyAndValue: keyAndValue, bundle: bundle ?? Bundle.main, defaultValue: nil, tableName: table)
+    localizationValue(keyAndValue: keyAndValue, bundle: bundle ?? Bundle.main, defaultValue: nil, tableName: table, locale: locale)
 }
 
-public func String(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) -> String {
-    return bundle?.localizedString(forKey: key, value: nil, table: table) ?? key
+public func String(localized key: String, defaultValue: String? = nil, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) -> String {
+    return (bundle ?? Bundle.main).localizedString(forKey: key, value: defaultValue, table: table, locale: locale) ?? defaultValue ?? key
 }
 
 #endif

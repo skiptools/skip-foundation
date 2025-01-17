@@ -10,6 +10,8 @@ internal typealias NSLocale = Locale
 
 public struct Locale : Hashable {
     internal let platformValue: java.util.Locale
+    /// The fallback locale that is used for string lookup
+    static let baseLocale = Locale(identifier: "base")
 
     public static var availableIdentifiers: [String] {
         return Array(java.util.Locale.getAvailableLocales().map({ $0.toString() }))
@@ -58,6 +60,11 @@ public struct Locale : Hashable {
 
     /// Returns an array of tags to search for a locale identifier, from most specific to least specific
     var localeSearchTags: [String] {
+        // the base locale is the thing we search in
+        if self.identifier == Self.baseLocale.identifier {
+            return [self.identifier]
+        }
+
         // for an identifier like "fr_FR", seek "fr-FR.lproj" and "fr.lproj"
         // for an identifier like "zh_Hant", seek "zh-Hant.lproj" and "zh.lproj"
         // for an identifier like "fr_CA_QC", seek "fr-QC-CA.lproj" and "fr-CA.lproj" and "fr.lproj"
@@ -172,6 +179,7 @@ public struct Locale : Hashable {
 
     public func localize(key: String, value: String?, bundle: Bundle?, tableName: String?) -> String? {
         return bundle?.localizedBundle(locale: self).localizedString(forKey: key, value: value, table: tableName)
+        baseLocale
     }
 
     public struct Currency : Hashable, ExpressibleByStringLiteral {
