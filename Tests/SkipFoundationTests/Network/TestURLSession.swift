@@ -182,6 +182,12 @@ class TestURLSession: XCTestCase {
     }
 
     func testGetTasks() async throws {
+        #if SKIP
+        typealias AssertionError = java.lang.AssertionError
+        #else
+        typealias AssertionError = Error
+        #endif
+
         for i in 1...5 {
             do {
                 let session = URLSession(configuration: URLSessionConfiguration.default)
@@ -203,7 +209,7 @@ class TestURLSession: XCTestCase {
                 XCTAssertEqual(uploadTasks.count, 0)
                 XCTAssertEqual(downloadTasks.count, 0)
                 return
-            } catch let error as Error {
+            } catch let error as AssertionError {
                 // try multiple times: sometimes the task fails due to transient network issues
                 if i == 5 {
                     throw error
