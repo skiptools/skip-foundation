@@ -182,24 +182,36 @@ class TestURLSession: XCTestCase {
     }
 
     func testGetTasks() async throws {
-        let session = URLSession(configuration: URLSessionConfiguration.default)
-        let task = session.dataTask(with: URLRequest(url: testURL))
-        task.resume()
-        var tasks = await session.allTasks
-        XCTAssertEqual(tasks.count, 1)
-        XCTAssertTrue(tasks.first === task)
-        var (dataTasks, uploadTasks, downloadTasks) = await session.tasks
-        XCTAssertEqual(dataTasks.count, 1)
-        XCTAssertEqual(uploadTasks.count, 0)
-        XCTAssertEqual(downloadTasks.count, 0)
-        XCTAssertTrue(dataTasks.first === task)
-        task.cancel()
-        tasks = await session.allTasks
-        XCTAssertEqual(tasks.count, 0)
-        (dataTasks, uploadTasks, downloadTasks) = await session.tasks
-        XCTAssertEqual(dataTasks.count, 0)
-        XCTAssertEqual(uploadTasks.count, 0)
-        XCTAssertEqual(downloadTasks.count, 0)
+        for i in 1...5 {
+            do {
+                let session = URLSession(configuration: URLSessionConfiguration.default)
+                let task = session.dataTask(with: URLRequest(url: testURL))
+                task.resume()
+                var tasks = await session.allTasks
+                XCTAssertEqual(tasks.count, 1)
+                XCTAssertTrue(tasks.first === task)
+                var (dataTasks, uploadTasks, downloadTasks) = await session.tasks
+                XCTAssertEqual(dataTasks.count, 1)
+                XCTAssertEqual(uploadTasks.count, 0)
+                XCTAssertEqual(downloadTasks.count, 0)
+                XCTAssertTrue(dataTasks.first === task)
+                task.cancel()
+                tasks = await session.allTasks
+                XCTAssertEqual(tasks.count, 0)
+                (dataTasks, uploadTasks, downloadTasks) = await session.tasks
+                XCTAssertEqual(dataTasks.count, 0)
+                XCTAssertEqual(uploadTasks.count, 0)
+                XCTAssertEqual(downloadTasks.count, 0)
+                return
+            } catch let error as Error {
+                // try multiple times: sometimes the task fails due to transient network issues
+                if i == 5 {
+                    throw error
+                } else {
+                    Thread.sleep(forTimeInterval: Double(i * i)) // exponential backoff 1, 4, 9, 16, 25
+                }
+            }
+        }
     }
 
     func testFinishTasksAndInvalidate() async throws {
