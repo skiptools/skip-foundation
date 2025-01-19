@@ -704,6 +704,16 @@ Support levels:
       <td>✅</td>
       <td><code>func strncmp(_ str1: String, _ str2: String) -> Int</code></td>
     </tr>
+   <tr>
+      <td>🟡</td>
+      <td>
+        <details>
+          <summary><code>Thread</code></summary>
+          <ul>
+          </ul>
+        </details> 
+      </td>
+    </tr>
     <tr>
       <td>🟡</td>
       <td>

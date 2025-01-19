@@ -28,6 +28,7 @@ public class ProcessInfo {
     /// Called when an app is launched to store the global context from the `android.app.Application` subclass.
     public static func launch(context: android.content.Context) {
         ProcessInfo.processInfo.launchContext = context
+        Thread.main = Thread.current
 
         // if we import SkipBridgeKt it includes an AndroidManifest.xml that defines the "SKIP_BRIDGE_MODULES" list of native modules to load
         // since SkipBridge is not a dependency of SkipFoundation, we need to use reflection to call the

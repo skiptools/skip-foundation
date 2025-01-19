@@ -26,14 +26,10 @@ import XCTest
 class TestThread : XCTestCase {
 
     func test_currentThread() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let thread1 = Thread.current
         let thread2 = Thread.current
         XCTAssertEqual(thread1, thread2)
         XCTAssertEqual(thread1, Thread.main)
-        #endif // !SKIP
     }
     
     func test_threadStart() {
@@ -96,9 +92,6 @@ class TestThread : XCTestCase {
     }
 
     func test_mainThread() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         XCTAssertTrue(Thread.isMainThread)
         let t = Thread.main
         XCTAssertTrue(t.isMainThread)
@@ -107,6 +100,7 @@ class TestThread : XCTestCase {
         XCTAssertTrue(c.isExecuting)
         XCTAssertTrue(c.isEqual(t))
 
+        #if !SKIP
         let condition = NSCondition()
         condition.lock()
 
@@ -122,17 +116,13 @@ class TestThread : XCTestCase {
         let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
         condition.unlock()
         XCTAssertTrue(ok, "NSCondition wait timed out")
-        #endif // !SKIP
+        #endif
     }
 
     func test_callStackSymbols() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let symbols = Thread.callStackSymbols
         XCTAssertTrue(symbols.count > 0)
         XCTAssertTrue(symbols.count <= 128)
-        #endif // !SKIP
     }
 
     func test_callStackReturnAddresses() {
@@ -146,44 +136,44 @@ class TestThread : XCTestCase {
     }
     
     func test_sleepForTimeInterval() {
-//        let measureOversleep = { (timeInterval: TimeInterval) -> TimeInterval in
-//            let start = Date()
-//            Thread.sleep(forTimeInterval: timeInterval)
-//
-//            // Measures time Thread.sleep spends over specified timeInterval value
-//            return -(start.timeIntervalSinceNow + timeInterval)
-//        }
-//
-//        // Allow a little early wake-ups. Sleep timer on Windows
-//        // is more precise than timer used in Date implementation.
-//        let allowedOversleepRange = -0.00001..<0.1
-//
-//        let oversleep1 = measureOversleep(TimeInterval(0.9))
-//        XCTAssertTrue(allowedOversleepRange.contains(oversleep1), "Oversleep \(oversleep1) is not in expected range \(allowedOversleepRange)")
-//
-//        let oversleep2 = measureOversleep(TimeInterval(1.2))
-//        XCTAssertTrue(allowedOversleepRange.contains(oversleep2), "Oversleep \(oversleep2) is not in expected range \(allowedOversleepRange)")
-//
-//        let oversleep3 = measureOversleep(TimeInterval(1.0))
-//        XCTAssertTrue(allowedOversleepRange.contains(oversleep3), "Oversleep \(oversleep3) is not in expected range \(allowedOversleepRange)")
+        let measureOversleep = { (timeInterval: TimeInterval) -> TimeInterval in
+            let start = Date()
+            Thread.sleep(forTimeInterval: timeInterval)
+
+            // Measures time Thread.sleep spends over specified timeInterval value
+            return -(start.timeIntervalSinceNow + timeInterval)
+        }
+
+        // Allow a little early wake-ups. Sleep timer on Windows
+        // is more precise than timer used in Date implementation.
+        let allowedOversleepRange = -0.00001..<0.1
+
+        let oversleep1 = measureOversleep(TimeInterval(0.9))
+        XCTAssertTrue(allowedOversleepRange.contains(oversleep1), "Oversleep \(oversleep1) is not in expected range \(allowedOversleepRange)")
+
+        let oversleep2 = measureOversleep(TimeInterval(1.2))
+        XCTAssertTrue(allowedOversleepRange.contains(oversleep2), "Oversleep \(oversleep2) is not in expected range \(allowedOversleepRange)")
+
+        let oversleep3 = measureOversleep(TimeInterval(1.0))
+        XCTAssertTrue(allowedOversleepRange.contains(oversleep3), "Oversleep \(oversleep3) is not in expected range \(allowedOversleepRange)")
     }
 
     func test_sleepUntilDate() {
-//        let measureOversleep = { (date: Date) -> TimeInterval in
-//            Thread.sleep(until: date)
-//            return -date.timeIntervalSinceNow
-//        }
-//
-//        let allowedOversleepRange = -0.00001..<0.1
-//
-//        let oversleep1 = measureOversleep(Date(timeIntervalSinceNow: 0.8))
-//        XCTAssertTrue(allowedOversleepRange.contains(oversleep1), "Oversleep \(oversleep1) is not in expected range \(allowedOversleepRange)")
-//
-//        let oversleep2 = measureOversleep(Date(timeIntervalSinceNow: 1.1))
-//        XCTAssertTrue(allowedOversleepRange.contains(oversleep2), "Oversleep \(oversleep2) is not in expected range \(allowedOversleepRange)")
-//
-//        let oversleep3 = measureOversleep(Date(timeIntervalSinceNow: 1.0))
-//        XCTAssertTrue(allowedOversleepRange.contains(oversleep3), "Oversleep \(oversleep3) is not in expected range \(allowedOversleepRange)")
+        let measureOversleep = { (date: Date) -> TimeInterval in
+            Thread.sleep(until: date)
+            return -date.timeIntervalSinceNow
+        }
+
+        let allowedOversleepRange = -0.00001..<0.1
+
+        let oversleep1 = measureOversleep(Date(timeIntervalSinceNow: 0.8))
+        XCTAssertTrue(allowedOversleepRange.contains(oversleep1), "Oversleep \(oversleep1) is not in expected range \(allowedOversleepRange)")
+
+        let oversleep2 = measureOversleep(Date(timeIntervalSinceNow: 1.1))
+        XCTAssertTrue(allowedOversleepRange.contains(oversleep2), "Oversleep \(oversleep2) is not in expected range \(allowedOversleepRange)")
+
+        let oversleep3 = measureOversleep(Date(timeIntervalSinceNow: 1.0))
+        XCTAssertTrue(allowedOversleepRange.contains(oversleep3), "Oversleep \(oversleep3) is not in expected range \(allowedOversleepRange)")
     }
 
 }
