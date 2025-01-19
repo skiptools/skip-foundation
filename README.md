@@ -710,6 +710,13 @@ Support levels:
         <details>
           <summary><code>Thread</code></summary>
           <ul>
+<li><code>current</code></li>
+<li><code>main</code></li>
+<li><code>isMainThread</code></li>
+<li><code>sleep(for: TimeInterval)</code></li>
+<li><code>sleep(until: Date)</code></li>
+<li><code>callStackSymbols</code></li>
+<li>Starting and stopping threads is not implemented, nor is constructing a Thread with a block</li>
           </ul>
         </details> 
       </td>
@@ -1084,6 +1091,9 @@ The app-specific folder can be accessed like:
 
 ```swift
 // on Android, this is Context.getFilesDir()
+let folder = URL.documentsDirectory
+
+// which is shorthand for the following:
 let folder = try FileManager.default.url(for: FileManager.SearchPathDirectory.documentDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
 ```
 
@@ -1091,12 +1101,19 @@ And to read and write to the cache folders:
 
 ```swift
 // on Android, this is Context.getCachesDir()
+let caches = URL.cachesDirectory
+
+// which is shorthand for the following:
 let caches = try FileManager.default.url(for: FileManager.SearchPathDirectory.cachesDirectory, in: FileManager.SearchPathDomainMask.userDomainMask, appropriateFor: nil, create: false)
 ```
 
 And the system temporary folder can be accessed with:
 
 ```swift
+// on Android, this will be the same as Context.getCachesDir()
+let tmpdir = URL.temporaryDirectory
+
+// you can also use:
 let tmpdir = NSTemporaryDirectory()
 ```
 
