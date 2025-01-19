@@ -13,7 +13,8 @@ final class BundleTests: XCTestCase {
 
     func testBundle() throws {
         // Swift will be: Contents/Resources/ -- file:///~/Library/Developer/Xcode/DerivedData/DemoApp-ABCDEF/Build/Products/Debug/SkipFoundationTests.xctest/Contents/Resources/Skip_SkipFoundationTests.bundle/
-        // Kotlin will be: file:/SRCDIR/Skip/kip/SkipFoundationTests/modules/SkipFoundation/build/tmp/kotlin-classes/debugUnitTest/skip/foundation/
+        // Kotlin will be: file:///~/Library/Developer/Xcode/DerivedData/DemoApp-ABCDEF/Build/Products/Debug/SkipFoundationTests.xctest/Contents/Resources/skip-foundation_SkipFoundationTests.bundle/Contents/Resources/textasset.txt
+
         let resourceURL: URL = try XCTUnwrap(Bundle.module.url(forResource: "textasset", withExtension: "txt", subdirectory: nil, localization: nil))
         logger.info("resourceURL: \(resourceURL.absoluteString)")
         let str = try String(contentsOf: resourceURL)

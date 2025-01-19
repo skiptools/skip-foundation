@@ -117,7 +117,7 @@ public class Bundle : Hashable {
                 return nil
             }
             // ClassLoader will be something like: dalvik.system.PathClassLoader[DexPathList[[zip file "/data/app/~~TsW3puiwg61p2gVvq_TiHQ==/skip.ui.test-6R4Fcu0a4CkedPWcML2mGA==/base.apk"],nativeLibraryDirectories=[/data/app/~~TsW3puiwg61p2gVvq_TiHQ==/skip.ui.test-6R4Fcu0a4CkedPWcML2mGA==/lib/arm64, /system/lib64, /system_ext/lib64]]]
-            let appClass = Class.forName(className, true, Self.androidContext.getClassLoader() ?? Thread.currentThread().getContextClassLoader())
+            let appClass = Class.forName(className, true, Self.androidContext.getClassLoader() ?? Thread.current.platformValue.getContextClassLoader())
             return relativeBundleURL(path: path, forClass: appClass)
         case .atURL(let url):
             return url.appendingPathComponent(path)
