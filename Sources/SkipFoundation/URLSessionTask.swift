@@ -58,7 +58,7 @@ public class URLSessionTask {
 
     public var countOfBytesClientExpectsToReceive = Int64(-1)
     public var countOfBytesClientExpectsToSend = Int64(-1)
-    
+
     @available(*, unavailable)
     public let progress: Any? = nil /* Progress(totalUnitCount: -1) */
 
@@ -396,7 +396,7 @@ public class URLSessionWebSocketTask : URLSessionTask {
     }
 
     public var maximumMessageSize: Int = 1 * 1024 * 1024
-    
+
     public var closeCode: CloseCode {
         return lock.withLock { _closeCode } ?? .invalid
     }
@@ -775,7 +775,7 @@ private func contentResponse(for request: URLRequest, with url: URL, isForRespon
         }
         var inputStream: java.io.InputStream? = nil
         return withTaskCancellationHandler {
-            let uri = android.net.Uri.parse(url.absoluteString)
+            let uri = url.toAndroidUri()
             let outputStream = java.io.ByteArrayOutputStream()
             inputStream = ProcessInfo.processInfo.androidContext.getContentResolver().openInputStream(uri)
             if let inputStream {
