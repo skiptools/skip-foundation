@@ -442,7 +442,14 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Logger</code></td>
+      <td>
+        <details>
+          <summary><code>OSLog.Logger</code></summary>
+          <ul>
+<li><code>Log messages on Android can be viewed with the adb logcat command, or in the Android Studio console</code></li>
+          </ul>
+        </details> 
+      </td>
     </tr>
     <tr>
       <td>✅</td>
