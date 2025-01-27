@@ -112,10 +112,11 @@ public final class Timer : KotlinConverting<java.util.Timer?> {
             let block = self.block
             let timerTask = Task { block?(self) }
             timer = java.util.Timer(true)
+            let delayms = Int64(timeInterval * 1000.0)
             if repeats {
-                timer?.scheduleAtFixedRate(timerTask, Int64(timeInterval * 1000.0), Int64(timeInterval * 1000.0))
+                timer?.schedule(timerTask, delayms, delayms)
             } else {
-                timer?.schedule(timerTask, Int64(timeInterval * 1000.0))
+                timer?.schedule(timerTask, delayms)
             }
         }
     }
