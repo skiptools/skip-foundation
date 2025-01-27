@@ -1,3 +1,15 @@
+## 1.2.13
+
+Released 2025-01-27
+
+  - Merge pull request #48 from skiptools/timer-interval
+  - Fix repeating Android Timer to match the behavior on Darwin platforms
+  - Mention Logger in README
+  - Update Thread and FileManager sections of README
+  - Add Foundation.Thread wrapping java.lang.Thread (#46)
+  - Backoff and retry testGetTasks test in case of transient network issues
+  - Backoff and retry testGetTasks test in case of transient network issues
+
 ## 1.2.12
 
 Released 2025-01-17
