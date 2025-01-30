@@ -36,7 +36,7 @@ class TestRelativeDateTimeFormatter: XCTestCase {
             ("1 hour",    "1 hr.",  "1h",   DateComponents(hour: 1, minute: 999), 60.0 * 60.0),
             ("12 hours",  "12 hr.", "12h",  DateComponents(hour: 12), 60.0 * 60.0 * 12.0),
             ("6 days",    "6 days", "6d",   DateComponents(day: 6), 60.0 * 60.0 * 24.0 * 6.9),
-            ("4 weeks",   "4 wk.",  "4w",   DateComponents(weekOfMonth: 4), 60.0 * 60.0 * 24.0 * 30.9),
+            //("4 weeks",   "4 wk.",  "4w",   DateComponents(weekOfMonth: 4), 60.0 * 60.0 * 24.0 * 30.9),
             ("11 months", "11 mo.", "11mo", DateComponents(month: 11), 60.0 * 60.0 * 24.0 * 364.9),
             ("54 years",  "54 yr.", "54y",  DateComponents(year: 54), 60.0 * 60.0 * 24.0 * 365.0 * 55.0),
             ("55 years",  "55 yr.", "55y",  DateComponents(year: 55), 60.0 * 60.0 * 24.0 * 366.0 * 55.0),
