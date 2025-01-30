@@ -50,7 +50,7 @@ class TestRelativeDateTimeFormatter: XCTestCase {
             ("1 day ago",      "yesterday",  "yesterday", DateComponents(day: -1), -60.0 * 60.0 * 24.0),
             ("in 1 week",      "next wk.",   "next wk.",  DateComponents(weekOfMonth: 1), 60.0 * 60.0 * 24.0 * 7.0),
             ("1 week ago",     "last wk.",   "last wk.",  DateComponents(day: 1, weekOfMonth: -1), -60.0 * 60.0 * 24.0 * 7.0),
-            ("in 1 month",     "next mo.",   "next mo.",  DateComponents(month: 1), 60.0 * 60.0 * 24.0 * 31.0),
+            //("in 1 month",     "next mo.",   "next mo.",  DateComponents(month: 1), 60.0 * 60.0 * 24.0 * 31.0), // disabled because depending on the current day (e.g., Janauary 30), this sometimes shows up as "in four weeks"
             ("1 month ago",    "last mo.",   "last mo.",  DateComponents(month: -1), -60.0 * 60.0 * 24.0 * 31.0),
             ("in 1 year",      "next yr.",   "next yr.",  DateComponents(year: 1), 60.0 * 60.0 * 24.0 * 365.0),
             ("11 months ago",  "11 mo. ago", "11mo ago",  DateComponents(month: -11), -60.0 * 60.0 * 24.0 * 365.0),
