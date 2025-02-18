@@ -1,3 +1,12 @@
+## 1.2.14
+
+Released 2025-02-18
+
+  - Merge pull request #50 from skiptools/defaults-store-float-as-long
+  - Store UserDefaults double as the long bits on Android to avoid floating-point precision loss (fixes https://github.com/skiptools/skip-foundation/issues/49)
+  - Disable one relative date format check due to different behavior depending on day
+  - Disable one relative date format check due to different behavior depending on day
+
 ## 1.2.13
 
 Released 2025-01-27
