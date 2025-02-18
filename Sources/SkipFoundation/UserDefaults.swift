@@ -53,7 +53,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
 
     public func `set`(_ value: Double, forKey defaultName: String) {
         let prefs = platformValue.edit()
-        prefs.putFloat(defaultName, value.toFloat())
+        prefs.putLong(defaultName, value.toRawBits())
         prefs.apply()
     }
 
@@ -78,7 +78,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         } else if let v = value as? Bool {
             prefs.putBoolean(defaultName, v)
         } else if let v = value as? Double {
-            prefs.putFloat(defaultName, v.toFloat())
+            prefs.putLong(defaultName, value.toRawBits())
         } else if let v = value as? Number {
             prefs.putString(defaultName, v.toString())
         } else if let v = value as? String {
@@ -166,7 +166,11 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
             return 0.0
         }
         if let number = value as? Number {
-            return removeFloatSlop(number.toDouble())
+            if let double = number as? Long {
+                return Double.fromBits(double)
+            } else {
+                return removeFloatSlop(number.toDouble())
+            }
         } else if let bool = value as? Bool {
             return bool ? 1.0 : 0.0
         } else if let string = value as? String {

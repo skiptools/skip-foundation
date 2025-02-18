@@ -384,6 +384,9 @@ class TestUserDefaults : XCTestCase {
         let defaults = UserDefaults.standard
         defaults.set(10.56, forKey: "doublekey")
         XCTAssertEqual(10.56, defaults.double(forKey: "doublekey"))
+
+        defaults.set(761602013.452, forKey: "doublekey2")
+        XCTAssertEqual(761602013.452, defaults.double(forKey: "doublekey2"))
     }
 
     func test_nilRemovesValue() {
