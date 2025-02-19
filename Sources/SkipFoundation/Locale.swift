@@ -8,7 +8,7 @@
 
 internal typealias NSLocale = Locale
 
-public struct Locale : Hashable {
+public struct Locale : Hashable, SwiftCustomBridged, KotlinConverting<java.util.Locale>  {
     internal let platformValue: java.util.Locale
     /// The fallback locale that is used for string lookup
     static let baseLocale = Locale(identifier: "base")
@@ -287,9 +287,6 @@ public struct Locale : Hashable {
         }
     }
 
-}
-
-extension Locale: KotlinConverting<java.util.Locale> {
     public override func kotlin(nocopy: Bool = false) -> java.util.Locale {
         return nocopy ? platformValue : platformValue.clone() as java.util.Locale
     }
