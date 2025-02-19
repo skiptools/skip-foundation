@@ -4,11 +4,9 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP_BRIDGE
 #if SKIP
 
-// SKIP @bridge
-public class Bundle : Hashable {
+public class Bundle : Hashable, SwiftCustomBridged {
     public static let main = Bundle(location: .main)
 
     /// Each package will generate its own `Bundle.module` extension to access the local bundle.
@@ -40,19 +38,8 @@ public class Bundle : Hashable {
         self.init(location: .forClass(forClass))
     }
 
-    // SKIP @bridge
     public init() {
         self.init(location: .forClass(Bundle.self))
-    }
-
-    // SKIP @bridge
-    public static func bridgeInit(path: String) -> Bundle? {
-        return Bundle(path: path) // We do not yet support bridging optional inits
-    }
-
-    // SKIP @bridge
-    public static func bridgeInit(url: URL) -> Bundle? {
-        return Bundle(url: url) // We do not yet support bridging optional inits
     }
 
     @available(*, unavailable)
@@ -60,17 +47,14 @@ public class Bundle : Hashable {
         self.init(location: .main)
     }
 
-    // SKIP @bridge
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.location == rhs.location
     }
 
-    // SKIP @bridge
     public func hash(into hasher: inout Hasher) {
         hasher.combine(location.hashCode())
     }
 
-    // SKIP @bridge
     public var description: String {
         return location.description
     }
@@ -108,7 +92,6 @@ public class Bundle : Hashable {
     public func loadAndReturnError() throws {
     }
 
-    // SKIP @bridge
     public var bundleURL: URL {
         bundleURLOptional!
     }
@@ -165,7 +148,6 @@ public class Bundle : Hashable {
         }
     }
 
-    // SKIP @bridge
     public var resourceURL: URL? {
         return bundleURL // FIXME: this is probably not correct
     }
@@ -205,12 +187,10 @@ public class Bundle : Hashable {
         fatalError()
     }
 
-    // SKIP @bridge
     public var bundlePath: String {
         bundleURL.path
     }
 
-    // SKIP @bridge
     public var resourcePath: String? {
         resourceURL?.path
     }
@@ -245,12 +225,14 @@ public class Bundle : Hashable {
         fatalError()
     }
 
-    @available(*, unavailable)
     public static func url(forResource name: String?, withExtension ext: String? = nil, subdirectory subpath: String? = nil, in bundleURL: URL) -> URL? {
-        fatalError()
+        return Bundle(url: bundleURL)?.url(forResource: name, withExtension: ext, subdirectory: subpath)
     }
 
-    // SKIP @bridge
+    public static func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String?, in bundleURL: URL) -> [URL]? {
+        return Bundle(url: bundleURL)?.urls(forResourcesWithExtension: ext, subdirectory: subpath)
+    }
+
     public func url(forResource: String? = nil, withExtension: String? = nil, subdirectory: String? = nil, localization: String? = nil) -> URL? {
         // similar behavior to: https://github.com/apple/swift-corelibs-foundation/blob/69ab3975ea636d1322ad19bbcea38ce78b65b26a/CoreFoundation/PlugIn.subproj/CFBundle_Resources.c#L1114
         var res = forResource ?? ""
@@ -275,7 +257,6 @@ public class Bundle : Hashable {
         return relativeBundleURL(path: res)
     }
 
-    // SKIP @bridge
     public func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String? = nil, localization localizationName: String? = nil) -> [URL]? {
         var filteredResources = resourcesIndex
         if let localization = localizationName {
@@ -292,24 +273,21 @@ public class Bundle : Hashable {
         return resourceURLs.isEmpty ? nil : resourceURLs
     }
 
-    @available(*, unavailable)
     public static func path(forResource name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? {
-        fatalError()
+        return Bundle(path: bundlePath)?.path(forResource: name, ofType: ext)
     }
 
-    @available(*, unavailable)
     public static func paths(forResourcesOfType ext: String?, inDirectory bundlePath: String) -> [String] {
-        fatalError()
+        return Bundle(path: bundlePath)?.paths(forResourcesOfType: ext) ?? []
     }
 
-    // SKIP @bridge
     public func path(forResource: String? = nil, ofType: String? = nil, inDirectory: String? = nil, forLocalization: String? = nil) -> String? {
         url(forResource: forResource, withExtension: ofType, subdirectory: inDirectory, localization: forLocalization)?.path
     }
 
-    @available(*, unavailable)
     public func paths(forResourcesOfType ext: String?, inDirectory subpath: String? = nil, forLocalization localizationName: String? = nil) -> [String] {
-        fatalError()
+        return urls(forResourcesWithExtension: ext, subdirectory: subpath, localization: localizationName)?
+            .compactMap { $0.path } ?? []
     }
 
     private static let resourceIndexFileName = "resources.lst"
@@ -342,7 +320,6 @@ public class Bundle : Hashable {
     }()
 
     /// We default to en as the development localization
-    // SKIP @bridge
     public var developmentLocalization: String { "en" }
 
     /// Identify the Bundle's localizations by the presence of a `LOCNAME.lproj/` folder in index of the root of the resources folder
@@ -353,15 +330,9 @@ public class Bundle : Hashable {
             .map({ $0.dropLast(Self.lprojExtension.count) })
     }()
 
-    // SKIP @bridge
-    public func bridgedLocalizations() -> [String] {
-        return localizations // We can't yet bridge lazy vars
-    }
-
     /// The localized strings tables for this bundle
     private var localizedTables: MutableMap<String, MutableMap<String, Triple<String, String, MarkdownNode?>>> = mutableMapOf()
 
-    // SKIP @bridge
     public func localizedString(forKey key: String, value: String?, table tableName: String?, locale: Locale? = nil) -> String {
         return localizedInfo(forKey: key, value: value, table: tableName, locale: locale)?.first ?? value ?? key
     }
@@ -470,7 +441,6 @@ public class Bundle : Hashable {
         fatalError()
     }
 
-    // SKIP @bridge
     public var bundleIdentifier: String? {
         switch location {
         case .main: return Self.androidContext.getPackageName()
@@ -495,7 +465,6 @@ public class Bundle : Hashable {
         return androidContext.getApplicationInfo()
     }
 
-    // SKIP @bridge
     public var infoDictionary: [String : Any]? {
         // infoDictionary only supported for main bundle currently
         if location == .main {
@@ -532,13 +501,11 @@ public class Bundle : Hashable {
         return info
     }
 
-    // SKIP @bridge
     public var localizedInfoDictionary: [String : Any]? {
         // currently no support for localized info on Android
         return infoDictionary
     }
 
-    // SKIP @bridge
     public func object(forInfoDictionaryKey key: String) -> Any? {
         infoDictionary?[key]
     }
@@ -570,5 +537,4 @@ public struct LocalizedStringInfo {
     public let markdownNode: MarkdownNode?
 }
 
-#endif
 #endif
