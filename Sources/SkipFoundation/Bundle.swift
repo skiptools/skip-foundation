@@ -6,7 +6,7 @@
 
 #if SKIP
 
-public class Bundle : Hashable {
+public class Bundle : Hashable, SwiftCustomBridged {
     public static let main = Bundle(location: .main)
 
     /// Each package will generate its own `Bundle.module` extension to access the local bundle.
@@ -225,9 +225,12 @@ public class Bundle : Hashable {
         fatalError()
     }
 
-    @available(*, unavailable)
     public static func url(forResource name: String?, withExtension ext: String? = nil, subdirectory subpath: String? = nil, in bundleURL: URL) -> URL? {
-        fatalError()
+        return Bundle(url: bundleURL)?.url(forResource: name, withExtension: ext, subdirectory: subpath)
+    }
+
+    public static func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String?, in bundleURL: URL) -> [URL]? {
+        return Bundle(url: bundleURL)?.urls(forResourcesWithExtension: ext, subdirectory: subpath)
     }
 
     public func url(forResource: String? = nil, withExtension: String? = nil, subdirectory: String? = nil, localization: String? = nil) -> URL? {
@@ -270,23 +273,21 @@ public class Bundle : Hashable {
         return resourceURLs.isEmpty ? nil : resourceURLs
     }
 
-    @available(*, unavailable)
     public static func path(forResource name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? {
-        fatalError()
+        return Bundle(path: bundlePath)?.path(forResource: name, ofType: ext)
     }
 
-    @available(*, unavailable)
     public static func paths(forResourcesOfType ext: String?, inDirectory bundlePath: String) -> [String] {
-        fatalError()
+        return Bundle(path: bundlePath)?.paths(forResourcesOfType: ext) ?? []
     }
 
     public func path(forResource: String? = nil, ofType: String? = nil, inDirectory: String? = nil, forLocalization: String? = nil) -> String? {
         url(forResource: forResource, withExtension: ofType, subdirectory: inDirectory, localization: forLocalization)?.path
     }
 
-    @available(*, unavailable)
     public func paths(forResourcesOfType ext: String?, inDirectory subpath: String? = nil, forLocalization localizationName: String? = nil) -> [String] {
-        fatalError()
+        return urls(forResourcesWithExtension: ext, subdirectory: subpath, localization: localizationName)?
+            .compactMap { $0.path } ?? []
     }
 
     private static let resourceIndexFileName = "resources.lst"
