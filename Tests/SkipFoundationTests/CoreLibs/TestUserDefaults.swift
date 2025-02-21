@@ -380,6 +380,12 @@ class TestUserDefaults : XCTestCase {
         #endif
 	}
 
+    func test_float() {
+        let defaults = UserDefaults.standard
+        defaults.set(Float(10.56), forKey: "floatkey")
+        XCTAssertEqual(Float(10.56), defaults.float(forKey: "floatkey"))
+    }
+
     func test_doublePrecision() {
         let defaults = UserDefaults.standard
         defaults.set(10.56, forKey: "doublekey")

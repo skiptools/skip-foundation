@@ -45,6 +45,12 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         prefs.apply()
     }
 
+    public func `set`(_ value: Float, forKey defaultName: String) {
+        let prefs = platformValue.edit()
+        prefs.putInt(defaultName, value.toRawBits())
+        prefs.apply()
+    }
+
     public func `set`(_ value: Boolean, forKey defaultName: String) {
         let prefs = platformValue.edit()
         prefs.putBoolean(defaultName, value)
@@ -195,6 +201,25 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         }
     }
 
+    public func float(forKey defaultName: String) -> Float {
+        guard let value = object(forKey: defaultName) else {
+            return Float(0.0)
+        }
+        if let number = value as? Number {
+            if let float = number as? Int {
+                return Float.fromBits(float)
+            } else {
+                return removeFloatSlop(number.toFloat())
+            }
+        } else if let bool = value as? Bool {
+            return bool ? Float(1.0) : Float(0.0)
+        } else if let string = value as? String {
+            return string.toFloat()
+        } else {
+            return Float(0.0)
+        }
+    }
+
     public func bool(forKey defaultName: String) -> Bool {
         guard let value = object(forKey: defaultName) else {
             return false
@@ -332,6 +357,11 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
     private static let dataStringPrefix = "__data__:"
     private static let dateStringPrefix = "__date__:"
     private static let dateFormatter = ISO8601DateFormatter()
+
+    private func removeFloatSlop(_ value: Float) -> Float {
+        let factor = 100000.0
+        return Float((value * factor).roundToInt() / factor)
+    }
 
     private func removeFloatSlop(_ value: Double) -> Double {
         let factor = 100000.0
