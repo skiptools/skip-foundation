@@ -115,9 +115,9 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
     private func fromStoredRepresentation(_ value: Any?) -> Any? {
         guard let string = value as? String else {
             if let d = value as? Double {
-                return removeFloatSlop(d)
+                return removeDoubleSlop(d)
             } else if let f = value as? Float {
-                return removeFloatSlop(f.toDouble())
+                return removeFloatSlop(f)
             } else {
                 return value
             }
@@ -175,7 +175,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
             if let double = number as? Long {
                 return Double.fromBits(double)
             } else {
-                return removeFloatSlop(number.toDouble())
+                return removeDoubleSlop(number.toDouble())
             }
         } else if let bool = value as? Bool {
             return bool ? 1.0 : 0.0
@@ -363,7 +363,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         return Float((value * factor).roundToInt() / factor)
     }
 
-    private func removeFloatSlop(_ value: Double) -> Double {
+    private func removeDoubleSlop(_ value: Double) -> Double {
         let factor = 100000.0
         return (value * factor).roundToInt() / factor
     }

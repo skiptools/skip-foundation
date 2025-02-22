@@ -30,22 +30,22 @@ public class ProcessInfo {
         ProcessInfo.processInfo.launchContext = context
         Thread.main = Thread.current
 
-        // if we import SkipBridgeKt it includes an AndroidManifest.xml that defines the "SKIP_BRIDGE_MODULES" list of native modules to load
+        // if we import SkipBridge it includes an AndroidManifest.xml that defines the "SKIP_BRIDGE_MODULES" list of native modules to load
         // since SkipBridge is not a dependency of SkipFoundation, we need to use reflection to call the
-        // skip.android.bridge.kt.AndroidBridge.initBridge function
+        // skip.android.bridge.AndroidBridge.initBridge function
         if let packageManager = context.getPackageManager() {
             if let packageInfo = packageManager.getPackageInfo(context.getPackageName(), android.content.pm.PackageManager.GET_META_DATA) {
                 if let packageMetaData = packageInfo.applicationInfo?.metaData {
                     if let bridgeModules = packageMetaData.getString("SKIP_BRIDGE_MODULES") {
                         android.util.Log.i("SkipFoundation", "loading SKIP_BRIDGE_MODULES: \(bridgeModules)")
-                        let bridgeClass = Class.forName("skip.android.bridge.kt.AndroidBridge").kotlin
+                        let bridgeClass = Class.forName("skip.android.bridge.AndroidBridge").kotlin
                         android.util.Log.i("SkipFoundation", "calling bridgeClass: \(bridgeClass)")
                         if let companionObject = bridgeClass.companionObject,
                             let initBridge = companionObject.functions?.find({ $0.name == "initBridge" }) {
                             android.util.Log.i("SkipFoundation", "invoking initBridge: \(initBridge)")
                             initBridge.call(bridgeClass.companionObjectInstance, bridgeModules)
                         } else {
-                            android.util.Log.w("SkipFoundation", "could not func skip.android.bridge.kt.AndroidBridge.initBridge")
+                            android.util.Log.w("SkipFoundation", "could not func skip.android.bridge.AndroidBridge.initBridge")
                         }
                     }
                 }
