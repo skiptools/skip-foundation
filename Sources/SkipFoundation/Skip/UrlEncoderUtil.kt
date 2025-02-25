@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package net.thauvin.erik.urlencoder
+package skip.foundation
 
 import kotlin.Char.Companion.MIN_HIGH_SURROGATE
 import kotlin.Char.Companion.MIN_LOW_SURROGATE

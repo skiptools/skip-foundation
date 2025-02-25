@@ -429,9 +429,11 @@ class TestBundle : XCTestCase {
         let testPlist = try XCTUnwrap(bundle.url(forResource: "Test", withExtension: "plist"))
         XCTAssertNotNil(testPlist)
         XCTAssertEqual("Test.plist", testPlist.lastPathComponent)
-        // NOTE: bundle paths not necessarily files on disk, but in the case of these test cases they are
-        XCTAssert(FileManager.default.fileExists(atPath: testPlist.path))
-        XCTAssertEqual(true, try? testPlist.checkResourceIsReachable())
+        #if !SKIP
+        // NOTE: Android resources are stores in AssetManager now, so they are not direct files on disk
+        XCTAssert(FileManager.default.fileExists(atPath: testPlist.path), "file does not exist for \(testPlist)")
+        XCTAssertEqual(true, try? testPlist.checkResourceIsReachable(), "could not reach resurce for \(testPlist)")
+        #endif
 
         // aliases, paths
         XCTAssertEqual(testPlist.path, bundle.url(forResource: "Test", withExtension: "plist", subdirectory: nil)?.path)

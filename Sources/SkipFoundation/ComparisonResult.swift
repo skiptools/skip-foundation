@@ -12,4 +12,9 @@ public enum ComparisonResult : Int {
     case descending = 1
 }
 
+public extension ComparisonResult {
+    static var orderedAscending: ComparisonResult { .ascending }
+    static var orderedSame: ComparisonResult { .same }
+    static var orderedDescending: ComparisonResult { .descending }
+}
 #endif
