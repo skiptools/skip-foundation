@@ -14,12 +14,16 @@ import kotlin.reflect.full.__
 public class ProcessInfo {
     /// The global `processInfo` must be set manually at app launch with `skip.foundation.ProcessInfo.launch(context)`
     /// Otherwise error: `skip.lib.ErrorException: kotlin.UninitializedPropertyAccessException: lateinit property processInfo has not been initialized`
+    ///
+    /// Note that this API is accessed via JNI in `SkipAndroidBridge.ProcessInfo`.
     public static var processInfo: ProcessInfo = ProcessInfo()
 
     init() {
     }
 
     /// The Android context for the process, which should have been set on app launch, and will fall back on using an Android test context.
+    ///
+    /// Note that this API is accessed via JNI in `SkipAndroidBridge.ProcessInfo`.
     public var androidContext: android.content.Context! {
         // androidx.compose.ui.platform.LocalContext.current could be used, but it is @Composable and so can't be called from a static context
         launchContext ?? testContext
