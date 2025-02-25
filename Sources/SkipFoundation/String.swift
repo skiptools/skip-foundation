@@ -20,8 +20,6 @@
 
 #if SKIP
 
-import net.thauvin.erik.urlencoder.UrlEncoderUtil
-
 public typealias NSString = kotlin.String
 public func NSString(string: String) -> NSString { string }
 

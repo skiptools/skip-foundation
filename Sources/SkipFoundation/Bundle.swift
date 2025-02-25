@@ -17,13 +17,52 @@ public class Bundle : Hashable, SwiftCustomBridged {
     private static let lprojExtension = ".lproj" // _CFBundleLprojExtensionWithDot
 
     private let location: LocalizedStringResource.BundleDescription
+    public let bundleURL: URL
+    public let bundleIdentifier: String?
+
 
     internal var isLocalizedBundle: Bool {
-        bundleURLOptional?.absoluteString.hasSuffix(Self.lprojExtension + "/") == true
+        bundleURL.absoluteString.hasSuffix(Self.lprojExtension + "/")
+    }
+
+    public var description: String {
+        return location.description
     }
 
     public init(location: LocalizedStringResource.BundleDescription) {
         self.location = location
+        AssetURLProtocol.register() // ensure that we can handle the "asset:/" URL protocol
+        switch location {
+        case .atURL(let url):
+            self.bundleURL = url
+            self.bundleIdentifier = nil
+        case .main:
+            let identifer = Self.packageName(forClassName: applicationInfo.className)
+            self.bundleIdentifier = identifer
+            self.bundleURL = Self.createBundleURL(forPackage: identifer)
+        case .forClass(let cls):
+            let identifer = Self.packageName(forClassName: cls.java.name)
+            self.bundleIdentifier = identifer
+            self.bundleURL = Self.createBundleURL(forPackage: identifer)
+        }
+    }
+
+    public var resourceURL: URL? {
+        return bundleURL // note: this isn't how traditional bundles work
+    }
+
+    /// Convert `showcase.module.AndroidAppMain` into `showcase.module`
+    private static func packageName(forClassName: String?) -> String {
+        // applicationInfo.className is nil when testing on the Android emulator
+        let className = forClassName ?? "skip.foundation.Bundle"
+        return className.split(separator: ".").dropLast().joined(separator: ".")
+    }
+
+    /// Convert `showcase.module` into `asset:/showcase/module/Resources`
+    private static func createBundleURL(forPackage packageName: String) -> URL {
+        let parts = packageName.replace(".", "/")
+        let url = URL(string: AssetURLProtocol.scheme + ":/" + parts + "/Resources")!
+        return url
     }
 
     public convenience init?(path: String) {
@@ -55,174 +94,35 @@ public class Bundle : Hashable, SwiftCustomBridged {
         hasher.combine(location.hashCode())
     }
 
-    public var description: String {
-        return location.description
-    }
-
-    @available(*, unavailable)
-    public static var allBundles: [Bundle] {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public static var allFrameworks: [Bundle] {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public func load() -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public var isLoaded: Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public func unload() -> Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public func preflight() throws {
-    }
-
-    @available(*, unavailable)
-    public func loadAndReturnError() throws {
-    }
-
-    public var bundleURL: URL {
-        bundleURLOptional!
-    }
-
-    var bundleURLOptional: URL? {
-        let loc: LocalizedStringResource.BundleDescription = location
-        switch loc {
-        case .atURL(let url):
-            return url
-        case .main, .forClass:
-            return relativeBundleURL(Self.resourceIndexFileName)?.deletingLastPathComponent()
-        }
-    }
-
     /// Creates a relative path to the given bundle URL
-    private func relativeBundleURL(path: String) -> URL? {
-        let loc: LocalizedStringResource.BundleDescription = location
-        switch loc {
-        case .main:
-            let className = applicationInfo.className
-            // className can be null when running in emulator unit tests
-            if className == nil {
-                return nil
+    private func relativeBundleURL(path: String, validate: Bool) -> URL? {
+        let relativeURL = resourceURL?.appendingPathComponent(path.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? path)
+        if validate, let relativeURL {
+            if relativeURL.scheme == AssetURLProtocol.scheme {
+                // check the AssetManager to see if the URL exists
+                let assets = ProcessInfo.processInfo.androidContext.resources.assets
+                guard let assetDir = relativeURL.deletingLastPathComponent().path.removingPercentEncoding?.trim("/"[0]) else {
+                    return nil
+                }
+                guard let assetBasename = relativeURL.lastPathComponent.removingPercentEncoding else {
+                    return nil
+                }
+                guard let elements = assets.list(assetDir), elements.count() > 0 else {
+                    return nil
+                }
+                if !elements.contains(assetBasename) {
+                    // if the parent folder does not contain the basename, then the asset is not present
+                    return nil
+                }
+            } else if relativeURL.isFileURL {
+                if !FileManager.default.fileExists(atPath: relativeURL.path) {
+                    return nil // the file or directory does not exist
+                }
+            } else {
+                // unknown protocol … what to do?
             }
-            // ClassLoader will be something like: dalvik.system.PathClassLoader[DexPathList[[zip file "/data/app/~~TsW3puiwg61p2gVvq_TiHQ==/skip.ui.test-6R4Fcu0a4CkedPWcML2mGA==/base.apk"],nativeLibraryDirectories=[/data/app/~~TsW3puiwg61p2gVvq_TiHQ==/skip.ui.test-6R4Fcu0a4CkedPWcML2mGA==/lib/arm64, /system/lib64, /system_ext/lib64]]]
-            let appClass = Class.forName(className, true, Self.androidContext.getClassLoader() ?? Thread.current.platformValue.getContextClassLoader())
-            return relativeBundleURL(path: path, forClass: appClass)
-        case .atURL(let url):
-            return url.appendingPathComponent(path)
-        case .forClass(let cls):
-            return relativeBundleURL(path: path, forClass: cls.java)
         }
-    }
-
-    // SKIP DECLARE: private fun relativeBundleURL(path: String, forClass: Class<*>): URL?
-    private func relativeBundleURL(path: String, forClass: Class<Any>) -> URL? {
-        do {
-            let rpath = "Resources/" + path
-            let resURL = try forClass.getResource(rpath)
-            return URL(platformValue: resURL.toURI())
-        } catch {
-            // getResource throws when it cannot find the resource, but it doesn't handle directories
-            // such as .lproj folders; so manually scan the resources.lst elements, and if any
-            // appear to be a directory, then just return that relative URL without validating its existance
-
-            if path == Self.resourceIndexFileName {
-                return nil // if the resources index itself is not found (which will be the case when the project has no resources), then do not try to load it
-            }
-
-            if self.resourcesIndex.contains(where: { $0.hasPrefix(path + "/") }) {
-                return resourcesFolderURL?.appendingPathComponent(path, isDirectory: true)
-            }
-            return nil
-        }
-    }
-
-    public var resourceURL: URL? {
-        return bundleURL // FIXME: this is probably not correct
-    }
-
-    @available(*, unavailable)
-    public var executableURL: URL? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    open func url(forAuxiliaryExecutable executableName: String) -> URL? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    open var privateFrameworksURL: URL? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    open var sharedFrameworksURL: URL? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    open var sharedSupportURL: URL? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    open var builtInPlugInsURL: URL? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    open var appStoreReceiptURL: URL? {
-        fatalError()
-    }
-
-    public var bundlePath: String {
-        bundleURL.path
-    }
-
-    public var resourcePath: String? {
-        resourceURL?.path
-    }
-
-    @available(*, unavailable)
-    public var executablePath: String? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public func path(forAuxiliaryExecutable executableName: String) -> String? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public var privateFrameworksPath: String? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public var sharedFrameworksPath: String? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public var sharedSupportPath: String? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public var builtInPlugInsPath: String? {
-        fatalError()
+        return relativeURL
     }
 
     public static func url(forResource name: String?, withExtension ext: String? = nil, subdirectory subpath: String? = nil, in bundleURL: URL) -> URL? {
@@ -254,7 +154,7 @@ public class Bundle : Hashable, SwiftCustomBridged {
             res = subdirectory + "/" + res
         }
 
-        return relativeBundleURL(path: res)
+        return relativeBundleURL(path: res, validate: true)
     }
 
     public func urls(forResourcesWithExtension ext: String?, subdirectory subpath: String? = nil, localization localizationName: String? = nil) -> [URL]? {
@@ -269,7 +169,7 @@ public class Bundle : Hashable, SwiftCustomBridged {
             let extWithDot = ext.hasPrefix(".") ? ext : ".\(ext)"
             filteredResources = filteredResources.filter { $0.hasSuffix(extWithDot) }
         }
-        let resourceURLs = filteredResources.compactMap { relativeBundleURL(path: $0) }
+        let resourceURLs = filteredResources.compactMap { relativeBundleURL(path: $0, validate: true) }
         return resourceURLs.isEmpty ? nil : resourceURLs
     }
 
@@ -290,44 +190,33 @@ public class Bundle : Hashable, SwiftCustomBridged {
             .compactMap { $0.path } ?? []
     }
 
-    private static let resourceIndexFileName = "resources.lst"
-
-    /// The URL for the `resources.lst` resources index file that is created by the transpiler when converting resources files.
-    private var resourcesIndexURL: URL? {
-        url(forResource: Self.resourceIndexFileName)
-    }
-
-    /// The path to the base folder of the `Resources/` directory.
-    ///
-    /// In Robolectric, this will be a simple file system directory URL.
-    /// On Android it will be something like `jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/`
-    private var resourcesFolderURL: URL? {
-        resourcesIndexURL?.deletingLastPathComponent()
-    }
-
-    /// Loads the resources index stored in the `resources.lst` file at the root of the resources folder.
+    /// An index of all the assets in the AssetManager relative to the resourceURL for the AssetManager
     public lazy var resourcesIndex: [String] = {
-        guard let resourceListURL = try self.resourcesIndexURL else {
-            return []
-        }
-        let resourceList = try Data(contentsOf: resourceListURL)
-        guard let resourceListString = String(data: resourceList, encoding: String.Encoding.utf8) else {
-            return []
-        }
-        let resourcePaths = resourceListString.components(separatedBy: "\n")
-
-        return resourcePaths
+        let basePath = (resourceURL?.path ?? "").trim("/"[0]) // AssetManager paths are relative, not absolute
+        let resourcePaths = Self.listAssets(in: basePath, recursive: true)
+        let resourceIndexPaths = resourcePaths.map { $0.dropFirst(basePath.count + 1) }
+        return resourceIndexPaths
     }()
+
+    static func listAssets(in folderName: String, recursive: Bool) -> [String] {
+        let am = ProcessInfo.processInfo.androidContext.resources.assets
+        guard let contents = am.list(folderName) else { return [] }
+        let contentArray = Array(contents.toList()).map({ folderName + "/" + $0})
+        if !recursive { return contentArray }
+        return contentArray + contentArray.flatMap({ listAssets(in: $0, recursive: recursive) })
+    }
 
     /// We default to en as the development localization
     public var developmentLocalization: String { "en" }
 
     /// Identify the Bundle's localizations by the presence of a `LOCNAME.lproj/` folder in index of the root of the resources folder
     public lazy var localizations: [String] = {
-        resourcesIndex
+        return resourcesIndex
             .compactMap({ $0.components(separatedBy: "/").first })
             .filter({ $0.hasSuffix(Self.lprojExtension) })
+            .filter({ $0 != "base.lproj" })
             .map({ $0.dropLast(Self.lprojExtension.count) })
+            .distinctValues()
     }()
 
     /// The localized strings tables for this bundle
@@ -418,9 +307,11 @@ public class Bundle : Hashable, SwiftCustomBridged {
             var locBundle: Bundle? = nil
             // for each identifier, attempt to load the Localizable.strings to see if it exists
             for localeid in locale.localeSearchTags {
-                //print("trying localeid: \(localeid)")
-                if locBundle == nil, let locstrURL = self.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: localeid), let locBundleLocal = try? Bundle(url: locstrURL.deletingLastPathComponent()) {
+                if locBundle == nil,
+                   let locstrURL = self.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: localeid),
+                   let locBundleLocal = try? Bundle(url: locstrURL.deletingLastPathComponent()) {
                     locBundle = locBundleLocal
+                    //break // The feature "break continue in inline lambdas" is experimental and should be enabled explicitly
                 }
             }
 
@@ -439,13 +330,6 @@ public class Bundle : Hashable, SwiftCustomBridged {
     @available(*, unavailable)
     public static func preferredLocalizations(from localizationsArray: [String], forPreferences preferencesArray: [String]? = nil) -> [String] {
         fatalError()
-    }
-
-    public var bundleIdentifier: String? {
-        switch location {
-        case .main: return Self.androidContext.getPackageName()
-        default: return nil
-        }
     }
 
     /// The global Android context
@@ -511,6 +395,112 @@ public class Bundle : Hashable, SwiftCustomBridged {
     }
 
     @available(*, unavailable)
+    public var executableURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open func url(forAuxiliaryExecutable executableName: String) -> URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var privateFrameworksURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var sharedFrameworksURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var sharedSupportURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var builtInPlugInsURL: URL? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    open var appStoreReceiptURL: URL? {
+        fatalError()
+    }
+
+    public var bundlePath: String {
+        bundleURL.path
+    }
+
+    public var resourcePath: String? {
+        resourceURL?.path
+    }
+
+    @available(*, unavailable)
+    public var executablePath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func path(forAuxiliaryExecutable executableName: String) -> String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var privateFrameworksPath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var sharedFrameworksPath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var sharedSupportPath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var builtInPlugInsPath: String? {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static var allBundles: [Bundle] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static var allFrameworks: [Bundle] {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func load() -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var isLoaded: Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func unload() -> Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func preflight() throws {
+    }
+
+    @available(*, unavailable)
+    public func loadAndReturnError() throws {
+    }
+
+    @available(*, unavailable)
     public func classNamed(_ className: String) -> AnyClass? {
         fatalError()
     }
@@ -535,6 +525,108 @@ public struct LocalizedStringInfo {
     public let string: String
     public let kotlinFormat: String
     public let markdownNode: MarkdownNode?
+}
+
+
+#if SKIP
+public typealias URLProtocol = java.net.URLStreamHandlerFactory
+#endif
+
+public class AssetURLProtocol: URLProtocol {
+    /// The URL scheme that this protocol handles
+    public static var scheme = "asset"
+
+    private static var registered = false
+
+    public static func register() {
+        if registered { return }
+        registered = true
+
+        #if !SKIP
+        URLProtocol.registerClass(AssetURLProtocol.self)
+        #else
+        java.net.URL.setURLStreamHandlerFactory(AssetURLProtocol())
+        // cannot ever call this twice in the same JVM, or else:
+        //java.net.URL.setURLStreamHandlerFactory(AssetStreamHandlerFactory()) // java.lang.Error: factory already defined
+        #endif
+    }
+
+    #if !SKIP
+    public override class func canInit(with request: URLRequest) -> Bool {
+        return request.url?.scheme == AssetURLProtocol.scheme
+    }
+
+    public override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        return request
+    }
+
+    public override func startLoading() {
+        guard let client else { return }
+
+        guard let url = request.url else {
+            client.urlProtocol(self, didFailWithError: NSError(domain: "AssetURLProtocol", code: -1, userInfo: nil))
+            return
+        }
+
+        let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
+        client.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+
+        let data = AssetURLProtocol.data.data(using: .utf8)!
+        client.urlProtocol(self, didLoad: data)
+
+        client.urlProtocolDidFinishLoading(self)
+    }
+
+    public override func stopLoading() {
+        // no-op
+    }
+    #else
+    private init() {
+    }
+
+    override func createURLStreamHandler(protocol: String) -> java.net.URLStreamHandler? {
+        if `protocol` == AssetURLProtocol.scheme {
+            return AssetStreamHandler()
+        } else {
+            return nil
+        }
+    }
+
+    class AssetStreamHandler: java.net.URLStreamHandler {
+        init() {
+        }
+
+        override func openConnection(url: java.net.URL) -> java.net.URLConnection {
+            AssetURLConnection(url: url)
+        }
+
+        class AssetURLConnection: java.net.URLConnection {
+            init(url: java.net.URL) {
+                super.init(url)
+            }
+
+            override func connect() {
+                // No-op
+            }
+
+            override func getInputStream() -> java.io.InputStream {
+                // e.g.: asset:/skip/path/file.ext
+                var urlPath = self.url.path
+                while urlPath.startsWith("/") {
+                    urlPath = urlPath.substring(1) // trim initial "/"
+                }
+                urlPath = urlPath.removingPercentEncoding ?? urlPath
+                // removingPercentEncoding does not always convert "+" to "%2B" to a space, which the Android AssetManager needs to be able to find the file
+                urlPath = urlPath.replacingOccurrences(of: "+", with: "%2B")
+                urlPath = urlPath.replacingOccurrences(of: "%2B", with: " ")
+                let assetManager = ProcessInfo.processInfo.androidContext.resources.assets
+                // android.content.res.AssetManager$AssetInputStream
+                let stream = assetManager.open(urlPath)
+                return stream
+            }
+        }
+    }
+    #endif
 }
 
 #endif

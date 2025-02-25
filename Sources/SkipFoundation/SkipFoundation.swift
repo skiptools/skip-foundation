@@ -23,6 +23,21 @@ public func NSLog(_ message: String) {
     print(message)
 }
 
+extension Array where Element: Hashable {
+    /// Returns an array containing only the unique elements of the array, preserving the order of the first occurrence of each element.
+    func distinctValues() -> [Element] {
+        var seen = Set<Element>()
+        return filter { element in
+            if seen.contains(element) {
+                return false
+            } else {
+                seen.insert(element)
+                return true
+            }
+        }
+    }
+}
+
 public typealias NSObject = java.lang.Object
 
 public protocol NSObjectProtocol {

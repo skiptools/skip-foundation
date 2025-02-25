@@ -369,7 +369,7 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         }
     }
 
-    private func _appendingPathComponent(_ pathComponent: String) -> URL{
+    private func _appendingPathComponent(_ pathComponent: String) -> URL {
         guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
             return self
         }

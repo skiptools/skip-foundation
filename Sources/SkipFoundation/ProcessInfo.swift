@@ -33,6 +33,7 @@ public class ProcessInfo {
     public static func launch(context: android.content.Context) {
         ProcessInfo.processInfo.launchContext = context
         Thread.main = Thread.current
+        AssetURLProtocol.register()
 
         // if we import SkipBridge it includes an AndroidManifest.xml that defines the "SKIP_BRIDGE_MODULES" list of native modules to load
         // since SkipBridge is not a dependency of SkipFoundation, we need to use reflection to call the
