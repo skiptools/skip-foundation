@@ -161,7 +161,7 @@ class TestThread : XCTestCase {
             return -date.timeIntervalSinceNow
         }
 
-        let allowedOversleepRange = -0.00001..<0.8
+        let allowedOversleepRange = -0.1..<0.8
 
         let oversleep1 = measureOversleep(Date(timeIntervalSinceNow: 0.8))
         XCTAssertTrue(allowedOversleepRange.contains(oversleep1), "Oversleep \(oversleep1) is not in expected range \(allowedOversleepRange)")

@@ -118,10 +118,9 @@ public struct IndexPath : Codable, Comparable, Hashable, CustomStringConvertible
 
     public static func <(lhs: IndexPath, rhs: IndexPath) {
         for i in 0..<lhs.count {
-            if rhs.count < i {
+            if rhs.count <= i {
                 break
-            }
-            if lhs[i] < rhs[i] {
+            } else if lhs[i] < rhs[i] {
                 return true
             } else if lhs[i] > rhs[i] {
                 return false
@@ -130,6 +129,16 @@ public struct IndexPath : Codable, Comparable, Hashable, CustomStringConvertible
         return lhs.count < rhs.count
     }
 
+    
+    public func compare(_ with: IndexPath) -> ComparisonResult {
+        if self == with {
+            return .orderedSame
+        } else if self < with {
+            return .orderedAscending
+        } else {
+            return .orderedDescending
+        }
+    }
     public override func kotlin(nocopy: Bool = false) -> MutableList<Int> {
         return nocopy ? arrayList : ArrayList(arrayList)
     }

@@ -3,14 +3,14 @@
 #if SKIP
 
 public enum ComparisonResult : Int {
-    case ascending = -1
-    case same = 0
-    case descending = 1
+    case orderedAscending = -1
+    case orderedSame = 0
+    case orderedDescending = 1
 }
 
-public extension ComparisonResult {
-    static var orderedAscending: ComparisonResult { .ascending }
-    static var orderedSame: ComparisonResult { .same }
-    static var orderedDescending: ComparisonResult { .descending }
+extension ComparisonResult {
+    public static var ascending: ComparisonResult { .orderedAscending }
+    public static var same: ComparisonResult { .orderedSame }
+    public static var descending: ComparisonResult { .orderedDescending }
 }
 #endif
