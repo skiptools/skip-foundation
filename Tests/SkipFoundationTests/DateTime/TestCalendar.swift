@@ -737,11 +737,7 @@ class TestCalendar: XCTestCase {
         let date2 = calendar.date(byAdding: .day, value: 1, to: date1)!
 
         let comparisonResult = calendar.compare(date1, to: date2, toGranularity: .day)
-#if SKIP
-        XCTAssertEqual(comparisonResult,  ComparisonResult.ascending)
-#else
         XCTAssertEqual(comparisonResult,  .orderedAscending)
-#endif
     }
 
     func dt(_ dateString: String) -> Date? {

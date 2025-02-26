@@ -41,6 +41,16 @@ public struct DateInterval : Hashable, Comparable, Codable {
         return start <= date && end >= date
     }
 
+    public func compare(_ with: DateInterval) -> ComparisonResult {
+        if self == with {
+            return .orderedSame
+        } else if self < with {
+            return .orderedAscending
+        } else {
+            return .orderedDescending
+        }
+    }
+
     public static func == (lhs: DateInterval, rhs: DateInterval) -> Bool {
         return lhs.start == rhs.start && lhs.duration == rhs.duration
     }

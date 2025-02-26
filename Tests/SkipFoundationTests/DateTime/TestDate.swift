@@ -72,59 +72,45 @@ class TestDate : XCTestCase {
     }
     
     func test_DateByAddingTimeInterval() {
-        #if SKIP
-        throw XCTSkip("TODO: Skip Date operator overloads")
-        #else
         let ti: TimeInterval = 1
         let d1 = Date()
-        let d2 = d1 + ti
+        //let d2 = d1 + ti // Date + unsupported in SKIP
+        let d2 = d1.addingTimeInterval(ti)
         XCTAssertNotNil(d2.timeIntervalSince1970 == d1.timeIntervalSince1970 + ti)
-        #endif // !SKIP
     }
     
     func test_EarlierDate() {
-        #if SKIP
-        throw XCTSkip("TODO: Skip Date operator overloads")
-        #else
         let ti: TimeInterval = 1
         let d1 = Date()
-        let d2 = d1 + ti
+        //let d2 = d1 + ti // Date + unsupported in SKIP
+        let d2 = d1.addingTimeInterval(ti)
         XCTAssertLessThan(d1, d2)
-        #endif // !SKIP
     }
     
     func test_LaterDate() {
-        #if SKIP
-        throw XCTSkip("TODO: Skip Date operator overloads")
-        #else
         let ti: TimeInterval = 1
         let d1 = Date()
-        let d2 = d1 + ti
+        //let d2 = d1 + ti // Date + unsupported in SKIP
+        let d2 = d1.addingTimeInterval(ti)
         XCTAssertGreaterThan(d2, d1)
-        #endif // !SKIP
     }
     
     func test_Compare() {
-        #if SKIP
-        throw XCTSkip("TODO: Skip Date operator overloads")
-        #else
         let ti: TimeInterval = 1
         let d1 = Date()
-        let d2 = d1 + ti
+        //let d2 = d1 + ti // Date + unsupported in SKIP
+        let d2 = d1.addingTimeInterval(ti)
         XCTAssertEqual(d1.compare(d2), .orderedAscending)
-        #endif // !SKIP
     }
     
     func test_IsEqualToDate() {
-        #if SKIP
-        throw XCTSkip("TODO: Skip Date operator overloads")
-        #else
         let ti: TimeInterval = 1
         let d1 = Date()
-        let d2 = d1 + ti
-        let d3 = d1 + ti
+        //let d2 = d1 + ti // Date + unsupported in SKIP
+        let d2 = d1.addingTimeInterval(ti)
+        //let d3 = d1 + ti // Date + unsupported in SKIP
+        let d3 = d1.addingTimeInterval(ti)
         XCTAssertEqual(d2, d3)
-        #endif // !SKIP
     }
 
     func test_timeIntervalSinceReferenceDate() {

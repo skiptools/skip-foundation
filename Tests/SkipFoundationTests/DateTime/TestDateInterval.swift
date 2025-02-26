@@ -36,40 +36,28 @@ class TestDateInterval: XCTestCase {
     }
 
     func test_compareDifferentStarts() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2019-04-04 17:09:23 -0700")
         let date2 = dateWithString("2019-04-04 18:09:23 -0700")
         let dateInterval1 = DateInterval(start: date1, duration: 100)
         let dateInterval2 = DateInterval(start: date2, duration: 100)
         XCTAssertEqual(dateInterval1.compare(dateInterval2), .orderedAscending)
         XCTAssertEqual(dateInterval2.compare(dateInterval1), .orderedDescending)
-        #endif // !SKIP
     }
 
     func test_compareDifferentDurations() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date = dateWithString("2019-04-04 17:09:23 -0700")
         let dateInterval1 = DateInterval(start: date, duration: 60)
         let dateInterval2 = DateInterval(start: date, duration: 90)
         XCTAssertEqual(dateInterval1.compare(dateInterval2), .orderedAscending)
         XCTAssertEqual(dateInterval2.compare(dateInterval1), .orderedDescending)
-        #endif // !SKIP
     }
 
     func test_compareSame() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date = dateWithString("2019-04-04 17:09:23 -0700")
         let dateInterval1 = DateInterval(start: date, duration: 60)
         let dateInterval2 = DateInterval(start: date, duration: 60)
         XCTAssertEqual(dateInterval1.compare(dateInterval2), .orderedSame)
         XCTAssertEqual(dateInterval2.compare(dateInterval1), .orderedSame)
-        #endif // !SKIP
     }
 
     func test_comparisonOperators() {

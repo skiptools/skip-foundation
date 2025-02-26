@@ -441,28 +441,28 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         case .year:
             let year1 = platformCal1.get(java.util.Calendar.YEAR)
             let year2 = platformCal2.get(java.util.Calendar.YEAR)
-            return year1 < year2 ? .ascending : year1 > year2 ? .descending : .same
+            return year1 < year2 ? .orderedAscending : year1 > year2 ? .orderedDescending : .orderedSame
         case .month:
             let year1 = platformCal1.get(java.util.Calendar.YEAR)
             let year2 = platformCal2.get(java.util.Calendar.YEAR)
             let month1 = platformCal1.get(java.util.Calendar.MONTH)
             let month2 = platformCal2.get(java.util.Calendar.MONTH)
-            if year1 != year2 { return year1 < year2 ? .ascending : .descending }
-            return month1 < month2 ? .ascending : month1 > month2 ? .descending : .same
+            if year1 != year2 { return year1 < year2 ? .orderedAscending : .orderedDescending }
+            return month1 < month2 ? .orderedAscending : month1 > month2 ? .orderedDescending : .orderedSame
         case .day:
             let year1 = platformCal1.get(java.util.Calendar.YEAR)
             let year2 = platformCal2.get(java.util.Calendar.YEAR)
             let day1 = platformCal1.get(java.util.Calendar.DAY_OF_YEAR)
             let day2 = platformCal2.get(java.util.Calendar.DAY_OF_YEAR)
-            if year1 != year2 { return year1 < year2 ? .ascending : .descending }
-            return day1 < day2 ? .ascending : day1 > day2 ? .descending : .same
+            if year1 != year2 { return year1 < year2 ? .orderedAscending : .orderedDescending }
+            return day1 < day2 ? .orderedAscending : day1 > day2 ? .orderedDescending : .orderedSame
         default:
-            return .same
+            return .orderedSame
         }
     }
 
     public func isDate(_ date1: Date, equalTo date2: Date, toGranularity component: Calendar.Component) -> Bool {
-        return compare(date1, to: date2, toGranularity: component) == .same
+        return compare(date1, to: date2, toGranularity: component) == .orderedSame
     }
 
     public func isDate(_ date1: Date, inSameDayAs date2: Date) -> Bool {

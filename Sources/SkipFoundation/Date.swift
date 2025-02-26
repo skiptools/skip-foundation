@@ -121,6 +121,16 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable, Kot
         lhs.platformValue < rhs.platformValue
     }
 
+    public func compare(_ with: Date) -> ComparisonResult {
+        if self == with {
+            return .orderedSame
+        } else if self < with {
+            return .orderedAscending
+        } else {
+            return .orderedDescending
+        }
+    }
+
     public static func ==(lhs: Date, rhs: Date) -> Bool {
         return lhs.platformValue == rhs.platformValue
     }
