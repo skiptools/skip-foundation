@@ -1,3 +1,12 @@
+## 1.3.1
+
+Released 2025-02-26
+
+  - Merge pull request #57 from skiptools/comparison-result
+  - Broaden allowed oversleep range for slow emulator testing
+  - Fix ComparisonResult cases to be orderedAscending, orderedSame, and orderedDescending
+  - Update copyright and license headers
+
 ## 1.2.14
 
 Released 2025-02-18
