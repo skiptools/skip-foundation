@@ -5,9 +5,6 @@
 public class PropertyListSerialization {
     public static func propertyList(from: Data, options: PropertyListSerialization.ReadOptions = [], format: Any?) throws -> [String: String]? {
         var dict: Dictionary<String, String> = [:]
-        //let re = #"(?<!\\)"(.*?)(?<!\\)"\s*=\s*"(.*?)(?<!\\)";"# // Swift Regex error: "lookbehind is not currently supported"
-        //let re = "^\"(.*)\"[ ]*=[ ]*\"(.*)\";\\s*$"
-        let re = "^\"(.*)\"[ ]*=[ ]*\"(.*)\";$" // needs https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-regex-option/-m-u-l-t-i-l-i-n-e.html
 
         let text = from.utf8String
 
@@ -16,22 +13,74 @@ public class PropertyListSerialization {
             return nil
         }
 
-        func unescape(_ string: String) -> String {
-            string
-                .replacingOccurrences(of: "\\\"", with: "\"")
-                .replacingOccurrences(of: "\\n", with: "\n")
-        }
+        let lines = text.components(separatedBy: "\n")
 
-        for line in text.components(separatedBy: "\n") {
-            let exp = try kotlin.text.Regex(re, RegexOption.MULTILINE) // https://www.baeldung.com/regular-expressions-java#Pattern
-            for match in exp.findAll(text).map(\.groupValues) {
-                if match.size == 3,
-                   let key = match[1],
-                   let value = match[2] {
-                    dict[unescape(key)] = unescape(value)
+        for line in lines {
+            if !line.hasPrefix("\"") {
+                continue // maybe a comment? (note: we do no support multi-line /* */ comments
+            }
+            var key: String?
+            var value: String?
+            var isParsingKey = true
+            var currentToken = ""
+            var isEscaped = false
+            var isInsideString = false
+
+            for char in line {
+                if isEscaped {
+                    if char == "n" {
+                        currentToken += "\n"
+                    } else if char == "r" {
+                        currentToken += "\r"
+                    } else if char == "t" {
+                        currentToken += "\t"
+                    //} else if char == "u" { // TODO: handle unicode escapes like \uXXXX
+                    } else {
+                        // otherwise, just add the literal characters (like " or \)
+                        currentToken += char
+                    }
+                    isEscaped = false
+                    continue
+                }
+
+                switch char {
+                case "\\":
+                    isEscaped = true
+                case "\"":
+                    isInsideString = !isInsideString
+                    if !isInsideString {
+                        if isParsingKey {
+                            key = currentToken
+                            isParsingKey = false
+                        } else {
+                            value = currentToken
+                        }
+                        currentToken = ""
+                    }
+                case "=":
+                    if isInsideString {
+                        currentToken += char
+                    } else {
+                        isParsingKey = false
+                    }
+
+                case ";":
+                    if isInsideString {
+                        currentToken += char
+                    } else {
+                        if let k = key, let v = value {
+                            dict[k] = v
+                        }
+                    }
+
+                default:
+                    if isInsideString {
+                        currentToken += char
+                    }
                 }
             }
         }
+
         return dict
     }
 
