@@ -3,7 +3,18 @@
 #if SKIP
 
 public class PropertyListSerialization {
+    @available(*, unavailable)
+    public static func propertyList(_ propertyList: Any, isValidFor: PropertyListSerialization.PropertyListFormat) -> Bool {
+        fatalError()
+    }
+
+
     public static func propertyList(from: Data, options: PropertyListSerialization.ReadOptions = [], format: Any?) throws -> [String: String]? {
+        // TODO: auto-detect format from data content if the format argument is unset
+        return try openStepPropertyList(from: from, options: options)
+    }
+
+    static func openStepPropertyList(from: Data, options: PropertyListSerialization.ReadOptions = []) throws -> [String: String]? {
         var dict: Dictionary<String, String> = [:]
 
         let text = from.utf8String
@@ -99,15 +110,10 @@ public class PropertyListSerialization {
         fatalError()
     }
 
-    @available(*, unavailable)
-    public static func propertyList(_ propertyList: Any, isValidFor: PropertyListSerialization.PropertyListFormat) -> Bool {
-        fatalError()
-    }
-
-    public enum PropertyListFormat {
-        case openStep
-        case xml
-        case binary
+    public enum PropertyListFormat: UInt {
+        case openStep = 1
+        case xml = 100
+        case binary = 200
     }
 
     public struct ReadOptions: RawRepresentable, OptionSet {

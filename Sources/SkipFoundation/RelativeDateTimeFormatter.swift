@@ -52,6 +52,7 @@ public class RelativeDateTimeFormatter: Formatter {
 
     public init () {
         locale = .current
+        updatePlatformValue() // didSet is not called from init(), so do it manually to set the platformValue
     }
 
     private func updatePlatformValue() {
