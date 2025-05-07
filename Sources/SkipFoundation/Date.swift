@@ -50,7 +50,7 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable, Kot
     public static let distantFuture = Date(timeIntervalSince1970: 64092211200.0)
 
     public static var now: Date { Date() }
-    
+
     public init() {
         self.platformValue = java.util.Date()
     }
@@ -169,6 +169,14 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable, Kot
 
     public mutating func addTimeInterval(_ timeInterval: Int) {
         self = addingTimeInterval(timeInterval)
+    }
+
+    public func advanced(by n: TimeInterval) -> Date {
+        return addingTimeInterval(n)
+    }
+
+    public func distance(to other: Date) -> TimeInterval {
+        return other.timeIntervalSince1970 - timeIntervalSince1970
     }
 
     public func ISO8601Format(_ style: Date.ISO8601FormatStyle = .iso8601) -> String {

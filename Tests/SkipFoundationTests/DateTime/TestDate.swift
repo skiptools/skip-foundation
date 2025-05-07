@@ -24,8 +24,8 @@ func dateWithString(_ str: String) -> Date {
 }
 
 class TestDate : XCTestCase {
-    
-    
+
+
     func test_BasicConstruction() {
         let d: Date = Date()
         XCTAssert(d.timeIntervalSince1970 != 0.0)
@@ -37,40 +37,40 @@ class TestDate : XCTestCase {
         XCTAssertEqual(d.description(with: nil), "1970-01-01 00:00:00 +0000")
         XCTAssertFalse(d.description(with: Locale(identifier: "ja_JP")).isEmpty)
     }
-    
+
     func test_InitTimeIntervalSince1970() {
         let ti: TimeInterval = 1.0
         let d = Date(timeIntervalSince1970: ti)
         XCTAssert(d.timeIntervalSince1970 == ti)
     }
-    
+
     func test_InitTimeIntervalSinceSinceDate() {
         let ti: TimeInterval = 1.0
         let d1 = Date()
         let d2 = Date(timeInterval: ti, since: d1)
         XCTAssertNotNil(d2.timeIntervalSince1970 == d1.timeIntervalSince1970 + ti)
     }
-    
+
     func test_TimeIntervalSinceSinceDate() {
         let ti: TimeInterval = 1.0
         let d1 = Date()
         let d2 = Date(timeInterval: ti, since: d1)
         XCTAssertEqual(d2.timeIntervalSince(d1), ti)
     }
-    
+
     func test_DistantFuture() {
         let d = Date.distantFuture
         let now = Date()
         XCTAssertGreaterThan(d, now)
     }
-    
+
     func test_DistantPast() {
         let now = Date()
         let d = Date.distantPast
 
         XCTAssertLessThan(d, now)
     }
-    
+
     func test_DateByAddingTimeInterval() {
         let ti: TimeInterval = 1
         let d1 = Date()
@@ -78,7 +78,7 @@ class TestDate : XCTestCase {
         let d2 = d1.addingTimeInterval(ti)
         XCTAssertNotNil(d2.timeIntervalSince1970 == d1.timeIntervalSince1970 + ti)
     }
-    
+
     func test_EarlierDate() {
         let ti: TimeInterval = 1
         let d1 = Date()
@@ -86,7 +86,7 @@ class TestDate : XCTestCase {
         let d2 = d1.addingTimeInterval(ti)
         XCTAssertLessThan(d1, d2)
     }
-    
+
     func test_LaterDate() {
         let ti: TimeInterval = 1
         let d1 = Date()
@@ -94,7 +94,7 @@ class TestDate : XCTestCase {
         let d2 = d1.addingTimeInterval(ti)
         XCTAssertGreaterThan(d2, d1)
     }
-    
+
     func test_Compare() {
         let ti: TimeInterval = 1
         let d1 = Date()
@@ -102,7 +102,7 @@ class TestDate : XCTestCase {
         let d2 = d1.addingTimeInterval(ti)
         XCTAssertEqual(d1.compare(d2), .orderedAscending)
     }
-    
+
     func test_IsEqualToDate() {
         let ti: TimeInterval = 1
         let d1 = Date()
@@ -120,7 +120,7 @@ class TestDate : XCTestCase {
         XCTAssertTrue(d1 <= sinceReferenceDate)
         XCTAssertTrue(d2 >= sinceReferenceDate)
     }
-    
+
     func test_recreateDateComponentsFromDate() {
         let components = DateComponents(calendar: Calendar(identifier: Calendar.Identifier.gregorian),
                                         timeZone: TimeZone.current,
@@ -174,30 +174,22 @@ class TestDate : XCTestCase {
 
     @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
     func test_advancedBy() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2010-05-17 14:49:47 -0000")
         let date2 = dateWithString("2010-05-18 14:49:47 -0000")
 
         XCTAssertEqual(date1.advanced(by: 86400), date2)
         XCTAssertEqual(date2.advanced(by: -86400), date1)
         XCTAssertEqual(date1.advanced(by: 0), date1)
-        #endif // !SKIP
     }
 
     @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
     func test_distanceTo() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let date1 = dateWithString("2010-05-17 14:49:47 -0000")
         let date2 = dateWithString("2010-05-18 14:49:47 -0000")
 
         XCTAssertEqual(date1.distance(to: date2), 86400)
         XCTAssertEqual(date2.distance(to: date1), -86400)
         XCTAssertEqual(date1.distance(to: date1), 0)
-        #endif // !SKIP
     }
 }
 
