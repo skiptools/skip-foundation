@@ -1,6 +1,6 @@
 # SkipFoundation
 
-Foundation support for [Skip](https://skip.tools) apps.
+Foundation support for [Skip Lite](https://skip.tools) transpiled Swift.
 
 See what API is currently implemented [here](#foundation-support).
 
