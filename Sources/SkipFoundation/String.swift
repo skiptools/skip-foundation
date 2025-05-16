@@ -88,6 +88,11 @@ extension String {
         return UrlEncoderUtil.decode(self, plusToSpace: true)
     }
 
+    public func range(of searchString: String) -> Range<String.Index>? {
+        let startIndex = indexOf(searchString)
+        return startIndex != -1 ? startIndex..<(startIndex + searchString.count) : nil
+    }
+
     public typealias Encoding = StringEncoding
 
     public var utf8Data: Data {
