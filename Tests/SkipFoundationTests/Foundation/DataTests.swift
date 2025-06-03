@@ -21,7 +21,7 @@ final class DataTests: XCTestCase {
         //logger.log("downloaded url size: \(urlData.count)") // ~1256
         XCTAssertNotEqual(0, urlData.count)
 
-        let url2 = try XCTUnwrap(URL(string: "domains/reserved", relativeTo: URL(string: "https://www.iana.org")))
+        let url2 = try XCTUnwrap(URL(string: "domains/reserved", relativeTo: URL(string: "https://www.iana.org/")))
         let url2Data: Data = try Data(contentsOf: url2)
 
         //logger.log("downloaded url2 size: \(url2Data.count)") // ~1256
