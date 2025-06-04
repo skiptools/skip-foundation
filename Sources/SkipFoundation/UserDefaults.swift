@@ -38,30 +38,35 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
     public func `set`(_ value: Int, forKey defaultName: String) {
         let prefs = platformValue.edit()
         prefs.putInt(defaultName, value)
+        prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         prefs.apply()
     }
 
     public func `set`(_ value: Float, forKey defaultName: String) {
         let prefs = platformValue.edit()
-        prefs.putInt(defaultName, value.toRawBits())
+        prefs.putFloat(defaultName, value)
+        prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         prefs.apply()
     }
 
     public func `set`(_ value: Boolean, forKey defaultName: String) {
         let prefs = platformValue.edit()
         prefs.putBoolean(defaultName, value)
+        prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         prefs.apply()
     }
 
     public func `set`(_ value: Double, forKey defaultName: String) {
         let prefs = platformValue.edit()
         prefs.putLong(defaultName, value.toRawBits())
+        putUnrepresentableType(prefs, type: .double, forKey: defaultName)
         prefs.apply()
     }
 
     public func `set`(_ value: String, forKey defaultName: String) {
         let prefs = platformValue.edit()
         prefs.putString(defaultName, value)
+        prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         prefs.apply()
     }
 
@@ -71,26 +76,37 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
 
         if value == nil {
             prefs.remove(defaultName)
+            prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         } else if let v = value as? Float {
             prefs.putFloat(defaultName, v)
+            prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         } else if let v = value as? Int64 {
             prefs.putLong(defaultName, v)
+            prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         } else if let v = value as? Int {
             prefs.putInt(defaultName, v)
+            prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         } else if let v = value as? Bool {
             prefs.putBoolean(defaultName, v)
+            prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         } else if let v = value as? Double {
             prefs.putLong(defaultName, value.toRawBits())
+            putUnrepresentableType(prefs, type: .double, forKey: defaultName)
         } else if let v = value as? Number {
             prefs.putString(defaultName, v.toString())
+            prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         } else if let v = value as? String {
             prefs.putString(defaultName, v)
+            prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         } else if let v = value as? URL {
             prefs.putString(defaultName, v.absoluteString)
+            putUnrepresentableType(prefs, type: .url, forKey: defaultName)
         } else if let v = value as? Data {
-            prefs.putString(defaultName, Self.dataStringPrefix + dataToString(v))
+            prefs.putString(defaultName, dataToString(v))
+            putUnrepresentableType(prefs, type: .data, forKey: defaultName)
         } else if let v = value as? Date {
-            prefs.putString(defaultName, Self.dateStringPrefix + dateToString(v))
+            prefs.putString(defaultName, dateToString(v))
+            putUnrepresentableType(prefs, type: .date, forKey: defaultName)
         } else {
             // we ignore
             return
@@ -100,31 +116,52 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
     public func removeObject(forKey defaultName: String) {
         let prefs = platformValue.edit()
         prefs.remove(defaultName)
+        prefs.remove("\(unrepresentableTypePrefix)\(defaultName)")
         prefs.apply()
     }
 
     public func object(forKey defaultName: String) -> Any? {
         let value = platformValue.getAll()[defaultName] ?? registrationDictionary[defaultName] ?? nil
-        return fromStoredRepresentation(value)
+        return fromStoredRepresentation(value, key: defaultName)
     }
 
-    private func fromStoredRepresentation(_ value: Any?) -> Any? {
-        guard let string = value as? String else {
-            if let d = value as? Double {
-                return removeDoubleSlop(d)
-            } else if let f = value as? Float {
-                return removeFloatSlop(f)
+    private func putUnrepresentableType(_ prefs: android.content.SharedPreferences.Editor, type: UnrepresentableType, forKey key: String) {
+        prefs.putInt("\(unrepresentableTypePrefix)\(key)", type.rawValue)
+    }
+    
+    private func getUnrepresentableType(forKey key: String) -> UnrepresentableType? {
+        let unrepresentableTypeId = platformValue.getInt("\(unrepresentableTypePrefix)\(key)", 0)
+        if unrepresentableTypeId == 0 {
+            return nil
+        }
+        return UnrepresentableType(rawValue: unrepresentableTypeId)
+    }
+    
+    private func fromStoredRepresentation(_ value: Any?, key: String) -> Any? {
+        if let l = value as? Long {
+            if getUnrepresentableType(forKey: key) == .double {
+                return Double.fromBits(l)
             } else {
                 return value
             }
+        } else if let string = value as? String {
+            if string.hasPrefix(Self.dataStringPrefix) {
+                return dataFromString(string.dropFirst(Self.dataStringPrefix.count))
+            } else if string.hasPrefix(Self.dateStringPrefix) {
+                return dateFromString(string.dropFirst(Self.dateStringPrefix.count))
+            } else {
+                switch getUnrepresentableType(forKey: key) {
+                    case .data:
+                        return dataFromString(string)
+                    case .date:
+                        return dateFromString(string)
+                    case .url:
+                        return URL(string: string)
+                    default: return value
+                }
+            }
         }
-        if string.hasPrefix(Self.dataStringPrefix) {
-            return dataFromString(string.dropFirst(Self.dataStringPrefix.count))
-        } else if string.hasPrefix(Self.dateStringPrefix) {
-            return dateFromString(string.dropFirst(Self.dateStringPrefix.count))
-        } else {
-            return string
-        }
+        return value
     }
 
     @available(*, unavailable)
@@ -167,7 +204,12 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         guard let value = object(forKey: defaultName) else {
             return 0.0
         }
-        if let number = value as? Number {
+        if let double = value as? Double {
+            return double
+        } else if let float = value as? Float {
+            return removeDoubleSlop(float.toDouble())
+        } else if let number = value as? Number {
+            // Number could be stored before #54 was fixed
             if let double = number as? Long {
                 return Double.fromBits(double)
             } else {
@@ -201,9 +243,12 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         guard let value = object(forKey: defaultName) else {
             return Float(0.0)
         }
-        if let number = value as? Number {
-            if let float = number as? Int {
-                return Float.fromBits(float)
+        if let float = value as? Float {
+            return float
+        } else if let number = value as? Number {
+            // Number could be stored before #54 was fixed
+            if let i = number as? Int {
+                return Float.fromBits(i)
             } else {
                 return removeFloatSlop(number.toFloat())
             }
@@ -262,7 +307,7 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         let map = platformValue.getAll()
         var dict = Dictionary<String, Any>()
         for entry in map {
-            if let value = fromStoredRepresentation(entry.value) {
+            if let value = fromStoredRepresentation(entry.value, key: entry.key) {
                 dict[entry.key] = value
             }
         }
@@ -350,6 +395,15 @@ public class UserDefaults: KotlinConverting<android.content.SharedPreferences> {
         fatalError()
     }
 
+    enum UnrepresentableType: Int {
+        case unspecified = 0,
+             double = 1,
+             date = 2,
+             data = 3,
+             url = 4
+    }
+    
+    private static let unrepresentableTypePrefix = "__unrepresentable__:"
     private static let dataStringPrefix = "__data__:"
     private static let dateStringPrefix = "__date__:"
     private static let dateFormatter = ISO8601DateFormatter()

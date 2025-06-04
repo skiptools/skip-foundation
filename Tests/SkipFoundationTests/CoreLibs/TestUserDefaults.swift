@@ -381,6 +381,7 @@ class TestUserDefaults : XCTestCase {
         let defaults = UserDefaults.standard
         defaults.set(Float(10.56), forKey: "floatkey")
         XCTAssertEqual(Float(10.56), defaults.float(forKey: "floatkey"))
+        XCTAssertEqual(Float(10.56), defaults.object(forKey: "floatkey") as! Float)
     }
 
     func test_doublePrecision() {
@@ -390,6 +391,59 @@ class TestUserDefaults : XCTestCase {
 
         defaults.set(761602013.452, forKey: "doublekey2")
         XCTAssertEqual(761602013.452, defaults.double(forKey: "doublekey2"))
+        XCTAssertEqual(761602013.452, defaults.object(forKey: "doublekey2") as? Double)
+        
+        let almostThreeTenthsDouble = 0.1 + 0.2
+        defaults.set(almostThreeTenthsDouble, forKey: "doublekey3")
+        XCTAssertEqual(almostThreeTenthsDouble, defaults.double(forKey: "doublekey3"))
+        
+        defaults.set(Float(10.56), forKey: "floatkey1")
+        XCTAssertEqual(Float(10.56), defaults.float(forKey: "floatkey1"))
+        XCTAssertEqual(Float(10.56), defaults.object(forKey: "floatkey1") as? Float)
+        
+        let almostThreeTenthsFloat = Float(0.1) + Float(0.2)
+        defaults.set(almostThreeTenthsFloat, forKey: "floatkey2")
+        XCTAssertEqual(almostThreeTenthsFloat, defaults.float(forKey: "floatkey2"))
+        XCTAssertEqual(almostThreeTenthsFloat, defaults.object(forKey: "floatkey2") as? Float)
+        
+        defaults.set(Float(16777215.0), forKey: "floatkey3")
+        XCTAssertEqual(Float(16777215.0), defaults.float(forKey: "floatkey3"))
+        XCTAssertEqual(Float(16777215.0), defaults.object(forKey: "floatkey3") as? Float)
+    }
+    
+    func test_backwardsCompatibility() {
+        let defaults = UserDefaults.standard
+        
+        #if SKIP
+        let double = 761602013.452
+        let doubleBits: Long = double.toRawBits()
+        defaults.set(doubleBits, forKey: "doublekey")
+        XCTAssertEqual(double, defaults.double(forKey: "doublekey"))
+        XCTAssertEqual(doubleBits, defaults.object(forKey: "doublekey") as? Long)
+        
+        let float = Float(16777215.0)
+        let floatBits: Int = float.toRawBits()
+        defaults.set(floatBits, forKey: "floatkey")
+        XCTAssertEqual(float, defaults.float(forKey: "floatkey"))
+        XCTAssertEqual(floatBits, defaults.object(forKey: "floatkey") as? Int)
+        
+        let data = Data([UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)])
+        let legacyDataString = "__data__:\(data.base64EncodedString())"
+        defaults.set(legacyDataString, forKey: "datakey")
+        XCTAssertEqual(data, defaults.data(forKey: "datakey"))
+        XCTAssertEqual(data, defaults.object(forKey: "datakey"))
+        
+        let date: Date = .now
+        let dateString = date.ISO8601Format()
+        let legacyDateString = "__date__:\(date.ISO8601Format())"
+        defaults.set(legacyDateString, forKey: "datekey")
+        XCTAssertEqual(dateString, (defaults.object(forKey: "datekey") as? Date)?.ISO8601Format())
+        
+        let urlString = "https://example.com"
+        defaults.set(urlString, forKey: "urlkey")
+        XCTAssertEqual(URL(string: urlString)!, defaults.url(forKey: "urlkey"))
+        XCTAssertEqual(urlString, defaults.object(forKey: "urlkey") as? String)
+        #endif
     }
 
     func test_nilRemovesValue() {
