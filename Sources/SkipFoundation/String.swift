@@ -24,7 +24,7 @@ public func strlen(_ string: String) -> Int {
 }
 
 public func strncmp(_ str1: String, _ str2: String) -> Int {
-    return str1.toLowerCase() == str2.toLowerCase() ? 0 : 1
+    return str1.lowercase() == str2.lowercase() ? 0 : 1
 }
 
 extension String {
