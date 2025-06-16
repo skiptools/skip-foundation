@@ -2490,14 +2490,14 @@ E {
         #else
         func frobnicate(_ sub: inout AttributedSubstring) {
             var new = sub
-            new.foregroundColor = .blue
-            new.backgroundColor = .black
+            new.foregroundColor = Color.blue
+            new.backgroundColor = Color.black
             sub = new
         }
         var attrStr = AttributedString("ABCDE")
         frobnicate(&attrStr[ attrStr.range(of: "BCD")! ])
 
-        let expected = AttributedString("A") + AttributedString("BCD", attributes: .init().foregroundColor(.blue).backgroundColor(.black)) + AttributedString("E")
+        let expected = AttributedString("A") + AttributedString("BCD", attributes: .init().foregroundColor(Color.blue).backgroundColor(Color.black)) + AttributedString("E")
         XCTAssertEqual(attrStr, expected)
         #endif // !SKIP
     }
@@ -2523,11 +2523,11 @@ E {
         #if SKIP
         throw XCTSkip("TODO")
         #else
-        var attrStr1 = AttributedString("ABC", attributes: .init().foregroundColor(.black)) + AttributedString("DE", attributes: .init().foregroundColor(.white))
-        let attrStr2 = AttributedString("XYZ", attributes: .init().foregroundColor(.blue))
+        var attrStr1 = AttributedString("ABC", attributes: .init().foregroundColor(Color.black)) + AttributedString("DE", attributes: .init().foregroundColor(Color.white))
+        let attrStr2 = AttributedString("XYZ", attributes: .init().foregroundColor(Color.blue))
 
         attrStr1.characters = attrStr2.characters
-        XCTAssertEqual(attrStr1, AttributedString("XYZ", attributes: .init().foregroundColor(.black)))
+        XCTAssertEqual(attrStr1, AttributedString("XYZ", attributes: .init().foregroundColor(Color.black)))
         #endif // !SKIP
     }
 
@@ -2540,10 +2540,10 @@ E {
             new.replaceSubrange(chars.startIndex ..< chars.endIndex, with: "XYZ")
             chars = new
         }
-        var attrStr = AttributedString("ABCDE", attributes: .init().foregroundColor(.black))
+        var attrStr = AttributedString("ABCDE", attributes: .init().foregroundColor(Color.black))
         frobnicate(&attrStr.characters)
 
-        XCTAssertEqual(attrStr, AttributedString("XYZ", attributes: .init().foregroundColor(.black)))
+        XCTAssertEqual(attrStr, AttributedString("XYZ", attributes: .init().foregroundColor(Color.black)))
         #endif // !SKIP
     }
 
@@ -2551,11 +2551,11 @@ E {
         #if SKIP
         throw XCTSkip("TODO")
         #else
-        var attrStr1 = AttributedString("ABC", attributes: .init().foregroundColor(.black)) + AttributedString("DE", attributes: .init().foregroundColor(.white))
-        let attrStr2 = AttributedString("XYZ", attributes: .init().foregroundColor(.blue))
+        var attrStr1 = AttributedString("ABC", attributes: .init().foregroundColor(Color.black)) + AttributedString("DE", attributes: .init().foregroundColor(Color.white))
+        let attrStr2 = AttributedString("XYZ", attributes: .init().foregroundColor(Color.blue))
 
         attrStr1.unicodeScalars = attrStr2.unicodeScalars
-        XCTAssertEqual(attrStr1, AttributedString("XYZ", attributes: .init().foregroundColor(.black)))
+        XCTAssertEqual(attrStr1, AttributedString("XYZ", attributes: .init().foregroundColor(Color.black)))
         #endif // !SKIP
     }
 
@@ -2568,10 +2568,10 @@ E {
             new.replaceSubrange(chars.startIndex ..< chars.endIndex, with: "XYZ")
             chars = new
         }
-        var attrStr = AttributedString("ABCDE", attributes: .init().foregroundColor(.black))
+        var attrStr = AttributedString("ABCDE", attributes: .init().foregroundColor(Color.black))
         frobnicate(&attrStr.characters)
 
-        XCTAssertEqual(attrStr, AttributedString("XYZ", attributes: .init().foregroundColor(.black)))
+        XCTAssertEqual(attrStr, AttributedString("XYZ", attributes: .init().foregroundColor(Color.black)))
         #endif // !SKIP
     }
 
