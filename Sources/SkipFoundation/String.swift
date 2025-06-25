@@ -76,6 +76,34 @@ extension String {
         return Array(split(separator, ignoreCase: false))
     }
 
+    private func compare(_ aString: String, strength: Int, locale: Locale = Locale.current) -> ComparisonResult {
+        let collator = java.text.Collator.getInstance(locale.platformValue)
+        collator.setStrength(strength)
+        let result = collator.compare(self, aString)
+        if result < 0 {
+            return .orderedAscending
+        } else if result > 0 {
+            return .orderedDescending
+        } else {
+            return .orderedSame
+        }
+    }
+
+    public func localizedCompare(_ string: String) -> ComparisonResult {
+        // only SECONDARY and above differences are considered significant during comparison. The assignment of strengths to language features is locale dependant. A common example is for different accented forms of the same base letter ("a" vs "ä") to be considered a SECONDARY difference.
+        compare(string, strength: java.text.Collator.SECONDARY)
+    }
+
+    public func localizedCaseInsensitiveCompare(_ string: String) -> ComparisonResult {
+        // only TERTIARY and above differences are considered significant during comparison. The assignment of strengths to language features is locale dependant. A common example is for case differences ("a" vs "A") to be considered a TERTIARY difference.
+        compare(string, strength: java.text.Collator.TERTIARY)
+    }
+
+    @available(*, unavailable)
+    public func localizedStandardCompare(_ string: String) -> ComparisonResult {
+        fatalError("unsupported")
+    }
+
     public func trimmingCharacters(in set: CharacterSet) -> String {
         return trim { set.platformValue.contains(UInt32($0.code)) }
     }
