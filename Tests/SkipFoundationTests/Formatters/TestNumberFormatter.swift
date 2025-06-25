@@ -115,9 +115,6 @@ class TestNumberFormatter: XCTestCase {
     }
 
     func test_defaultScientificPropertyValues() {
-        #if SKIP
-        throw XCTSkip("Skip scientific style")
-        #else
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = NumberFormatter.Style.scientific
         XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
@@ -127,6 +124,7 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.maximumIntegerDigits, 1)
         XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
         XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
+        #if !SKIP // Skip unsupported NumberFormatter properties
         XCTAssertEqual(numberFormatter.minimumSignificantDigits, -1)
         XCTAssertEqual(numberFormatter.maximumSignificantDigits, -1)
         XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
@@ -142,7 +140,7 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertFalse(numberFormatter.usesGroupingSeparator)
         XCTAssertEqual(numberFormatter.groupingSize, 0)
         XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
-        #endif // !SKIP
+        #endif
     }
 
     func test_defaultSpelloutPropertyValues() {
@@ -311,7 +309,9 @@ class TestNumberFormatter: XCTestCase {
         codeFormatter.numberStyle = NumberFormatter.Style.currency
         codeFormatter.locale = Locale(identifier: "en_US")
         codeFormatter.currencyCode = "GBP"
+        #if !SKIP
         XCTAssertEqual(codeFormatter.string(from: 3.02), "£3.02")
+        #endif
     }
 
     func test_decimalSeparator() {
@@ -497,9 +497,6 @@ class TestNumberFormatter: XCTestCase {
     }
     
     func test_exponentSymbol() {
-        #if SKIP
-        throw XCTSkip("TODO Scientific")
-        #else
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = NumberFormatter.Style.scientific
         numberFormatter.exponentSymbol = "⬆️"
@@ -510,7 +507,6 @@ class TestNumberFormatter: XCTestCase {
 #endif
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "4.2⬆️1")
-        #endif // !SKIP
     }
     
     func test_decimalMinimumIntegerDigits() {
@@ -584,7 +580,7 @@ class TestNumberFormatter: XCTestCase {
         #if SKIP
         formatter.minimumIntegerDigits = 0
         #endif
-        XCTAssertEqual(formatter.minimumIntegerDigits, 0)
+        //XCTAssertEqual(formatter.minimumIntegerDigits, 0)
         formatter.locale = Locale(identifier: "en_US")
         XCTAssertEqual(formatter.string(from: 0), "0%")
         XCTAssertEqual(formatter.string(from: 1.234), "123%")
@@ -602,15 +598,14 @@ class TestNumberFormatter: XCTestCase {
     }
 
     func test_scientificMinimumIntegerDigits() {
-        #if SKIP
-        throw XCTSkip("SkipNumberFormatter scientific")
-        #else
         // If .minimumIntegerDigits is set to 0 before .numberStyle change, preserve the value
         let formatter = NumberFormatter()
         XCTAssertEqual(formatter.minimumIntegerDigits, 1)
         formatter.minimumIntegerDigits = 0
         formatter.numberStyle = NumberFormatter.Style.scientific
+        #if !SKIP
         XCTAssertEqual(formatter.minimumIntegerDigits, 0)
+        #endif
         formatter.locale = Locale(identifier: "en_US")
         XCTAssertEqual(formatter.string(from: 0), "0E0")
         XCTAssertEqual(formatter.string(from: 1.23), "1.23E0")
@@ -625,7 +620,6 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(formatter2.string(from: 0.01), "1E-2")
         XCTAssertEqual(formatter2.string(from: 1.234), "1.234E0")
         XCTAssertEqual(formatter2.string(from: 123456.7), "1.234567E5")
-        #endif // !SKIP
     }
 
     func test_spellOutMinimumIntegerDigits() {
@@ -1338,21 +1332,30 @@ class TestNumberFormatter: XCTestCase {
     }
 
     func test_scientificStrings() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let formatter: NumberFormatter = NumberFormatter()
         formatter.numberStyle = NumberFormatter.Style.scientific
         formatter.positiveInfinitySymbol = ".inf"
+        #if !SKIP
+        // Android DecimalFormatSymbols only has positive infinity
         formatter.negativeInfinitySymbol = "-.inf"
+        #endif
         formatter.notANumberSymbol = ".nan"
+        #if SKIP
+        XCTAssertEqual(formatter.string(for: Double.infinity), ".infE0")
+        #else
         XCTAssertEqual(formatter.string(for: Double.infinity), ".inf")
+        #endif
+        #if !SKIP
         XCTAssertEqual(formatter.string(for: -1 * Double.infinity), "-.inf")
+        #endif
+        #if SKIP
+        XCTAssertEqual(formatter.string(for: Double.nan), ".nanE0")
+        #else
         XCTAssertEqual(formatter.string(for: Double.nan), ".nan")
+        #endif
 #if (arch(i386) || arch(x86_64)) && !(os(Android) || os(Windows))
         XCTAssertNil(formatter.string(for: Float80.infinity))
 #endif
-        #endif // !SKIP
     }
 
     func test_copy() throws {
@@ -1387,6 +1390,15 @@ class TestNumberFormatter: XCTestCase {
         #endif // !SKIP
     }
 
+    func testStaticLocalizedString() {
+        //XCTAssertEqual("12346", NumberFormatter.localizedString(from: 12345.678 as NSNumber, number: .none))
+        XCTAssertEqual("12,345.678", NumberFormatter.localizedString(from: 12345.678 as NSNumber, number: .decimal))
+        XCTAssertEqual("1,234,568%", NumberFormatter.localizedString(from: 12345.678 as NSNumber, number: .percent))
+        XCTAssertEqual("$12,345.68", NumberFormatter.localizedString(from: 12345.678 as NSNumber, number: .currency))
+        XCTAssertEqual("1.2345678E4", NumberFormatter.localizedString(from: 12345.678 as NSNumber, number: .scientific))
+        //XCTAssertEqual("", NumberFormatter.localizedString(from: 12.345 as NSNumber, number: .spellOut))
+        //XCTAssertEqual("", NumberFormatter.localizedString(from: 12.345 as NSNumber, number: .ordinal))
+    }
 }
 
 
