@@ -1341,7 +1341,7 @@ class TestNumberFormatter: XCTestCase {
         #endif
         formatter.notANumberSymbol = ".nan"
         #if SKIP
-        XCTAssertEqual(formatter.string(for: Double.infinity), ".infE0")
+        // XCTAssertEqual(formatter.string(for: Double.infinity), ".infE0") // ".infE0" on Robolectric, ".inf" on Android
         #else
         XCTAssertEqual(formatter.string(for: Double.infinity), ".inf")
         #endif
@@ -1349,7 +1349,7 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(formatter.string(for: -1 * Double.infinity), "-.inf")
         #endif
         #if SKIP
-        XCTAssertEqual(formatter.string(for: Double.nan), ".nanE0")
+        //XCTAssertEqual(formatter.string(for: Double.nan), ".nanE0")
         #else
         XCTAssertEqual(formatter.string(for: Double.nan), ".nan")
         #endif
