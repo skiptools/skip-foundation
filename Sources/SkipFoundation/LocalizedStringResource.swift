@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if SKIP
 
+// Warning: Updating this class to make it properly `ExpressibleByStringInterpolation` will likely cause
+// ambiguous call conflicts when calling various SkipUI functions that also have `LocalizedStringKey`
+// variants. We will likely need to use @_disfavoredOverload to disambiguate, including adding
+// @_disfavoredOverload support to the transpiler and its function call match scoring
+
 public final class LocalizedStringResource: Hashable {
     public let keyAndValue: String.LocalizationValue
     public var defaultValue: String.LocalizationValue? = nil
