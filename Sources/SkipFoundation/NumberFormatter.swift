@@ -432,4 +432,22 @@ public class NumberFormatter: Formatter {
     }
 }
 
+public struct FormatStyle {
+    let formatter: NumberFormatter.PlatformFormatter
+
+    public static let number = FormatStyle(formatter: NumberFormatter.PlatformFormatter.getNumberInstance() as NumberFormatter.PlatformFormatter)
+    public static let currency = FormatStyle(formatter: NumberFormatter.PlatformFormatter.getCurrencyInstance() as NumberFormatter.PlatformFormatter)
+    public static let percent = FormatStyle(formatter: NumberFormatter.PlatformFormatter.getPercentInstance() as NumberFormatter.PlatformFormatter)
+    public static let scientific = FormatStyle(formatter: NumberFormatter.PlatformFormatter.getScientificInstance() as NumberFormatter.PlatformFormatter)
+}
+
+public extension NSNumber {
+    public func formatted() -> String {
+        FormatStyle.number.formatter.format(self)
+    }
+
+    public func formatted(_ style: FormatStyle) -> String {
+        style.formatter.format(self)
+    }
+}
 #endif
