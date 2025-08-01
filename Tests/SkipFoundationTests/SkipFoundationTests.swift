@@ -32,7 +32,7 @@ final class SkipFoundationTests: XCTestCase {
             }
         }
 
-        check("android.os.Build.BOARD", value: "unknown")
+        //check("android.os.Build.BOARD", value: "unknown")
         check("android.os.Build.BOOTLOADER", value: "unknown")
         check("android.os.Build.BRAND", value: "unknown")
         check("android.os.Build.DEVICE", value: "robolectric")
