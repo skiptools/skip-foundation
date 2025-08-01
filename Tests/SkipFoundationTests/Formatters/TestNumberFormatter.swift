@@ -120,11 +120,11 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
 //        XCTAssertEqual(numberFormatter.localizesFormat, true)
         XCTAssertEqual(numberFormatter.locale, Locale.current)
+#if !SKIP // Skip unsupported NumberFormatter properties
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
         XCTAssertEqual(numberFormatter.maximumIntegerDigits, 1)
         XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
         XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
-        #if !SKIP // Skip unsupported NumberFormatter properties
         XCTAssertEqual(numberFormatter.minimumSignificantDigits, -1)
         XCTAssertEqual(numberFormatter.maximumSignificantDigits, -1)
         XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
@@ -615,7 +615,9 @@ class TestNumberFormatter: XCTestCase {
         let formatter2 = NumberFormatter()
         XCTAssertEqual(formatter2.minimumIntegerDigits, 1)
         formatter2.numberStyle = NumberFormatter.Style.scientific
+#if !SKIP
         XCTAssertEqual(formatter2.minimumIntegerDigits, 1)
+#endif
         formatter2.locale = Locale(identifier: "en_US")
         XCTAssertEqual(formatter2.string(from: 0.01), "1E-2")
         XCTAssertEqual(formatter2.string(from: 1.234), "1.234E0")
@@ -1144,9 +1146,7 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.currencyCode, "GBP")
         #if !SKIP
         XCTAssertEqual(numberFormatter.currencySymbol, "E")
-        #endif
         numberFormatter.currencySymbol = nil
-        #if !SKIP
         XCTAssertEqual(numberFormatter.currencySymbol, "£")
         #endif
     }

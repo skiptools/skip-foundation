@@ -365,9 +365,10 @@ public class NumberFormatter: Formatter {
 
     /// Sets the DecimalFormatSymbols with the given block; needed since `getDecimalFormatSymbols` returns a copy, so it must be re-set manually.
     private func applySymbol(_ block: (PlatformFormatterSymbols) -> ()) {
-        let dfs = platformValue.getDecimalFormatSymbols()
-        block(dfs)
-        platformValue.setDecimalFormatSymbols(dfs)
+        if let dfs = platformValue.getDecimalFormatSymbols() {
+            block(dfs)
+            platformValue.setDecimalFormatSymbols(dfs)
+        }
     }
 
     public override func string(for object: Any?) -> String? {

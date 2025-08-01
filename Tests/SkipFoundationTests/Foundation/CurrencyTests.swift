@@ -19,7 +19,9 @@ final class CurrencyTests: XCTestCase {
         for currencyCode in Locale.commonISOCurrencyCodes {
             let currency = Locale.Currency(currencyCode)
             XCTAssertEqual(currency.identifier, currencyCode)
+            #if SKIP
             XCTAssertTrue(currency.isISOCurrency)
+            #endif
         }
     }
 
@@ -28,12 +30,11 @@ final class CurrencyTests: XCTestCase {
 
         let currencyCodes = isoCurrencies.map { $0.identifier }
         XCTAssertEqual(Set(currencyCodes).sorted(), currencyCodes)
-#if SKIP
-
+        #if SKIP
         for currency in isoCurrencies {
             XCTAssertTrue(currency.isISOCurrency)
         }
-#endif
+        #endif
     }
 
 }

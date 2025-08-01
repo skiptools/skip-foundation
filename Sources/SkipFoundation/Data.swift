@@ -89,7 +89,15 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
         if url.scheme == "content" {
             let uri = android.net.Uri.parse(url.absoluteString)
             if let inputStream = ProcessInfo.processInfo.androidContext.getContentResolver().openInputStream(uri) {
-                self.platformValue = inputStream.readAllBytes()
+                var buffer = ByteArray(8192)
+                var output = java.io.ByteArrayOutputStream()
+                var bytesRead: Int
+                while true {
+                    let bytesRead = inputStream.read(buffer)
+                    if (bytesRead == -1) { break }
+                    output.write(buffer, 0, bytesRead)
+                }
+                self.platformValue = output.toByteArray()
                 do { inputStream.close() } catch {}
             } else {
                 throw java.util.MissingResourceException(url.absoluteString, "", "")
