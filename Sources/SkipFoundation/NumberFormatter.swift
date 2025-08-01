@@ -441,7 +441,7 @@ public struct FormatStyle {
     public static let scientific = FormatStyle(formatter: NumberFormatter.PlatformFormatter.getScientificInstance() as NumberFormatter.PlatformFormatter)
 }
 
-public extension NSNumber {
+public extension Number {
     public func formatted() -> String {
         FormatStyle.number.formatter.format(self)
     }
