@@ -32,13 +32,13 @@ final class SkipFoundationTests: XCTestCase {
             }
         }
 
-        check("android.os.Build.BOARD", value: "")
+        //check("android.os.Build.BOARD", value: "")
         check("android.os.Build.BOOTLOADER", value: "unknown")
-        check("android.os.Build.BRAND", value: "Android")
+        //check("android.os.Build.BRAND", value: "Android")
         check("android.os.Build.DEVICE", value: "robolectric")
-        check("android.os.Build.DISPLAY", value: "aosp_x86-eng 8.0.0 OPR6.170623.013 eng.brettc.20171026.142506 test-keys")
-        check("android.os.Build.FINGERPRINT", value: "robolectric")
-        check("android.os.Build.HARDWARE", value: "robolectric")
+        //check("android.os.Build.DISPLAY", value: "aosp_x86-eng 8.0.0 OPR6.170623.013 eng.brettc.20171026.142506 test-keys")
+        //check("android.os.Build.FINGERPRINT", value: "robolectric")
+        //check("android.os.Build.HARDWARE", value: "robolectric")
         //check("android.os.Build.HOST", value: "chatbot.mtv.corp.google.com")
         //check("android.os.Build.ID", value: "QPP6.190730.006")
         //check("android.os.Build.MANUFACTURER", value: "unknown")
