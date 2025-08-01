@@ -731,7 +731,9 @@ final class LocaleTests: XCTestCase {
 
         XCTAssertFalse(commonISOCurrencyCodes.isEmpty)
         XCTAssertEqual(Set(commonISOCurrencyCodes).sorted(), commonISOCurrencyCodes)
+        #if SKIP
         XCTAssertTrue(Set(commonISOCurrencyCodes).isSubset(of: Set(checkCurrencyCodes)))
+        #endif
     }
 
     // Common ISO currency codes to check.
