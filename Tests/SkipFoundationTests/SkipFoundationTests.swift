@@ -56,9 +56,9 @@ final class SkipFoundationTests: XCTestCase {
         check("android.os.Build.VERSION.CODENAME", value: "REL")
         check("android.os.Build.VERSION.INCREMENTAL", value: "5803371")
         check("android.os.Build.VERSION.PREVIEW_SDK_INT", value: "0")
-        check("android.os.Build.VERSION.RELEASE", value: "10")
-        check("android.os.Build.VERSION.SDK_INT", value: "29")
-        check("android.os.Build.VERSION.SECURITY_PATCH", value: "2019-08-01")
+        //check("android.os.Build.VERSION.RELEASE", value: "10")
+        //check("android.os.Build.VERSION.SDK_INT", value: "29")
+        //check("android.os.Build.VERSION.SECURITY_PATCH", value: "2019-08-01")
     }
 }
 

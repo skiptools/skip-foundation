@@ -28,6 +28,10 @@ public func strncmp(_ str1: String, _ str2: String) -> Int {
 }
 
 extension String {
+    public func appending(_ other: String) -> String {
+        self + other
+    }
+
     public var capitalized: String {
         return split(separator: " ", omittingEmptySubsequences: false)
             .joinToString(separator: " ") {
