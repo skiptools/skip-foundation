@@ -3,7 +3,7 @@
 import Foundation
 import XCTest
 
-#if !SKIP
+#if canImport(Darwin)
 // These tests are adapted from https://github.com/apple/swift-corelibs-foundation/blob/main/Tests/Foundation/Tests which have the following license:
 
 //===----------------------------------------------------------------------===//

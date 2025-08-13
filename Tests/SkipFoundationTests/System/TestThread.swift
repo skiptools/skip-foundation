@@ -26,7 +26,9 @@ class TestThread : XCTestCase {
         let thread1 = Thread.current
         let thread2 = Thread.current
         XCTAssertEqual(thread1, thread2)
+        #if !os(Linux)
         XCTAssertEqual(thread1, Thread.main)
+        #endif
     }
     
     func test_threadStart() {
@@ -69,11 +71,15 @@ class TestThread : XCTestCase {
         testInternalThreadName("Original thread")
 #else
         // No name is set initially
+        #if !os(Linux)
         XCTAssertEqual(Thread.current.name, "")
+        #endif
         testInternalThreadName("")
 #endif
         Thread.current.name = "mainThread"
+        #if !os(Linux)
         XCTAssertEqual(Thread.main.name, "mainThread")
+        #endif
         testInternalThreadName("mainThread")
 
         Thread.current.name = "12345678901234567890"
@@ -89,9 +95,13 @@ class TestThread : XCTestCase {
     }
 
     func test_mainThread() {
+        #if !os(Linux)
         XCTAssertTrue(Thread.isMainThread)
+        #endif
         let t = Thread.main
+        #if !os(Linux)
         XCTAssertTrue(t.isMainThread)
+        #endif
         let c = Thread.current
         XCTAssertTrue(c.isMainThread)
         XCTAssertTrue(c.isExecuting)
@@ -104,7 +114,9 @@ class TestThread : XCTestCase {
         let thread = Thread() {
             condition.lock()
             XCTAssertFalse(Thread.isMainThread)
+            #if !os(Linux)
             XCTAssertFalse(Thread.main == Thread.current)
+            #endif
             condition.broadcast()
             condition.unlock()
         }

@@ -1,8 +1,12 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import XCTest
 
+#if SKIP || canImport(Darwin) // many of these tests don't build for Linux
 class TestURLSession: XCTestCase {
     func testDefaultURLSessionConfiguration() {
         let config = URLSessionConfiguration.default
@@ -10,6 +14,7 @@ class TestURLSession: XCTestCase {
         XCTAssertEqual(60.0, config.timeoutIntervalForRequest)
         XCTAssertEqual(604800.0, config.timeoutIntervalForResource)
         XCTAssertEqual(true, config.allowsCellularAccess)
+        #if !os(Linux)
         //XCTAssertEqual(true, config.allowsExpensiveNetworkAccess)
         XCTAssertEqual(true, config.allowsConstrainedNetworkAccess)
         XCTAssertEqual(false, config.waitsForConnectivity)
@@ -17,6 +22,7 @@ class TestURLSession: XCTestCase {
         XCTAssertEqual(nil, config.sharedContainerIdentifier)
         XCTAssertEqual(false, config.sessionSendsLaunchEvents)
         //XCTAssertEqual(nil, config.connectionProxyDictionary)
+        #endif
         XCTAssertEqual(false, config.httpShouldUsePipelining)
         XCTAssertEqual(true, config.httpShouldSetCookies)
         //XCTAssertEqual(nil, config.httpAdditionalHeaders)
@@ -270,6 +276,7 @@ class TestURLSession: XCTestCase {
         }
     }
 }
+#endif
 
 //
 //// These tests are adapted from https://github.com/apple/swift-corelibs-foundation/blob/main/Tests/Foundation/Tests which have the following license:
