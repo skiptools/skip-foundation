@@ -1,13 +1,10 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-import OSLog
 import XCTest
 import Foundation
 
 @available(macOS 11, iOS 14, watchOS 7, tvOS 14, *)
 class TestJSON : XCTestCase {
-    fileprivate let logger: Logger = Logger(subsystem: "test", category: "TestJSON")
-
     struct StringField : Equatable, Codable {
         var stringField: String
     }

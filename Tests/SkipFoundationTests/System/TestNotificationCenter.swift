@@ -133,6 +133,8 @@ class TestNotificationCenter : XCTestCase {
         XCTAssertTrue(flag)
     }
 
+    #if SKIP || canImport(Darwin) // i.e., not Linux
+
     func test_notificationsSequence() async {
         let notificationCenter = NotificationCenter()
         let notificationName = Notification.Name(rawValue: "test_notificationsSequence_name")
@@ -175,6 +177,8 @@ class TestNotificationCenter : XCTestCase {
         let count = await task.value
         XCTAssertEqual(count, 2)
     }
+
+    #endif // SKIP || canImport(Darwin) // i.e., not Linux
 
     func test_observeOnPostingQueue() {
         #if SKIP
