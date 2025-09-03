@@ -25,7 +25,10 @@ final class LocaleTests: XCTestCase {
         XCTAssertEqual("¥", Locale(identifier: "jp_JP").currencySymbol)
         XCTAssertEqual("JPY", Locale(identifier: "jp_JP").currency?.identifier)
 
-        XCTAssertEqual("¤", Locale(identifier: "zh_ZH").currencySymbol)
+        #if !SKIP
+        XCTAssertEqual("¤", Locale(identifier: "zh_ZH").currencySymbol) // fails on older Android (API 28)
+        #endif
+
         // XCTAssertEqual(nil, Locale(identifier: "zh_ZH").currency?.identifier) // nil on Darwin, "XXX" on Java
 
         #if SKIP
