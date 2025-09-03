@@ -174,13 +174,12 @@ class TestURLSession: XCTestCase {
         let (data, response) = try await URLSession.shared.data(for: request)
         let HTTPResponse = try XCTUnwrap(response as? HTTPURLResponse)
 
-        XCTAssertEqual(200, HTTPResponse.statusCode)
-
-        if HTTPResponse.mimeType == "text/html" {
+        if (500..<600).contains(HTTPResponse.statusCode) {
             // sometimes httpbin.org returns an error page
-            throw XCTSkip("tolerating temporary service error")
+            throw XCTSkip("tolerating temporary service error code \(HTTPResponse.statusCode)")
         }
 
+        XCTAssertEqual(200, HTTPResponse.statusCode)
         XCTAssertEqual("application/json", HTTPResponse.mimeType)
         let JSONResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         XCTAssertEqual([key: value], JSONResponse?["form"] as? [String: String])
