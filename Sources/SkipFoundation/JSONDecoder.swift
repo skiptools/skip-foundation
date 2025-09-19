@@ -129,6 +129,56 @@ open class JSONDecoder {
             throw error
         }
     }
+
+    // Primitive type decodings
+
+    public func decode(_ type: Bool.Type, from data: Data) throws -> Bool {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: String.Type, from data: Data) throws -> String {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: Double.Type, from data: Data) throws -> Double {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: Float.Type, from data: Data) throws -> Float {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: Int8.Type, from data: Data) throws -> Int8 {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: Int16.Type, from data: Data) throws -> Int16 {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: Int32.Type, from data: Data) throws -> Int32 {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: Int64.Type, from data: Data) throws -> Int64 {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: UInt8.Type, from data: Data) throws -> UInt8 {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: UInt16.Type, from data: Data) throws -> UInt16 {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: UInt32.Type, from data: Data) throws -> UInt32 {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
+
+    public func decode(_ type: UInt64.Type, from data: Data) throws -> UInt64 {
+        return try decoder(from: data).singleValueContainer().decode(type: type)
+    }
 }
 
 private struct JSONDecoderImpl: Decoder {
