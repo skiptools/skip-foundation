@@ -541,6 +541,15 @@ class TestJSON : XCTestCase {
         XCTAssertEqual(obj.intArrayField, [1, 2])
     }
 
+    func testPrimitiveJSONDecoding() throws {
+        let decoder = JSONDecoder()
+        try XCTAssertEqual(1, decoder.decode(Int.self, from: "1".data(using: .utf8)!))
+        try XCTAssertEqual(1.0, decoder.decode(Double.self, from: "1.0".data(using: .utf8)!))
+        try XCTAssertEqual(true, decoder.decode(Bool.self, from: "true".data(using: .utf8)!))
+        try XCTAssertEqual(false, decoder.decode(Bool.self, from: "false".data(using: .utf8)!))
+        try XCTAssertEqual("X", decoder.decode(String.self, from: "\"X\"".data(using: .utf8)!))
+    }
+
     struct EntityCustomKeys : Encodable {
         var nameFirst: String
         var nameLast: String
