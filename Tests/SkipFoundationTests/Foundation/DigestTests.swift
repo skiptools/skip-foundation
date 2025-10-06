@@ -13,6 +13,7 @@ extension Data {
 }
 #endif
 
+#if SKIP || canImport(CryptoKit) // i.e., not Linux
 @available(macOS 11, iOS 14, watchOS 7, tvOS 14, *)
 final class DigestTests: XCTestCase {
     func testSHA256() {
@@ -93,4 +94,5 @@ final class DigestTests: XCTestCase {
         XCTAssertEqual("TrfwQeSZQ8gTfY7U+NQY+CDxexfk6hHVDJ2pevtMM2OXmxY9X/60uWhsXnMym1+vzg7XGgO729yGQgsPdAY19A==", Data(HMACSHA512.authenticationCode(for: Data("Your message to sign".utf8), using: SymmetricKey(data: Data("your-secret-key".utf8)))).base64EncodedString())
     }
 }
+#endif
 
