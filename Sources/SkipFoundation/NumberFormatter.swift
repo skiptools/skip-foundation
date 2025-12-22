@@ -306,6 +306,18 @@ public class NumberFormatter: Formatter {
         }
     }
 
+    public var currencyGroupingSeparator: String? {
+        get {
+            return platformValue.decimalFormatSymbols.monetaryGroupingSeparator?.toString()
+        }
+
+        set {
+            if let currencyGroupingSeparatorChar = newValue?.first {
+                applySymbol { $0.monetaryGroupingSeparator = currencyGroupingSeparatorChar }
+            }
+        }
+    }
+
     public var notANumberSymbol: String? {
         get {
             return platformValue.decimalFormatSymbols.getNaN()
