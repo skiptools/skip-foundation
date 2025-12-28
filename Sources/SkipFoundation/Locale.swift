@@ -140,6 +140,16 @@ public struct Locale : Hashable, SwiftCustomBridged, KotlinConverting<java.util.
     public var variantCode: String? {
         return variant?.identifier
     }
+    
+    public var decimalSeparator: String? {
+        let symbols = java.text.DecimalFormatSymbols.getInstance(platformValue)
+        return symbols.getDecimalSeparator().toString()
+    }
+
+    public var groupingSeparator: String? {
+        let symbols = java.text.DecimalFormatSymbols.getInstance(platformValue)
+        return symbols.getGroupingSeparator().toString()
+    }
 
     public func localizedString(forCurrencyCode currencyCode: String) -> String? {
         // Swift is case-insensitive with currency codes but Java expects uppercased currency codes.
