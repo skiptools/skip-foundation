@@ -685,7 +685,12 @@ private func httpRequest(for request: URLRequest, with url: URL, configuration: 
     if let headerMap = request.allHTTPHeaderFields?.kotlin(nocopy: true) as? Map<String, String> {
         builder.headers(headerMap.toHeaders())
     }
-    switch request.cachePolicy {
+    
+    let effectivePolicy =
+        request.cachePolicy == URLRequest.CachePolicy.useProtocolCachePolicy
+            ? configuration.requestCachePolicy
+            : request.cachePolicy
+    switch effectivePolicy {
     case URLRequest.CachePolicy.useProtocolCachePolicy:
         break
     case URLRequest.CachePolicy.returnCacheDataElseLoad:
@@ -694,9 +699,9 @@ private func httpRequest(for request: URLRequest, with url: URL, configuration: 
         builder.cacheControl(CacheControl.FORCE_CACHE)
     case URLRequest.CachePolicy.reloadRevalidatingCacheData:
         builder.header("Cache-Control", "no-cache, must-revalidate")
-    case URLRequest.CachePolicy.reloadIgnoringLocalCacheData:
+    case URLRequest.CachePolicy.reloadIgnoringLocalCacheData,
+         URLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData:
         builder.cacheControl(CacheControl.FORCE_NETWORK)
-    case URLRequest.CachePolicy.reloadIgnoringLocalAndRemoteCacheData: builder.cacheControl(CacheControl.FORCE_NETWORK)
     }
 
     build(builder)
