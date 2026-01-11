@@ -30,6 +30,8 @@ internal class JSONParser {
                 } else {
                     throw JSONError.numberIsNotRepresentableInSwift(parsed: bd.toString())
                 }
+            case let bol as Boolean:
+                return bol == true
             case let obj as org.json.JSONObject:
                 var dict = Dictionary<String, Any>()
                 for key in obj.keys() {
