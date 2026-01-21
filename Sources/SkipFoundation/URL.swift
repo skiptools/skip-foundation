@@ -216,6 +216,11 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         return java.nio.file.Paths.get(absoluteURL.platformValue)
     }
 
+    /// Converts this URL to a `android.net.Uri`.
+    public func toAndroidUri() -> android.net.Uri {
+        return android.net.Uri.parse(absoluteString)
+    }
+
     public var host: String? {
         return absoluteURL.platformValue.host
     }
