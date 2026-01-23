@@ -1,6 +1,6 @@
 # SkipFoundation
 
-Foundation support for [Skip Lite](https://skip.tools) transpiled Swift.
+Foundation support for [Skip Lite](https://skip.dev) transpiled Swift.
 
 See what API is currently implemented [here](#foundation-support).
 
@@ -12,7 +12,7 @@ SkipFoundation also implements portions of the CryptoKit API.
 
 ## Dependencies
 
-SkipFoundation depends on the [skip](https://source.skip.tools/skip) transpiler plugin as well as the [SkipLib](https://github.com/skiptools/skip-lib) package.
+SkipFoundation depends on the [skip](https://source.skip.dev/skip) transpiler plugin as well as the [SkipLib](https://github.com/skiptools/skip-lib) package.
 
 SkipFoundation is part of the core *SkipStack* and is not intended to be imported directly.
 The module is transparently adopted through the translation of `import Foundation` into `import skip.foundation.*` by the Skip transpiler.
@@ -25,11 +25,11 @@ The module is transparently adopted through the translation of `import Foundatio
 
 SkipFoundation supports many of the Foundation framework's most common APIs, but there are many more that are not yet ported. See [Foundation Support](#foundation-support).
 
-When you want to use a Foundation API that has not been implemented, you have options. You can try to find a workaround using only supported API, embed Kotlin code directly as described in the [Skip docs](https://skip.tools/docs), or [add support to SkipFoundation](#contributing). If you choose to enhance SkipFoundation itself, please consider [contributing](#contributing) your code back for inclusion in the official release.
+When you want to use a Foundation API that has not been implemented, you have options. You can try to find a workaround using only supported API, embed Kotlin code directly as described in the [Skip docs](https://skip.dev/docs), or [add support to SkipFoundation](#contributing). If you choose to enhance SkipFoundation itself, please consider [contributing](#contributing) your code back for inclusion in the official release.
 
 ## Contributing
 
-We welcome contributions to SkipFoundation. The Skip product [documentation](https://skip.tools/docs/contributing/) includes helpful instructions and tips on local Skip library development. 
+We welcome contributions to SkipFoundation. The Skip product [documentation](https://skip.dev/docs/contributing/) includes helpful instructions and tips on local Skip library development. 
 
 The most pressing need is to implement more of the most-used Foundation APIs.
 To help fill in unimplemented API in SkipFoundation:
