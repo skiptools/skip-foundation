@@ -284,7 +284,11 @@ public class FileManager {
     public func subpathsOfDirectory(atPath path: String) throws -> [String] {
         var subpaths: [String] = []
         let p = platformFilePath(for: path)
-        for file in java.nio.file.Files.walk(p) {
+        let stream = java.nio.file.Files.walk(p)
+        defer {
+            stream.close()
+        }
+        for file in stream {
             if file != p { // exclude root file
                 let relpath = p.relativize(file.normalize())
                 subpaths.append(relpath.toString())
@@ -348,14 +352,22 @@ public class FileManager {
 
     public func contentsOfDirectory(at url: URL, includingPropertiesForKeys: [URLResourceKey]?) throws -> [URL] {
         // https://developer.android.com/reference/kotlin/java/nio/file/Files
-        let shallowFiles = java.nio.file.Files.list(platformFilePath(for: url)).collect(java.util.stream.Collectors.toList())
+        let stream = java.nio.file.Files.list(platformFilePath(for: url))
+        defer {
+            stream.close()
+        }
+        let shallowFiles = stream.collect(java.util.stream.Collectors.toList())
         let contents = shallowFiles.map { URL(platformValue: $0.toUri()) }
         return Array(contents)
     }
 
     public func contentsOfDirectory(atPath path: String) throws -> [String] {
         // https://developer.android.com/reference/kotlin/java/nio/file/Files
-        let files = java.nio.file.Files.list(platformFilePath(for: path)).collect(java.util.stream.Collectors.toList())
+        let stream = java.nio.file.Files.list(platformFilePath(for: path))
+        defer {
+            stream.close()
+        }
+        let files = stream.collect(java.util.stream.Collectors.toList())
         let contents = files.map { $0.toFile().getName() }
         return Array(contents)
     }
