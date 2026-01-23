@@ -584,10 +584,11 @@ class TestXMLDocument : XCTestCase { // : LoopbackServerTest {
             XCTFail("\(error)")
         }
 
-        let root = dtd?.elementDeclaration(forName:"root")
-        root?.stringValue = "(#PCDATA)"
+        // Test validation failure with an invalid DTD
+        // The root element is declared as (#PCDATA) but contains child elements
+        let invalidDoc = try XMLDocument(contentsOf: testBundle().url(forResource: "NSXMLDTDTestData-Invalid", withExtension: "xml")!, options: [])
         do {
-            try doc.validate()
+            try invalidDoc.validate()
             XCTFail("should have thrown")
         } catch let error as NSError {
             XCTAssert(error.code == XMLParser.ErrorCode.internalError.rawValue)
