@@ -195,7 +195,12 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     public var pmSymbol: String {
         return dateFormatSymbols.getAmPmStrings()[1]
     }
-
+    
+    /// True if this is a lunisolar calendar that repeats the month number for a leap month, false otherwise.
+    internal var hasRepeatingMonths: Bool {
+        return identifier == .chinese /* || identifier == .dangi || identifier == .gujarati || identifier == .kannada || identifier == .marathi || identifier == .telugu || identifier == .vietnamese || identifier == .vikram*/
+    }
+    
     public func minimumRange(of component: Calendar.Component) -> Range<Int>? {
         let platformCal = platformValue.clone() as java.util.Calendar
 
@@ -235,7 +240,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             // Weekday ranges from 1 (Sunday) to 7 (Saturday).
             return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK)..<(platformCal.getMaximum(java.util.Calendar.DAY_OF_WEEK) + 1)
             
-        case .weekOfMonth, .weekOfYear:
+        case .dayOfYear, .weekOfMonth, .weekOfYear:
             // Not supported yet...
             fatalError()    
         case .quarter:
@@ -514,37 +519,133 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     public func nextWeekend(startingAfter date: Date, direction: Calendar.SearchDirection = .forward) -> DateInterval? {
         fatalError()
     }
-
-    @available(*, unavailable)
+    
     public func enumerateDates(startingAfter start: Date, matching components: DateComponents, matchingPolicy: Calendar.MatchingPolicy, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward, using block: (_ result: Date?, _ exactMatch: Bool, _ stop: inout Bool) -> Void) {
-        fatalError()
+        
+        let STOP_EXHAUSTIVE_SEARCH_AFTER_MAX_ITERATIONS = 100 // To prevent infinite loops
+        var searchingDate = start
+        var previouslyReturnedMatchDate: Date? = nil
+        var iterations = -1
+        
+        repeat {
+            iterations += 1
+            do {
+                let result = try _enumerateDatesStep(startingAfter: start, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction, inSearchingDate: searchingDate, previouslyReturnedMatchDate: previouslyReturnedMatchDate)
+                
+                if let found = result.result {
+                    let (matchDate, exactMatch) = found
+                    var stop = false
+                    previouslyReturnedMatchDate = matchDate
+                    block(matchDate, exactMatch, &stop)
+                    if stop { return }
+                    searchingDate = matchDate
+                } else if iterations < STOP_EXHAUSTIVE_SEARCH_AFTER_MAX_ITERATIONS {
+                    // Try again on nil result
+                    searchingDate = result.newSearchDate
+                    continue
+                } else {
+                    // Give up
+                    return
+                }
+            } catch {
+                return
+            }
+        } while true
     }
-
-    @available(*, unavailable)
+    
     public func nextDate(after date: Date, matching components: DateComponents, matchingPolicy: Calendar.MatchingPolicy, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
-        fatalError()
+        var result: Date?
+        enumerateDates(startingAfter: date, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) { date, exactMatch, stop in
+            result = date
+            stop = true
+        }
+        return result
     }
-
-    @available(*, unavailable)
+    
     public func date(bySetting component: Calendar.Component, value: Int, of date: Date) -> Date? {
-        fatalError()
-    }
+        guard let currentValue = self.dateComponents([component], from: date).value(for: component) else {
+            return nil
+        }
+        guard currentValue != value else {
+            return date
+        }
 
-    @available(*, unavailable)
+        var result: Date?
+        var targetComponents = DateComponents()
+        targetComponents.setValue(value, for: component)
+        self.enumerateDates(startingAfter: date, matching: targetComponents, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: .forward) { date, exactMatch, stop in
+            result = date
+            stop = true
+        }
+        return result
+    }
+    
     public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: Calendar.MatchingPolicy = .nextTime, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
-        fatalError()
+        guard let interval = dateInterval(of: .day, for: date) else {
+            return nil
+        }
+        
+        let comps = DateComponents(hour: hour, minute: minute, second: second)
+        let restrictedMatchingPolicy: MatchingPolicy
+        if matchingPolicy == .nextTime || matchingPolicy == .strict {
+            restrictedMatchingPolicy = matchingPolicy
+        } else {
+            restrictedMatchingPolicy = .nextTime
+        }
+        
+        guard let result = nextDate(after: interval.start.addingTimeInterval(-0.5), matching: comps, matchingPolicy: restrictedMatchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) else {
+            return nil
+        }
+        
+        if result < interval.start {
+            return nextDate(after: interval.start, matching: comps, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction)
+        } else {
+            return result
+        }
     }
-
-    @available(*, unavailable)
+    
     public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
-        fatalError()
+        let comparedUnits: Set<Calendar.Component> = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .nanosecond]
+        
+        let actualUnits = comparedUnits.filter { u in
+            return components.value(for: u) != nil
+        }
+        
+        var comp = dateComponents(actualUnits, from: date)
+        var tempComp = components
+        
+        if components.isLeapMonth != nil {
+            // `isLeapMonth` isn't part of `actualUnits`, so we have to retrieve
+            // it separately
+            comp.isLeapMonth = self.component(.isLeapMonth, from: date) != 0
+        }
+        
+        if components.isRepeatedDay != nil {
+            // `isRepeatedDay` isn't part of `actualUnits`, so we have to retrieve
+            // it separately
+            comp.isRepeatedDay = self.component(.isRepeatedDay, from: date) != 0
+        }
+        
+        // Apply an epsilon to comparison of nanosecond values
+        if let nanosecond = comp.nanosecond, let tempNanosecond = tempComp.nanosecond {
+            let diff = Int64(nanosecond) - Int64(tempNanosecond)
+            if abs(diff) > 500 {
+                return false
+            } else {
+                comp.nanosecond = 0
+                tempComp.nanosecond = 0
+            }
+        }
+        
+        return tempComp == comp
     }
-
+    
     public enum Component: Sendable {
         case era
         case year
         case month
         case day
+        case dayOfYear
         case hour
         case minute
         case second
@@ -557,6 +658,8 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         case nanosecond
         case calendar
         case timeZone
+        case isLeapMonth
+        case isRepeatedDay
     }
 
     /// Calendar supports many different kinds of calendars. Each is identified by an identifier here.

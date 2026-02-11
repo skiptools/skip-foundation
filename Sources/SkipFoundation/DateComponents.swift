@@ -13,6 +13,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
     public var year: Int? = nil
     public var month: Int? = nil
     public var day: Int? = nil
+    public var dayOfYear: Int? = nil
     public var hour: Int? = nil
     public var minute: Int? = nil
     public var second: Int? = nil
@@ -23,14 +24,19 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
     public var weekOfMonth: Int? = nil
     public var weekOfYear: Int? = nil
     public var yearForWeekOfYear: Int? = nil
-
-    public init(calendar: Calendar? = nil, timeZone: TimeZone? = nil, era: Int? = nil, year: Int? = nil, month: Int? = nil, day: Int? = nil, hour: Int? = nil, minute: Int? = nil, second: Int? = nil, nanosecond: Int? = nil, weekday: Int? = nil, weekdayOrdinal: Int? = nil, quarter: Int? = nil, weekOfMonth: Int? = nil, weekOfYear: Int? = nil, yearForWeekOfYear: Int? = nil) {
+    
+    // Currently not supported and only used internally.
+    internal var isLeapMonth: Bool? = nil
+    internal var isRepeatedDay: Bool? = nil
+    
+    public init(calendar: Calendar? = nil, timeZone: TimeZone? = nil, era: Int? = nil, year: Int? = nil, month: Int? = nil, day: Int? = nil, dayOfYear: Int? = nil, hour: Int? = nil, minute: Int? = nil, second: Int? = nil, nanosecond: Int? = nil, weekday: Int? = nil, weekdayOrdinal: Int? = nil, quarter: Int? = nil, weekOfMonth: Int? = nil, weekOfYear: Int? = nil, yearForWeekOfYear: Int? = nil) {
         self.calendar = calendar
         self.timeZone = timeZone
         self.era = era
         self.year = year
         self.month = month
         self.day = day
+        self.dayOfYear = dayOfYear
         self.hour = hour
         self.minute = minute
         self.second = second
@@ -75,6 +81,9 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             if components?.contains(.day) != false {
                 self.day = endPlatformCal.get(java.util.Calendar.DATE) - platformCal.get(java.util.Calendar.DATE)
             }
+            if components?.contains(.dayOfYear) != false {
+                self.dayOfYear = endPlatformCal.get(java.util.Calendar.DAY_OF_YEAR) - platformCal.get(java.util.Calendar.DAY_OF_YEAR)
+            }
             if components?.contains(.hour) != false {
                 self.hour = endPlatformCal.get(java.util.Calendar.HOUR_OF_DAY) - platformCal.get(java.util.Calendar.HOUR_OF_DAY)
             }
@@ -93,6 +102,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             if components?.contains(.weekOfYear) != false {
                 self.weekOfYear = endPlatformCal.get(java.util.Calendar.WEEK_OF_YEAR) - platformCal.get(java.util.Calendar.WEEK_OF_YEAR)
             }
+            
         } else {
             // If no endDate is provided, just extract the components from the current date
             if components?.contains(.era) != false {
@@ -106,6 +116,9 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             }
             if components?.contains(.day) != false {
                 self.day = platformCal.get(java.util.Calendar.DATE)
+            }
+            if components?.contains(.dayOfYear) != false {
+                self.dayOfYear = platformCal.get(java.util.Calendar.DAY_OF_YEAR)
             }
             if components?.contains(.hour) != false {
                 self.hour = platformCal.get(java.util.Calendar.HOUR_OF_DAY)
@@ -177,6 +190,9 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         if let day = self.day {
             cal.set(java.util.Calendar.DATE, day) // i.e., DAY_OF_MONTH
         }
+        if let dayOfYear = self.dayOfYear {
+            cal.set(java.util.Calendar.DAY_OF_YEAR, dayOfYear)
+        }
         if let hour = self.hour {
             cal.set(java.util.Calendar.HOUR_OF_DAY, hour)
         }
@@ -203,6 +219,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .year: self.year = value
         case .month: self.month = value
         case .day: self.day = value
+        case .dayOfYear: self.dayOfYear = value
         case .hour: self.hour = value
         case .minute: self.minute = value
         case .second: self.second = value
@@ -213,7 +230,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .weekOfYear: self.weekOfYear = value
         case .yearForWeekOfYear: self.yearForWeekOfYear = value
         case .nanosecond: self.nanosecond = value
-        case .calendar, .timeZone: // , .isLeapMonth:
+        case .calendar, .timeZone, .isLeapMonth, .isRepeatedDay:
             // Do nothing
             break
         }
@@ -360,7 +377,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
         case .nanosecond:
             break // unsupported
-        case .calendar, .timeZone: // , .isLeapMonth:
+        case .calendar, .timeZone, .isLeapMonth:
             // Do nothing
             break
         @unknown default:
@@ -406,7 +423,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
         case .nanosecond:
             break // unsupported
-        case .calendar, .timeZone: // , .isLeapMonth:
+        case .calendar, .timeZone, .isLeapMonth:
             // Do nothing
             break
         @unknown default:
@@ -423,6 +440,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .year: return self.year
         case .month: return self.month
         case .day: return self.day
+        case .dayOfYear: return self.dayOfYear
         case .hour: return self.hour
         case .minute: return self.minute
         case .second: return self.second
@@ -433,7 +451,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .weekOfYear: return self.weekOfYear
         case .yearForWeekOfYear: return self.yearForWeekOfYear
         case .nanosecond: return self.nanosecond
-        case .calendar, .timeZone: // , .isLeapMonth:
+        case .calendar, .timeZone, .isLeapMonth, .isRepeatedDay:
             return nil
         }
     }
@@ -457,6 +475,9 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         }
         if let day = self.day {
             strs.append("day=\(day)")
+        }
+        if let dayOfYear = self.dayOfYear {
+            strs.append("dayOfYear=\(dayOfYear)")
         }
         if let hour = self.hour {
             strs.append("hour=\(hour)")
@@ -490,17 +511,17 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         }
         return strs.joined(separator: " ")
     }
-
+    
     public var isValidDate: Bool {
         guard let calendar = self.calendar else {
             return false
         }
         return isValidDate(in: calendar)
     }
-
+    
     public func isValidDate(in calendar: Calendar) -> Bool {
         // TODO: re-use implementation from: https://github.com/apple/swift-foundation/blob/68c2466c613a77d6c4453f3a06496a5da79a0cb9/Sources/FoundationInternationalization/DateComponents.swift#LL327C1-L328C1
-
+        
         let cal = createCalendarComponents()
         return cal.getActualMinimum(java.util.Calendar.DAY_OF_MONTH) <= cal.get(java.util.Calendar.DAY_OF_MONTH)
         && cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH) >= cal.get(java.util.Calendar.DAY_OF_MONTH)
