@@ -317,33 +317,63 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         platformCal.time = date.platformValue
         
         switch component {
+        case .second:
+            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            start = Date(platformValue: platformCal.time)
+            interval = 1.0
+            return true
+            
+        case .minute:
+            platformCal.set(java.util.Calendar.SECOND, 0)
+            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            start = Date(platformValue: platformCal.time)
+            interval = 60.0
+            return true
+            
+        case .hour:
+            platformCal.set(java.util.Calendar.MINUTE, 0)
+            platformCal.set(java.util.Calendar.SECOND, 0)
+            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            start = Date(platformValue: platformCal.time)
+            interval = 3600.0
+            return true
+            
         case .day:
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(24 * 60 * 60)
+            interval = 24.0 * 60.0 * 60.0
             return true
+            
+        case .weekday, .weekdayOrdinal:
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            interval = 24.0 * 60.0 * 60.0
+            return true
+            
         case .month:
             platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
             let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
-            interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
+            interval = TimeInterval(numberOfDays) * 24.0 * 60.0 * 60.0
             return true
+            
         case .weekOfMonth, .weekOfYear:
             platformCal.set(java.util.Calendar.DAY_OF_WEEK, platformCal.firstDayOfWeek)
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(7 * 24 * 60 * 60)
+            interval = 7.0 * 24.0 * 60.0 * 60.0
             return true
-        case .quarter:
-            let currentMonth = platformCal.get(java.util.Calendar.MONTH)
-            let quarterStartMonth = (currentMonth / 3) * 3  // Find the first month of the current quarter
-            platformCal.set(java.util.Calendar.MONTH, quarterStartMonth)
+            
+        case .year:
+            platformCal.set(java.util.Calendar.MONTH, java.util.Calendar.JANUARY)
             platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)) * TimeInterval(24 * 60 * 60 * 3)
+            let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_YEAR)
+            interval = TimeInterval(numberOfDays) * 24.0 * 60.0 * 60.0
             return true
+            
         default:
             return false
         }
