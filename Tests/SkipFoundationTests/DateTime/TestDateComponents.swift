@@ -271,5 +271,3 @@ class TestDateComponents: XCTestCase {
 
     #endif
 }
-
-

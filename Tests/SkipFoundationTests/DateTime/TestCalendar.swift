@@ -456,7 +456,7 @@ class TestCalendar: XCTestCase {
         XCTAssertNil(components.calendar)
         XCTAssertNil(components.timeZone)
 
-        var zdate = try XCTUnwrap(calendar.date(from: components))
+        let zdate = try XCTUnwrap(calendar.date(from: components))
 
         let ztcomponents = calendar.dateComponents([.hour, .minute, .second], from: zdate)
 
@@ -488,7 +488,7 @@ class TestCalendar: XCTestCase {
 
         func expectTime(_ t: Double, _ components: Set<Calendar.Component>) {
             let components = calendar.dateComponents(components, from: date)
-            var dt = calendar.date(from: components)!
+            let dt = calendar.date(from: components)!
             XCTAssertEqual(t, dt.timeIntervalSince1970, "incorrect time interval for calendar components: \(components)")
         }
 
