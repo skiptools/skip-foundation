@@ -247,9 +247,8 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.add(java.util.Calendar.YEAR, value)
         }
         if let value = components.quarter {
-            let targetMonth = (value - 1) * 3
-            cal.set(java.util.Calendar.MONTH, targetMonth)
-            cal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            //cal.add(java.util.Calendar.QUARTER, value)
+            fatalError("Skip DateComponents.quarter unsupported in Skip")
         }
         if let value = components.month {
             cal.add(java.util.Calendar.MONTH, value)
@@ -258,7 +257,8 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.add(java.util.Calendar.DAY_OF_WEEK, value)
         }
         if let value = components.weekdayOrdinal {
-            cal.set(java.util.Calendar.DAY_OF_WEEK_IN_MONTH, value)
+            //cal.add(java.util.Calendar.WEEKDAYORDINAL, value)
+            fatalError("Skip DateComponents.weekdayOrdinal unsupported in Skip")
         }
         if let value = components.weekOfMonth {
             cal.add(java.util.Calendar.WEEK_OF_MONTH, value)
@@ -271,7 +271,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
         }
         if let value = components.day {
-            cal.add(java.util.Calendar.DAY_OF_MONTH, value)
+            cal.add(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
         }
         if let value = components.hour {
             cal.add(java.util.Calendar.HOUR_OF_DAY, value)
@@ -300,7 +300,8 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.roll(java.util.Calendar.YEAR, value)
         }
         if let value = components.quarter {
-            cal.roll(java.util.Calendar.MONTH, value * 3)
+            //cal.roll(java.util.Calendar.QUARTER, value)
+            fatalError("Skip DateComponents.quarter unsupported in Skip")
         }
         if let value = components.month {
             cal.roll(java.util.Calendar.MONTH, value)
@@ -309,7 +310,8 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.roll(java.util.Calendar.DAY_OF_WEEK, value)
         }
         if let value = components.weekdayOrdinal {
-            cal.set(java.util.Calendar.DAY_OF_WEEK_IN_MONTH, value)
+            //cal.roll(java.util.Calendar.WEEKDAYORDINAL, value)
+            fatalError("Skip DateComponents.weekdayOrdinal unsupported in Skip")
         }
         if let value = components.weekOfMonth {
             cal.roll(java.util.Calendar.WEEK_OF_MONTH, value)
@@ -322,7 +324,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
         }
         if let value = components.day {
-            cal.roll(java.util.Calendar.DAY_OF_MONTH, value)
+            cal.roll(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
         }
         if let value = components.hour {
             cal.roll(java.util.Calendar.HOUR_OF_DAY, value)
@@ -349,12 +351,10 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.add(java.util.Calendar.ERA, value)
         case .year:
             cal.add(java.util.Calendar.YEAR, value)
-        case .quarter:
-            cal.add(java.util.Calendar.MONTH, value * 3)
         case .month:
             cal.add(java.util.Calendar.MONTH, value)
         case .day:
-            cal.roll(java.util.Calendar.DAY_OF_MONTH, value)
+            cal.add(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
         case .hour:
             cal.add(java.util.Calendar.HOUR_OF_DAY, value)
         case .minute:
@@ -364,7 +364,11 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .weekday:
             cal.add(java.util.Calendar.DAY_OF_WEEK, value)
         case .weekdayOrdinal:
-            cal.set(java.util.Calendar.DAY_OF_WEEK_IN_MONTH, value)
+            //cal.add(java.util.Calendar.WEEKDAYORDINAL, value)
+            fatalError("Skip DateComponents.weekdayOrdinal unsupported in Skip")
+        case .quarter:
+            //cal.add(java.util.Calendar.QUARTER, value)
+            fatalError("Skip DateComponents.quarter unsupported in Skip")
         case .weekOfMonth:
             cal.add(java.util.Calendar.WEEK_OF_MONTH, value)
         case .weekOfYear:
@@ -396,7 +400,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .month:
             cal.roll(java.util.Calendar.MONTH, value)
         case .day:
-            cal.roll(java.util.Calendar.DAY_OF_MONTH, value)
+            cal.roll(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
         case .hour:
             cal.roll(java.util.Calendar.HOUR_OF_DAY, value)
         case .minute:
@@ -409,7 +413,8 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             //cal.roll(java.util.Calendar.WEEKDAYORDINAL, value)
             fatalError("Skip DateComponents.weekdayOrdinal unsupported in Skip")
         case .quarter:
-            cal.roll(java.util.Calendar.MONTH, value * 3)
+            //cal.roll(java.util.Calendar.QUARTER, value)
+            fatalError("Skip DateComponents.quarter unsupported in Skip")
         case .weekOfMonth:
             cal.roll(java.util.Calendar.WEEK_OF_MONTH, value)
         case .weekOfYear:
