@@ -64,10 +64,6 @@ extension Calendar {
             searchStartDate = result
         }
         
-        if let result = try dateAfterMatchingDayOfYear(startingAt: searchStartDate, components: comps, direction: direction) {
-            searchStartDate = result
-        }
-        
         if let result = try dateAfterMatchingMonth(startingAt: searchStartDate, components: comps, direction: direction, strictMatching: isStrictMatching) {
             searchStartDate = result
         }
@@ -1010,108 +1006,6 @@ extension Calendar {
 // MARK: - Helpers
 /* SKIP NOWARN */
 extension Calendar {
-    func date(_ date: Date, containsMatchingComponents compsToMatch: DateComponents) -> (Set<Calendar.Component>, Bool) {
-        var dateMatchesComps = true
-        let units = compsToMatch.setUnits
-        var compsFromDate = self.dateComponents(units, from: date)
-        
-        if compsToMatch.calendar != nil {
-            compsFromDate.calendar = compsToMatch.calendar
-        }
-        if compsToMatch.timeZone != nil {
-            compsFromDate.timeZone = compsToMatch.timeZone
-        }
-        
-        if compsFromDate != compsToMatch {
-            dateMatchesComps = false
-            var mismatchedUnitsOut = compsFromDate.mismatchedUnits(comparedTo: compsToMatch)
-            
-            // We only care about mismatched leapMonth if it was set on the compsToMatch input. Otherwise we ignore it, even if it's set on compsFromDate.
-            if compsToMatch.isLeapMonth == nil {
-                // Remove if it's present
-                mismatchedUnitsOut.remove(Calendar.Component.isLeapMonth)
-            }
-            
-            if mismatchedUnitsOut.isEmpty {
-                return ([], true)
-            }
-            
-            return (mismatchedUnitsOut, false)
-        } else {
-            return ([], true)
-        }
-    }
-    
-    func bumpedDateUpToNextHigherUnitInComponents(_ searchingDate: Date, _ components: DateComponents, _ direction: SearchDirection, _ matchDate: Date?) -> Date? {
-        guard let highestSetUnit = components.highestSetUnit else {
-            // Empty components?
-            return nil
-        }
-        
-        let nextUnitAboveHighestSet: Component
-        
-        if highestSetUnit == Calendar.Component.era {
-            nextUnitAboveHighestSet = Calendar.Component.year
-        } else if highestSetUnit == Calendar.Component.year || highestSetUnit == Calendar.Component.yearForWeekOfYear {
-            nextUnitAboveHighestSet = highestSetUnit
-        } else {
-            guard let next = highestSetUnit.nextHigherUnit else {
-                return nil
-            }
-            nextUnitAboveHighestSet = next
-        }
-        
-        // Advance to the start or end of the next highest unit. Old code here used to add `±1 nextUnitAboveHighestSet` to searchingDate and manually adjust afterwards, but this is incorrect in many cases.
-        // For instance, this is wrong when searching forward looking for a specific Week of Month. Take for example, searching for WoM == 1:
-        //
-        //           January 2018           February 2018
-        //       Su Mo Tu We Th Fr Sa    Su Mo Tu We Th Fr Sa
-        //  W1       1  2  3  4  5  6                 1  2  3
-        //  W2    7  8  9 10 11 12 13     4  5  6  7  8  9 10
-        //  W3   14 15 16 17 18 19 20    11 12 13 14 15 16 17
-        //  W4   21 22 23 24 25 26 27    18 19 20 21 22 23 24
-        //  W5   28 29 30 31             25 26 27 28
-        //
-        // Consider searching for `WoM == 1` when searchingDate is *in* W1 of January. Because we're looking to advance to next month, we could simply add a month, right?
-        // Adding a month from Monday, January 1st lands us on Thursday, February 1st; from Tuesday, January 2nd we get Friday, February 2nd, etc. Note though that for January 4th, 5th, and 6th, adding a month lands us in **W2** of February!
-        // This means that if we continue searching forward from there, we'll have completely skipped W1 of February as a candidate week, and search forward until we hit W1 of March. This is incorrect.
-        //
-        // What we really want is to skip to the _start_ of February and search from there -- if we undershoot, we can always keep looking.
-        // Searching backwards is similar: we can overshoot if we were subtracting a month, so instead we want to jump back to the very end of the previous month.
-        // In general, this translates to jumping to the very beginning of the next period of the next highest unit when searching forward, or jumping to the very end of the last period when searching backward.
-
-        guard let foundRange = dateInterval(of: nextUnitAboveHighestSet, for: searchingDate) else {
-            return nil
-        }
-        
-        var result = foundRange.start.addingTimeInterval(direction == .backward ? -1.0 : foundRange.duration)
-        
-        if let matchDate {
-            let ordering = matchDate.compare(result)
-            if (ordering != .orderedAscending && direction == .forward) || (ordering != .orderedDescending && direction == .backward) {
-                // We need to advance searchingDate so that it starts just after matchDate
-                // We already guarded against an empty components above, so force unwrap here
-                if let lowestSetUnit = components.highestSetUnit { // Nutze den Helper von vorhin
-                    guard let date = self.date(byAdding: lowestSetUnit, value: direction == .backward ? -1 : 1, to: matchDate) else {
-                        return nil
-                    }
-                    result = date
-                }
-            }
-        }
-        
-        return result
-    }
-    
-    func preserveSmallerUnits(_ date: Date, compsToMatch: DateComponents, compsToModify: inout DateComponents) {
-        let smallerUnits = self.dateComponents([.hour, .minute, .second], from: date)
-        
-        // Either preserve the units we're trying to match if they are explicitly defined or preserve the hour/min/sec in the date.
-        compsToModify.hour = compsToMatch.hour ?? smallerUnits.hour
-        compsToModify.minute = compsToMatch.minute ?? smallerUnits.minute
-        compsToModify.second = compsToMatch.second ?? smallerUnits.second
-    }
-    
     func verifyAdvancingResult(_ next: Date, previous: Date, direction: Calendar.SearchDirection) throws {
         if (direction == .forward && next <= previous) || (direction == .backward && next >= previous) {
             // We are not advancing. Bail out of the loop.
@@ -1139,9 +1033,9 @@ private extension Calendar.Component {
             return .era
         case .weekOfYear:
             return .yearForWeekOfYear
-        case .quarter, .isLeapMonth, .month, .dayOfYear:
+        case .quarter, .month, .dayOfYear:
             return .year
-        case .day, .weekOfMonth, .weekdayOrdinal, .isRepeatedDay:
+        case .day, .weekOfMonth, .weekdayOrdinal:
             return .month
         case .weekday:
             return .weekOfMonth
@@ -1174,10 +1068,6 @@ private extension Set where Element == Calendar.Component {
         if self.contains(Calendar.Component.weekOfYear) { return .weekOfYear }
         if self.contains(Calendar.Component.yearForWeekOfYear) { return .yearForWeekOfYear }
         if self.contains(Calendar.Component.nanosecond) { return .nanosecond }
-        
-        // The algorithms that call this function assume that isLeapMonth and isRepeatedDay can count as 'highest unit set', but they are ordered after nanosecond.
-        if self.contains(Calendar.Component.isLeapMonth) { return .isLeapMonth }
-        if self.contains(Calendar.Component.isRepeatedDay) { return .isRepeatedDay }
         
         // The calendar and timeZone properties do not count as a 'highest unit set', since they are not ordered in time like the others are.
         return nil
@@ -1270,8 +1160,6 @@ private extension DateComponents {
         if self.weekOfYear != other.weekOfYear { mismatched.insert(Calendar.Component.weekOfYear) }
         if self.yearForWeekOfYear != other.yearForWeekOfYear { mismatched.insert(Calendar.Component.yearForWeekOfYear) }
         if self.nanosecond != other.nanosecond { mismatched.insert(Calendar.Component.nanosecond) }
-        if self.isLeapMonth != other.isLeapMonth { mismatched.insert(Calendar.Component.isLeapMonth) }
-        if self.dayOfYear != other.dayOfYear { mismatched.insert(Calendar.Component.dayOfYear) }
         
         return mismatched
     }

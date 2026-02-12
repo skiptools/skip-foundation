@@ -668,18 +668,6 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         var comp = dateComponents(actualUnits, from: date)
         var tempComp = components
         
-        if components.isLeapMonth != nil {
-            // `isLeapMonth` isn't part of `actualUnits`, so we have to retrieve
-            // it separately
-            comp.isLeapMonth = self.component(.isLeapMonth, from: date) != 0
-        }
-        
-        if components.isRepeatedDay != nil {
-            // `isRepeatedDay` isn't part of `actualUnits`, so we have to retrieve
-            // it separately
-            comp.isRepeatedDay = self.component(.isRepeatedDay, from: date) != 0
-        }
-        
         // Apply an epsilon to comparison of nanosecond values
         if let nanosecond = comp.nanosecond, let tempNanosecond = tempComp.nanosecond {
             let diff = Int64(nanosecond) - Int64(tempNanosecond)
@@ -712,8 +700,6 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         case nanosecond
         case calendar
         case timeZone
-        case isLeapMonth
-        case isRepeatedDay
     }
 
     /// Calendar supports many different kinds of calendars. Each is identified by an identifier here.
