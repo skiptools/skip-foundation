@@ -196,11 +196,6 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return dateFormatSymbols.getAmPmStrings()[1]
     }
     
-    /// True if this is a lunisolar calendar that repeats the month number for a leap month, false otherwise.
-    internal var hasRepeatingMonths: Bool {
-        return identifier == .chinese /* || identifier == .dangi || identifier == .gujarati || identifier == .kannada || identifier == .marathi || identifier == .telugu || identifier == .vietnamese || identifier == .vikram*/
-    }
-    
     public func minimumRange(of component: Calendar.Component) -> Range<Int>? {
         let platformCal = platformValue.clone() as java.util.Calendar
 
@@ -306,10 +301,9 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
 
     private func clearTime(in calendar: java.util.Calendar) {
         calendar.set(java.util.Calendar.HOUR_OF_DAY, 0) // “The HOUR_OF_DAY, HOUR and AM_PM fields are handled independently and the the resolution rule for the time of day is applied. Clearing one of the fields doesn't reset the hour of day value of this Calendar. Use set(Calendar.HOUR_OF_DAY, 0) to reset the hour value.”
-        calendar.clear(java.util.Calendar.HOUR_OF_DAY)
-        calendar.clear(java.util.Calendar.MINUTE)
-        calendar.clear(java.util.Calendar.SECOND)
-        calendar.clear(java.util.Calendar.MILLISECOND)
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
     }
 
     public func dateInterval(of component: Calendar.Component, start: inout Date, interval: inout TimeInterval, for date: Date) -> Bool {
@@ -320,14 +314,14 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         case .second:
             platformCal.set(java.util.Calendar.MILLISECOND, 0)
             start = Date(platformValue: platformCal.time)
-            interval = 1.0
+            interval = TimeInterval(1)
             return true
             
         case .minute:
             platformCal.set(java.util.Calendar.SECOND, 0)
             platformCal.set(java.util.Calendar.MILLISECOND, 0)
             start = Date(platformValue: platformCal.time)
-            interval = 60.0
+            interval = TimeInterval(60)
             return true
             
         case .hour:
@@ -335,19 +329,19 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             platformCal.set(java.util.Calendar.SECOND, 0)
             platformCal.set(java.util.Calendar.MILLISECOND, 0)
             start = Date(platformValue: platformCal.time)
-            interval = 3600.0
+            interval = TimeInterval(60 * 60)
             return true
             
         case .day:
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            interval = 24.0 * 60.0 * 60.0
+            interval = TimeInterval(24 * 60 * 60)
             return true
             
         case .weekday, .weekdayOrdinal:
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            interval = 24.0 * 60.0 * 60.0
+            interval = TimeInterval(24 * 60 * 60)
             return true
             
         case .month:
@@ -355,14 +349,27 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
             let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
-            interval = TimeInterval(numberOfDays) * 24.0 * 60.0 * 60.0
+            interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
             return true
             
         case .weekOfMonth, .weekOfYear:
             platformCal.set(java.util.Calendar.DAY_OF_WEEK, platformCal.firstDayOfWeek)
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            interval = 7.0 * 24.0 * 60.0 * 60.0
+            interval = TimeInterval(7 * 24 * 60 * 60)
+            return true
+            
+        case .quarter:
+            let currentMonth = platformCal.get(java.util.Calendar.MONTH)
+            let quarterStartMonth = (currentMonth / 3) * 3 // Find the first month of the current quarter
+            platformCal.set(java.util.Calendar.MONTH, quarterStartMonth)
+            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            let nextQuarterCal = platformCal.clone() as java.util.Calendar
+            nextQuarterCal.add(java.util.Calendar.MONTH, 3)
+            let durationMillis = nextQuarterCal.timeInMillis - platformCal.timeInMillis
+            interval = TimeInterval(durationMillis) / 1000.0
             return true
             
         case .year:
@@ -371,7 +378,16 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
             let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_YEAR)
-            interval = TimeInterval(numberOfDays) * 24.0 * 60.0 * 60.0
+            interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
+            return true
+            
+        case .era:
+            platformCal.set(java.util.Calendar.YEAR, 1)
+            platformCal.set(java.util.Calendar.MONTH, java.util.Calendar.JANUARY)
+            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            interval = Double.infinity
             return true
             
         default:
@@ -558,8 +574,13 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         var iterations = -1
         
         repeat {
+            defer {
+                logger.info("----------------------------------------------------")
+            }
+            logger.info("----------------------------------------------------")
             iterations += 1
             do {
+                logger.info("enumerateDates: (Iteration \(iterations))")
                 let result = try _enumerateDatesStep(startingAfter: start, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction, inSearchingDate: searchingDate, previouslyReturnedMatchDate: previouslyReturnedMatchDate)
                 
                 if let found = result.result {
@@ -572,12 +593,15 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
                 } else if iterations < STOP_EXHAUSTIVE_SEARCH_AFTER_MAX_ITERATIONS {
                     // Try again on nil result
                     searchingDate = result.newSearchDate
+                    logger.info("enumerateDates: Try again with new searching date -> \(searchingDate)")
                     continue
                 } else {
                     // Give up
+                    logger.info("enumerateDates: Give up")
                     return
                 }
             } catch {
+                logger.error("\(error.localizedDescription)")
                 return
             }
         } while true
