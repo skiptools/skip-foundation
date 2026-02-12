@@ -25,13 +25,14 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
     public var weekOfYear: Int? = nil
     public var yearForWeekOfYear: Int? = nil
 
-    public init(calendar: Calendar? = nil, timeZone: TimeZone? = nil, era: Int? = nil, year: Int? = nil, month: Int? = nil, day: Int? = nil, hour: Int? = nil, minute: Int? = nil, second: Int? = nil, nanosecond: Int? = nil, weekday: Int? = nil, weekdayOrdinal: Int? = nil, quarter: Int? = nil, weekOfMonth: Int? = nil, weekOfYear: Int? = nil, yearForWeekOfYear: Int? = nil) {
+    public init(calendar: Calendar? = nil, timeZone: TimeZone? = nil, era: Int? = nil, year: Int? = nil, month: Int? = nil, day: Int? = nil, dayOfYear: Int? = nil, hour: Int? = nil, minute: Int? = nil, second: Int? = nil, nanosecond: Int? = nil, weekday: Int? = nil, weekdayOrdinal: Int? = nil, quarter: Int? = nil, weekOfMonth: Int? = nil, weekOfYear: Int? = nil, yearForWeekOfYear: Int? = nil) {
         self.calendar = calendar
         self.timeZone = timeZone
         self.era = era
         self.year = year
         self.month = month
         self.day = day
+        self.dayOfYear = dayOfYear
         self.hour = hour
         self.minute = minute
         self.second = second
