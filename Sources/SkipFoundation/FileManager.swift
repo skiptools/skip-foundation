@@ -10,6 +10,36 @@ func platformFilePath(for path: String) -> java.nio.file.Path {
     java.nio.file.Paths.get(path)
 }
 
+/// Writes bytes to the given path, truncating any existing content.
+/// When `atomically` is true, the data is first written to a temporary file
+/// in the same directory and then renamed to the destination, ensuring the
+/// file is never left in a partially-written state.
+func writePlatformData(_ bytes: kotlin.ByteArray, to path: java.nio.file.Path, atomically: Bool) throws {
+    if atomically {
+        let parent = path.getParent() ?? java.nio.file.Paths.get(".")
+        let tmp = java.nio.file.Files.createTempFile(parent, ".skip", ".tmp")
+        do {
+            java.nio.file.Files.write(tmp, bytes)
+            java.nio.file.Files.move(tmp, path,
+                *(arrayOf(
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                    java.nio.file.StandardCopyOption.ATOMIC_MOVE
+                ) as kotlin.Array<java.nio.file.CopyOption>))
+        } catch {
+            // Clean up the temp file on failure
+            try? java.nio.file.Files.deleteIfExists(tmp)
+            throw error
+        }
+    } else {
+        java.nio.file.Files.write(path, bytes,
+            *(arrayOf(
+                java.nio.file.StandardOpenOption.CREATE,
+                java.nio.file.StandardOpenOption.WRITE,
+                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+            ) as kotlin.Array<java.nio.file.OpenOption>))
+    }
+}
+
 public class FileManager {
     public static let `default` = FileManager()
 
