@@ -284,13 +284,7 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
     }
 
     public func write(to url: URL, options: Data.WritingOptions = []) throws {
-        var opts: [java.nio.file.StandardOpenOption] = []
-        opts.append(java.nio.file.StandardOpenOption.CREATE)
-        opts.append(java.nio.file.StandardOpenOption.WRITE)
-        if options.contains(Data.WritingOptions.atomic) {
-            opts.append(java.nio.file.StandardOpenOption.DSYNC)
-        }
-        java.nio.file.Files.write(url.toPath(), platformValue, *(opts.toList().toTypedArray()))
+        try writePlatformData(platformValue, to: url.toPath(), atomically: options.contains(Data.WritingOptions.atomic))
     }
 
     public static func ==(lhs: Data, rhs: Data) -> Bool {

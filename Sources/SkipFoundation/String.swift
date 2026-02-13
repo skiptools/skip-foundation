@@ -164,25 +164,13 @@ extension String {
     }
 
     public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: StringEncoding) throws {
-        var opts: [java.nio.file.StandardOpenOption] = []
-        opts.append(java.nio.file.StandardOpenOption.CREATE)
-        opts.append(java.nio.file.StandardOpenOption.WRITE)
-        if useAuxiliaryFile {
-            opts.append(java.nio.file.StandardOpenOption.DSYNC)
-            opts.append(java.nio.file.StandardOpenOption.SYNC)
-        }
-        java.nio.file.Files.write(platformFilePath(for: url), self.data(using: enc)?.platformValue, *(opts.toList().toTypedArray()))
+        guard let bytes = self.data(using: enc)?.platformValue else { return }
+        try writePlatformData(bytes, to: platformFilePath(for: url), atomically: useAuxiliaryFile)
     }
 
     public func write(toFile path: String, atomically useAuxiliaryFile: Bool, encoding enc: StringEncoding) throws {
-        var opts: [java.nio.file.StandardOpenOption] = []
-        opts.append(java.nio.file.StandardOpenOption.CREATE)
-        opts.append(java.nio.file.StandardOpenOption.WRITE)
-        if useAuxiliaryFile {
-            opts.append(java.nio.file.StandardOpenOption.DSYNC)
-            opts.append(java.nio.file.StandardOpenOption.SYNC)
-        }
-        java.nio.file.Files.write(platformFilePath(for: path), self.data(using: enc)?.platformValue, *(opts.toList().toTypedArray()))
+        guard let bytes = self.data(using: enc)?.platformValue else { return }
+        try writePlatformData(bytes, to: platformFilePath(for: path), atomically: useAuxiliaryFile)
     }
 }
 
