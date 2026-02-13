@@ -305,7 +305,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         calendar.set(java.util.Calendar.SECOND, 0)
         calendar.set(java.util.Calendar.MILLISECOND, 0)
     }
-
+    
     public func dateInterval(of component: Calendar.Component, start: inout Date, interval: inout TimeInterval, for date: Date) -> Bool {
         let platformCal = platformValue.clone() as java.util.Calendar
         platformCal.time = date.platformValue
@@ -332,7 +332,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             interval = TimeInterval(60 * 60)
             return true
             
-        case .day:
+        case .day, .dayOfYear:
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
             interval = TimeInterval(24 * 60 * 60)
