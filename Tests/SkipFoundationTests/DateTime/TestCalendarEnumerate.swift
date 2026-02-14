@@ -20,8 +20,6 @@ final class TestCalendarEnumerate: XCTestCase {
     }
     
     // MARK: - Enumerate Dates (Year) Tests
-    
-    /// Forward
     func testEnumerateDates_years_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -61,7 +59,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_years_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
@@ -102,8 +99,6 @@ final class TestCalendarEnumerate: XCTestCase {
     }
     
     // MARK: - Enumerate Dates (Quarter) Tests
-    
-    /// Forward
     func testEnumerateDates_quarters_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -145,7 +140,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_quarters_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
@@ -189,7 +183,6 @@ final class TestCalendarEnumerate: XCTestCase {
     
     // MARK: - Enumerate Dates (Month) Tests
     
-    /// Forward
     func testEnumerateDates_month_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -231,7 +224,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_month_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
@@ -274,8 +266,6 @@ final class TestCalendarEnumerate: XCTestCase {
     }
     
     // MARK: - Enumerate Dates (Week of Year) Tests
-    
-    /// Forward
     func testEnumerateDates_weekOfYear_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -317,7 +307,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_weekOfYear_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
@@ -361,7 +350,6 @@ final class TestCalendarEnumerate: XCTestCase {
     
     // MARK: - Enumerate Dates (Week of Month) Tests
     
-    /// Forward
     func testEnumerateDates_weekOfMonth_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -405,7 +393,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_weekOfMonth_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
@@ -450,8 +437,6 @@ final class TestCalendarEnumerate: XCTestCase {
     }
     
     // MARK: - Enumerate Dates (Day of Year) Tests
-    
-    /// Forward
     @available(macOS 15, iOS 18, *)
     func testEnumerateDates_dayOfYear_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
@@ -538,7 +523,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     @available(macOS 15, iOS 18, *)
     func testEnumerateDates_dayOfYear_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
@@ -627,7 +611,6 @@ final class TestCalendarEnumerate: XCTestCase {
     
     // MARK: - Enumerate Dates (Day) Tests
     
-    /// Forward
     func testEnumerateDates_day_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -714,7 +697,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_day_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
@@ -802,8 +784,6 @@ final class TestCalendarEnumerate: XCTestCase {
     }
     
     // MARK: - Enumerate Dates (Weekday) Tests
-    
-    /// Forward
     func testEnumerateDates_weekday_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -847,7 +827,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_weekdayOrdinal_backwardDirection_validComponents_shouldReturnNil() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2021-01-01T00:00:00Z")!
@@ -893,7 +872,6 @@ final class TestCalendarEnumerate: XCTestCase {
     
     // MARK: - Enumerate Dates (Weekday Ordinal) Tests
     
-    /// Forward
     func testEnumerateDates_weekdayOrdinal_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -939,7 +917,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_weekdayOrdinal_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2021-01-01T00:00:00Z")!
@@ -986,8 +963,6 @@ final class TestCalendarEnumerate: XCTestCase {
     }
     
     // MARK: - Enumerate Dates (Time) Tests
-    
-    /// Forward
     func testEnumerateDates_time_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
@@ -1077,7 +1052,6 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertTrue(results.isEmpty)
     }
     
-    /// Backward
     func testEnumerateDates_time_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!

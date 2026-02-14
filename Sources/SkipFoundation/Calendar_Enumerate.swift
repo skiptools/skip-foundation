@@ -14,8 +14,6 @@
 
 #if SKIP
 
-let logger: Logger = Logger(subsystem: "Calendar_Enumerate", category: "SkipFoundation")
-
 /* SKIP NOWARN */
 extension Calendar {
     struct SearchStepResult {
@@ -33,17 +31,11 @@ extension Calendar {
         
         // Step A: Call helper method that does the searching
         let compsToMatch = _adjustedComponents(matchingComponents, date: searchingDate, direction: direction)
-        logger.info("enumerateDatesStep: compsToMatch -> \(compsToMatch)")
-        
         guard let unadjustedMatchDate = try _matchingDate(after: searchingDate, matching: compsToMatch, direction: direction, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy) else {
             return SearchStepResult(result: nil, newSearchDate: searchingDate)
         }
         
-        logger.info("enumerateDatesStep: unadjustedMatchDate -> \(unadjustedMatchDate)")
-        
         let adjustedMatchDate = try _adjustedDate(unadjustedMatchDate, startingAfter: start, matching: matchingComponents, adjustedMatchingComponents: compsToMatch , matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction, inSearchingDate: searchingDate, previouslyReturnedMatchDate: previouslyReturnedMatchDate)
-        
-        logger.info("enumerateDatesStep: adjustedMatchDate -> \(adjustedMatchDate)")
         
         return adjustedMatchDate
     }
@@ -54,10 +46,9 @@ extension Calendar {
 extension Calendar {
     func _matchingDate(after startDate: Date, matching comps: DateComponents, direction: SearchDirection, matchingPolicy: MatchingPolicy, repeatedTimePolicy: RepeatedTimePolicy) throws -> Date? {
         
-        let isStrictMatching = matchingPolicy == .strict
-        
         var matchedEra = true
         var searchStartDate = startDate
+        let isStrictMatching = matchingPolicy == .strict
         
         if let result = dateAfterMatchingEra(startingAt: searchStartDate, components: comps, direction: direction, matchedEra: &matchedEra) {
             searchStartDate = result
@@ -121,13 +112,9 @@ extension Calendar {
     
     func _matchingDate(after startDate: Date, matching comps: DateComponents, inNextHighestUnit: Component, direction: SearchDirection, matchingPolicy: MatchingPolicy, repeatedTimePolicy: RepeatedTimePolicy) throws -> Date? {
         
-        logger.info("Info: _matchingDate in \(inNextHighestUnit) for \(startDate)")
-        
         guard let foundRange = dateInterval(of: inNextHighestUnit, for: startDate) else {
             throw CalendarEnumerationError.dateOutOfRange(inNextHighestUnit, startDate)
         }
-        
-        logger.info("Info: Found range: \(foundRange)")
         
         var nextSearchDate: Date?
         var innerDirection = direction
@@ -145,7 +132,7 @@ extension Calendar {
                  the matchingDate call below will exit with 2017-05-26 06:30:00 UTC and the algorithm will see that date is incorrect and reset the new search date go back a day to 2017-05-25 07:19:50 UTC. Then we get back here to this method and move the start to 2017-05-25 07:00:00 UTC and the call to matchingDate below will return 2017-05-25 06:30:00 UTC, which skips what we want (2017-05-25 07:30:00 UTC) and the algorithm eventually keeps moving further and further into the past until it exhausts itself and returns nil.
                  To adjust for this scenario, we add this line below that sets nextSearchDate to the last minute of the previous day (using the above example, 2017-05-26 06:59:59 UTC), which causes the algorithm to not skip the minutes/seconds within the first hour of the previous day. (<rdar://problem/32609242>)
                  */
-                nextSearchDate = foundRange.start.addingTimeInterval(-1.0)
+                nextSearchDate = foundRange.start.addingTimeInterval(-1)
                 
                 // One caveat: if we are looking for a date within the first hour of the day (i.e. between 12 and 1 am), we want to ensure we go forwards in time to hit the exact minute and/or second we're looking for since nextSearchDate is now in the previous day. (<rdar://problem/33944890>).
                 if comps.hour == 0 {
@@ -167,18 +154,14 @@ extension Calendar {
 extension Calendar {
     func dateAfterMatchingEra(startingAt: Date, components: DateComponents, direction: SearchDirection, matchedEra: inout Bool) -> Date? {
         
-        logger.info("dateAfterMatchingEra: startingAt \(startingAt)")
-        
         guard let era = components.era else {
             // Nothing to do
-            logger.info("dateAfterMatchingEra: no era defined in components")
             return nil
         }
         
         let dateEra = component(.era, from: startingAt)
         guard era != dateEra else {
             // Already matches
-            logger.info("dateAfterMatchingEra: era already matches components")
             return nil
         }
         
@@ -211,11 +194,8 @@ extension Calendar {
     
     func dateAfterMatchingYear(startingAt: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingYear: startingAt \(startingAt)")
-        
         guard let year = components.year else {
             // Nothing to do
-            logger.info("dateAfterMatchingYear: no year defined in components")
             return nil
         }
         
@@ -224,7 +204,6 @@ extension Calendar {
         
         guard year != dateYear else {
             // Already matches
-            logger.info("dateAfterMatchingYear: year already matches components")
             return nil
         }
         
@@ -254,11 +233,8 @@ extension Calendar {
     
     func dateAfterMatchingQuarter(startingAt: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingQuarter: startingAt \(startingAt)")
-        
         guard let quarter = components.quarter else {
             // Nothing to do
-            logger.info("dateAfterMatchingQuarter: no quarter defined in components")
             return nil
         }
         
@@ -266,8 +242,6 @@ extension Calendar {
         guard let foundRange = dateInterval(of: .year, for: startingAt) else {
             throw CalendarEnumerationError.dateOutOfRange(.year, startingAt)
         }
-        
-        logger.info("dateAfterMatchingQuarter: foundRange -> \(foundRange)")
         
         if quarter < 1 || quarter > 4 {
             // Out of range
@@ -277,19 +251,13 @@ extension Calendar {
         if direction == .backward {
             var count = 4
             var quarterBegin = foundRange.start.addingTimeInterval(foundRange.duration - 1)
-            logger.info("dateAfterMatchingQuarter: quarterBegin -> \(quarterBegin)")
-            
             while count != quarter && count > 0 {
-                logger.info("dateAfterMatchingQuarter: count -> \(count)")
                 guard let quarterRange = dateInterval(of: .quarter, for: quarterBegin) else {
                     // Out of range
                     throw CalendarEnumerationError.dateOutOfRange(.quarter, quarterBegin)
                 }
                 
                 quarterBegin = quarterRange.start.addingTimeInterval(-quarterRange.duration)
-                logger.info("dateAfterMatchingQuarter: quarterRange.start -> \(quarterRange.start)")
-                logger.info("dateAfterMatchingQuarter: quarterRange.duration -> \(quarterRange.duration)")
-                logger.info("dateAfterMatchingQuarter: quarterBegin -> \(quarterBegin)")
                 count -= 1
             }
             
@@ -297,10 +265,7 @@ extension Calendar {
         } else {
             var count = 1
             var quarterBegin = foundRange.start
-            logger.info("dateAfterMatchingQuarter: quarterBegin -> \(quarterBegin)")
-            
             while count != quarter && count < 5 {
-                logger.info("dateAfterMatchingQuarter: count -> \(count)")
                 guard let quarterRange = dateInterval(of: .quarter, for: quarterBegin) else {
                     // Out of range
                     throw CalendarEnumerationError.dateOutOfRange(.quarter, quarterBegin)
@@ -308,9 +273,6 @@ extension Calendar {
                 
                 // Move past this quarter. The is the first instant of the next quarter.
                 quarterBegin = quarterRange.start.addingTimeInterval(quarterRange.duration)
-                logger.info("dateAfterMatchingQuarter: quarterRange.start -> \(quarterRange.start)")
-                logger.info("dateAfterMatchingQuarter: quarterRange.duration -> \(quarterRange.duration)")
-                logger.info("dateAfterMatchingQuarter: quarterBegin -> \(quarterBegin)")
                 count += 1
             }
             
@@ -320,11 +282,8 @@ extension Calendar {
     
     func dateAfterMatchingMonth(startingAt: Date, components: DateComponents, direction: SearchDirection, strictMatching: Bool) throws -> Date? {
         
-        logger.info("dateAfterMatchingMonth: startingAt \(startingAt)")
-        
         guard let month = components.month else {
             // Nothing to do
-            logger.info("dateAfterMatchingMonth: no month defined in components")
             return nil
         }
         
@@ -350,11 +309,11 @@ extension Calendar {
                         // Take it back 3 days so we land in february.  That is, March has 31 days, and Feb can have 28 or 29, so to ensure we get to either Feb 1 or 2, we need to take it back 3 days.
                         duration -= 86400 * 3
                     } else {
-                        // Take it back a day
+                        // Take it back a day.
                         duration -= 86400
                     }
                     
-                    // So we can go backwards in time
+                    // So we can go backwards in time.
                     duration *= -1
                 }
                 
@@ -371,18 +330,14 @@ extension Calendar {
     
     func dateAfterMatchingWeekOfYear(startingAt: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingWeekOfYear: startingAt \(startingAt)")
-        
         guard let weekOfYear = components.weekOfYear else {
             // Nothing to do
-            logger.info("dateAfterMatchingWeekOfYear: no week of year defined in components")
             return nil
         }
         
         var dateWeekOfYear = component(.weekOfYear, from: startingAt)
         guard weekOfYear != dateWeekOfYear else {
             // Already matches
-            logger.info("dateAfterMatchingWeekOfYear: week of year already matches components")
             return nil
         }
         
@@ -419,18 +374,14 @@ extension Calendar {
     
     func dateAfterMatchingWeekOfMonth(startingAt: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingWeekOfMonth: startingAt \(startingAt)")
-        
         guard let weekOfMonth = components.weekOfMonth else {
             // Nothing to do
-            logger.info("dateAfterMatchingWeekOfMonth: no week of month defined in components")
             return nil
         }
         
         var dateWeekOfMonth = component(.weekOfMonth, from: startingAt)
         guard weekOfMonth != dateWeekOfMonth else {
             // Already matches
-            logger.info("dateAfterMatchingWeekOfMonth: week of month already matches components")
             return nil
         }
         
@@ -502,13 +453,9 @@ extension Calendar {
                 tempSearchDate = today
             }
             
-            logger.info("dateAfterMatchingWeekOfMonth: tempSearchDate -> \(tempSearchDate!)")
             dateWeekOfMonth = component(.weekOfMonth, from: tempSearchDate!)
-            logger.info("dateAfterMatchingWeekOfMonth: dateWeekOfMonth -> \(dateWeekOfMonth)")
-            
             try verifyAdvancingResult(tempSearchDate, previous: result, direction: direction)
             result = tempSearchDate
-            logger.info("dateAfterMatchingWeekOfMonth: result -> \(result)")
         } while weekOfMonth != dateWeekOfMonth
         
         return result
@@ -516,18 +463,14 @@ extension Calendar {
     
     func dateAfterMatchingDayOfYear(startingAt: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingDayOfYear: startingAt \(startingAt)")
-        
         guard let dayOfYear = components.dayOfYear else {
             // Nothing to do
-            logger.info("dateAfterMatchingDayOfYear: no day of year defined in components")
             return nil
         }
         
         var dateDayOfYear = component(.dayOfYear, from: startingAt)
         guard dayOfYear != dateDayOfYear else {
             // Already matches
-            logger.info("dateAfterMatchingDayOfYear: day of year already matches components")
             return nil
         }
         
@@ -555,9 +498,6 @@ extension Calendar {
                 result = searchDate
             }
             
-            logger.info("dateAfterMatchingDayOfYear: dateDayOfYear -> \(dateDayOfYear)")
-            logger.info("dateAfterMatchingDayOfYear: result -> \(result)")
-            
             try verifyAdvancingResult(result, previous: lastResult, direction: direction)
         } while dayOfYear != dateDayOfYear
         
@@ -566,11 +506,8 @@ extension Calendar {
     
     func dateAfterMatchingDay(startingAt: Date, originalStartDate: Date, components: DateComponents, direction: SearchDirection, isStrictMatching: Bool) throws -> Date? {
         
-        logger.info("dateAfterMatchingDay: startingAt \(startingAt)")
-        
         guard let day = components.day else {
             // Nothing to do
-            logger.info("dateAfterMatchingDay: no day defined in components")
             return nil
         }
         
@@ -580,7 +517,7 @@ extension Calendar {
         if month != nil && direction == .backward {
             // Are we in the right month already?  If we are and backwards is set, we should move to the beginning of the last day of the month and work backwards.
             if let foundRange = dateInterval(of: .month, for: result) {
-                let tempSearchDate = foundRange.end.addingTimeInterval(-1.0)
+                let tempSearchDate = foundRange.end.addingTimeInterval(-1)
                 // Check the order to make sure we didn't jump ahead of the start date.
                 if tempSearchDate > originalStartDate {
                     // We went too far ahead. Just go back to using the start date as our upper bound.
@@ -619,10 +556,9 @@ extension Calendar {
                 // We need to account for DST by ensuring we rewind to exactly the time we want.
                 
                 let tempSearchDate: Date
-                
                 if direction == .backward {
                     // Any time prior to dayBegin is yesterday. Since we want to rewind to the start of yesterday, do that directly.
-                    let lateYesterday = foundRange.start.addingTimeInterval(-1.0)
+                    let lateYesterday = foundRange.start.addingTimeInterval(-1)
                     
                     // Now we can get the exact moment that yesterday began on.
                     // It shouldn't be possible to fail to find this interval, but if that somehow happens, we can try to fall back to the simple but wrong method.
@@ -640,9 +576,7 @@ extension Calendar {
                 
                 dateDay = component(.day, from: tempSearchDate)
                 let dateMonth = component(.month, from: tempSearchDate)
-                
                 try verifyAdvancingResult(tempSearchDate, previous: result, direction: direction)
-                
                 result = tempSearchDate
                 
                 if abs(dateMonth - originalMonth) >= 2 {
@@ -667,18 +601,14 @@ extension Calendar {
     
     func dateAfterMatchingWeekdayOrdinal(startingAt: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingWeekdayOrdinal: startingAt \(startingAt)")
-        
         guard let weekdayOrdinal = components.weekdayOrdinal else {
             // Nothing to do
-            logger.info("dateAfterMatchingWeekdayOrdinal: no weekday ordinal defined in components")
             return nil
         }
         
         var dateWeekdayOrdinal = self.component(.weekdayOrdinal, from: startingAt)
         guard weekdayOrdinal != dateWeekdayOrdinal else {
             // Nothing to do
-            logger.info("dateAfterMatchingWeekdayOrdinal: weekday ordinal already matches components")
             return nil
         }
         
@@ -773,11 +703,8 @@ extension Calendar {
     
     func dateAfterMatchingWeekday(startingAt: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingWeekday: startingAt \(startingAt)")
-        
         guard let weekday = components.weekday else {
             // Nothing to do
-            logger.info("dateAfterMatchingWeekday: no weekday defined in components")
             return nil
         }
         
@@ -786,7 +713,6 @@ extension Calendar {
         var dateWeekday = self.component(.weekday, from: startingAt)
         guard weekday != dateWeekday else {
             // Already matches
-            logger.info("dateAfterMatchingWeekday: weekday already matches components")
             return nil
         }
         
@@ -795,7 +721,7 @@ extension Calendar {
             throw CalendarEnumerationError.dateOutOfRange(.weekday, startingAt)
         }
         
-        // After this point, result is at least startDate
+        // After this point, result is at least startDate.
         var result = startingAt
         repeat {
             guard let foundRange = self.dateInterval(of: .weekday, for: result) else {
@@ -826,14 +752,8 @@ extension Calendar {
             }
             
             dateWeekday = self.component(.weekday, from: tempSearchDate)
-            
-            logger.info("dateAfterMatchingWeekday: dateWeekday \(dateWeekday)")
-            
             try verifyAdvancingResult(tempSearchDate, previous: result, direction: direction)
-            
             result = tempSearchDate
-            
-            logger.info("dateAfterMatchingWeekday: result \(result)")
         } while weekday != dateWeekday
         
         return result
@@ -841,11 +761,8 @@ extension Calendar {
     
     func dateAfterMatchingHour(startingAt startDate: Date, originalStartDate: Date, components: DateComponents, direction: SearchDirection, findLastMatch: Bool, isStrictMatching: Bool, matchingPolicy: MatchingPolicy) throws -> Date? {
         
-        logger.info("dateAfterMatchingHour: startingAt \(startingAt)")
-        
         guard let hour = components.hour else {
             // Nothing to do
-            logger.info("dateAfterMatchingHour: no hour defined in components")
             return nil
         }
         
@@ -875,10 +792,8 @@ extension Calendar {
         //
         // If we're not matching strictly, we need to check whether we're already a non-strict match and not an overshoot.
         if hour == 0 /* searching for hour 0 */ && !isStrictMatching {
-            logger.info("dateAfterMatchingHour: searching for hour 0")
             if let foundRange = self.dateInterval(of: .day, for: result) {
                 let dayBegin = foundRange.start
-                logger.info("dateAfterMatchingHour: dayBegin -> \(dayBegin)")
                 let firstHourOfTheDay = self.component(.hour, from: dayBegin)
                 if firstHourOfTheDay != 0 && dateHour == firstHourOfTheDay {
                     // We're at the start of the day; it's just not hour 0.
@@ -903,7 +818,6 @@ extension Calendar {
         // NOTE: The behavior of generalized isForwardDST checking depends on the behavior of this loop!
         //        Right now, in the general case, this loop stops iteration _before_ a forward DST transition. If that changes, please take a look at the isForwardDST code for when `beforeTransition = false` and adjust as necessary.
         if hour != dateHour && !adjustedSearchStartDate {
-            logger.info("dateAfterMatchingHour: searching for hour != 0")
             repeat {
                 let lastResult = result
                 guard let foundRange = self.dateInterval(of: .hour, for: result) else {
@@ -997,11 +911,8 @@ extension Calendar {
     
     func dateAfterMatchingMinute(startingAt: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingMinute: startingAt \(startingAt)")
-        
         guard let minute = components.minute else {
             // Nothing to do
-            logger.info("dateAfterMatchingMinute: no minute defined in components")
             return nil
         }
         
@@ -1037,11 +948,8 @@ extension Calendar {
     
     func dateAfterMatchingSecond(startingAt startDate: Date, originalStartDate: Date, components: DateComponents, direction: SearchDirection) throws -> Date? {
         
-        logger.info("dateAfterMatchingSecond: startingAt \(startingAt)")
-        
         guard let second = components.second else {
             // Nothing to do
-            logger.info("dateAfterMatchingSecond: no second defined in components")
             return nil
         }
         
@@ -1050,9 +958,8 @@ extension Calendar {
             throw CalendarEnumerationError.dateOutOfRange(.minute, startingAt)
         }
         
-        // After this point, result is at least startDate
+        // After this point, result is at least startDate.
         var result = startDate
-        
         var dateSecond = self.component(.second, from: result)
         if second != dateSecond {
             repeat {
@@ -1082,9 +989,9 @@ extension Calendar {
                     var searchStartMin = self.component(.minute, from: result)
                     if let minute = components.minute {
                         if searchStartMin > minute {
-                            // We've gone ahead of where we needed to be
+                            // We've gone ahead of where we needed to be.
                             repeat {
-                                // Reset to beginning of minute
+                                // Reset to beginning of minute.
                                 guard let foundRange = self.dateInterval(of: .minute, for: result) else {
                                     throw CalendarEnumerationError.dateOutOfRange(.minute, result)
                                 }
@@ -1104,7 +1011,7 @@ extension Calendar {
                 throw CalendarEnumerationError.dateOutOfRange(.second, result)
             }
             result = anotherFoundRange.start
-            // Now searchStartDate <= startDate
+            // Now searchStartDate <= startDate.
         }
         
         return result
@@ -1123,7 +1030,7 @@ extension Calendar {
     
     private func verifyUnequalResult(_ next: Date, previous: Date, startingAt: Date, components: DateComponents, direction: Calendar.SearchDirection, strict: Bool?) throws {
         if (next == previous) {
-            // We are not advancing. Bail out of the loop
+            // We are not advancing. Bail out of the loop.
             throw CalendarEnumerationError.notAdvancing(next, previous)
         }
     }
@@ -1145,8 +1052,6 @@ extension Calendar {
         // Step C: Validate what we found and then run block. Then prepare the search date for the next round of the loop.
         guard let matchDate = try _adjustedDateForMismatches(start: start, searchingDate: searchingDate, matchDate: unadjustedMatchDate, matchingComponents: matchingComponents, compsToMatch: compsToMatch, direction: direction, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, isForwardDST: &isForwardDST, isExactMatch: &exactMatch, isLeapDay: &isLeapDay) else {
             
-            logger.info("_adjustedDate: Try again with a bumped up date")
-            
             // Try again with a bumped up date
             if let newSearchingDate = bumpedDateUpToNextHigherUnitInComponents(searchingDate, matchingComponents, direction, nil) {
                 searchingDate = newSearchingDate
@@ -1154,8 +1059,6 @@ extension Calendar {
             
             return SearchStepResult(result: nil, newSearchDate: searchingDate)
         }
-        
-        logger.info("_adjustedDate: matchDate -> \(matchDate)")
         
         // Check the components to see if they match what was desired.
         let matchResult = self.date(matchDate, containsMatchingComponents: matchingComponents)
@@ -1165,14 +1068,10 @@ extension Calendar {
             exactMatch = true
         }
         
-        logger.info("_adjustedDate: exactMatch -> \(exactMatch)")
-        
         // Bump up the next highest unit.
         if let newSearchingDate = bumpedDateUpToNextHigherUnitInComponents(searchingDate, matchingComponents, direction, matchDate) {
             searchingDate = newSearchingDate
         }
-        
-        logger.info("_adjustedDate: searchingDate -> \(searchingDate)")
         
         // Nanosecond and quarter mismatches are not considered inexact.
         let notAnExactMatch = (dateMatchesComps == false) && (mismatchedUnits.contains(.nanosecond) == false) && (mismatchedUnits.contains(.quarter) == false)
@@ -1180,16 +1079,12 @@ extension Calendar {
             exactMatch = false
         }
         
-        logger.info("_adjustedDate: exactMatch -> \(exactMatch)")
-        
         let order: ComparisonResult
         if let previouslyReturnedMatchDate = previouslyReturnedMatchDate {
             order = previouslyReturnedMatchDate.compare(matchDate)
         } else {
             order = start.compare(matchDate)
         }
-        
-        logger.info("_adjustedDate: order -> \(order)")
         
         if ((direction == .backward && order == .orderedAscending) || (direction == .forward && order == .orderedDescending)) && mismatchedUnits.contains(.nanosecond) == false {
             // We've gone ahead when we should have gone backwards or we went in the past when we were supposed to move forwards.
@@ -1211,7 +1106,6 @@ extension Calendar {
             // In this case, before giving up on the current match date, we need to adjust the next search date with this information.
             //
             // Currently, the case we care most about is adjusting for DST, but we might need to expand this to handle repeated months in some calendars.
-            
             if compsToMatch.highestSetUnit == .hour {
                 let matchHour = component(.hour, from: matchDate)
                 let hourAdjustment = direction == .backward ? -3600.0 : 3600.0
@@ -1225,7 +1119,6 @@ extension Calendar {
             }
             
             // In any case, return nil.
-            logger.info("_adjustedDate: result -> nil")
             return SearchStepResult(result: nil, newSearchDate: searchingDate)
         }
         
@@ -1235,13 +1128,11 @@ extension Calendar {
         // 3) It's not an exact match but not because we found a DST hour or day that doesn't exist in the month (i.e. it's truly the wrong result)
         let allowInexactMatchingDueToTimeSkips = isForwardDST || isLeapDay
         if !exactMatch && (matchingPolicy == .strict || !allowInexactMatchingDueToTimeSkips) {
-            logger.info("_adjustedDate: result -> nil (2)")
             return SearchStepResult(result: nil, newSearchDate: searchingDate)
         }
         
         // If we get a result that is exactly the same as the start date, skip.
         if !allowStartDate, order == .orderedSame {
-            logger.info("_adjustedDate: result -> nil (3)")
             return SearchStepResult(result: nil, newSearchDate: searchingDate)
         }
         
@@ -1260,9 +1151,6 @@ extension Calendar {
         let mismatchedUnits = result.0
         let dateMatchesComps = result.1
         
-        logger.info("_adjustedDateForMismatches: mismatchedUnits -> \(mismatchedUnits)")
-        logger.info("_adjustedDateForMismatches: dateMatchesComps -> \(dateMatchesComps)")
-        
         // Skip trying to correct nanoseconds or quarters. We don't want differences in these two (partially unsupported) fields to cause mismatched dates. <rdar://problem/30229247> / <rdar://problem/30229506>
         let nanoSecondsMismatch = mismatchedUnits.contains(.nanosecond)
         let quarterMismatch = mismatchedUnits.contains(.quarter)
@@ -1279,8 +1167,6 @@ extension Calendar {
                 return resultAdjustedForDST
             }
         }
-        
-        logger.info("_adjustedDateForMismatches: dateMatchesComps -> \(dateMatchesComps)")
         
         if dateMatchesComps {
             // Everything is already fine. Just return the value.
@@ -1385,9 +1271,9 @@ extension Calendar {
             isForwardDST = true
         } else {
             // We might be just after such a transition.
-            let previous = found.start.addingTimeInterval(-1.0)
+            let previous = found.start.addingTimeInterval(-1)
             let previousHour = component(.hour, from: previous)
-
+            
             if ((currentHour - previousHour) > 1 || (previousHour == 23 && currentHour > 0)) {
                 // We're just after a forward DST transition, e.g., for America/Sao_Paulo:
                 //
@@ -1402,7 +1288,7 @@ extension Calendar {
             }
         }
         
-        // we can only adjust when matches need not be strict
+        // We can only adjust when matches need not be strict.
         if !(isForwardDST && matchingPolicy != .strict) {
             return nil
         }
@@ -1454,7 +1340,6 @@ extension Calendar {
         }
     }
     
-    // For calendars other than Chinese
     func _adjustedDateForMismatchedLeapMonthOrDay(start: Date, searchingDate: Date, matchDate: Date, matchingComponents: DateComponents, compsToMatch: DateComponents, nextHighestUnit: Calendar.Component, direction: SearchDirection, matchingPolicy: MatchingPolicy, repeatedTimePolicy: RepeatedTimePolicy, isExactMatch: inout Bool, isLeapDay: inout Bool) throws -> Date? {
         let searchDateComps = self.dateComponents([.year, .month, .day], from: searchingDate)
         
@@ -1716,8 +1601,6 @@ extension Calendar {
             return nil
         }
         
-        logger.info("bumpedDateUpToNextHigherUnitInComponents: highestSetUnit \(highestSetUnit)")
-        
         let nextUnitAboveHighestSet: Component
         
         if highestSetUnit == .era {
@@ -1730,8 +1613,6 @@ extension Calendar {
             }
             nextUnitAboveHighestSet = next
         }
-        
-        logger.info("bumpedDateUpToNextHigherUnitInComponents: nextUnitAboveHighestSet \(nextUnitAboveHighestSet)")
         
         // Advance to the start or end of the next highest unit. Old code here used to add `±1 nextUnitAboveHighestSet` to searchingDate and manually adjust afterwards, but this is incorrect in many cases.
         // For instance, this is wrong when searching forward looking for a specific Week of Month. Take for example, searching for WoM == 1:
@@ -1751,22 +1632,16 @@ extension Calendar {
         // What we really want is to skip to the _start_ of February and search from there -- if we undershoot, we can always keep looking.
         // Searching backwards is similar: we can overshoot if we were subtracting a month, so instead we want to jump back to the very end of the previous month.
         // In general, this translates to jumping to the very beginning of the next period of the next highest unit when searching forward, or jumping to the very end of the last period when searching backward.
-
         guard let foundRange = dateInterval(of: nextUnitAboveHighestSet, for: searchingDate) else {
             return nil
         }
         
-        logger.info("bumpedDateUpToNextHigherUnitInComponents: foundRange \(foundRange)")
-        
         var result = foundRange.start.addingTimeInterval(direction == .backward ? -1.0 : foundRange.duration)
-        
-        logger.info("bumpedDateUpToNextHigherUnitInComponents: result \(result)")
-        
         if let matchDate {
             let ordering = matchDate.compare(result)
             if (ordering != .orderedAscending && direction == .forward) || (ordering != .orderedDescending && direction == .backward) {
-                // We need to advance searchingDate so that it starts just after matchDate
-                // We already guarded against an empty components above, so force unwrap here
+                // We need to advance searchingDate so that it starts just after matchDate.
+                // We already guarded against an empty components above, so force unwrap here.
                 if let lowestSetUnit = components.lowestSetUnit {
                     guard let date = self.date(byAdding: lowestSetUnit, value: direction == .backward ? -1 : 1, to: matchDate) else {
                         return nil
@@ -1855,7 +1730,7 @@ private extension DateComponents {
         if self.minute != nil { return .minute }
         if self.second != nil { return .second }
 
-        // It may seem a bit odd to check in this order, but it's been a longstanding behavior
+        // It may seem a bit odd to check in this order, but it's been a longstanding behavior.
         if self.weekday != nil { return .weekday }
         if self.weekdayOrdinal != nil { return .weekdayOrdinal }
         if self.weekOfMonth != nil { return .weekOfMonth }
@@ -1869,7 +1744,7 @@ private extension DateComponents {
         // A note on performance: this approach is much faster than using key paths, which require a lot more allocations.
         if self.nanosecond != nil { return .nanosecond }
 
-        // It may seem a bit odd to check in this order, but it's been a longstanding behavior
+        // It may seem a bit odd to check in this order, but it's been a longstanding behavior.
         if self.yearForWeekOfYear != nil { return .yearForWeekOfYear }
         if self.weekOfYear != nil { return .weekOfYear }
         if self.weekOfMonth != nil { return .weekOfMonth }
@@ -1906,14 +1781,13 @@ private extension DateComponents {
         if self.nanosecond != nil { units.insert(.nanosecond) }
         return units
     }
-
+    
     var setUnitCount: Int {
-        return setUnits.count
+        return self.setUnits.count
     }
     
     func mismatchedUnits(comparedTo other: DateComponents) -> Set<Calendar.Component> {
         var mismatched = Set<Calendar.Component>()
-        
         if self.era != other.era { mismatched.insert(.era) }
         if self.year != other.year { mismatched.insert(.year) }
         if self.quarter != other.quarter { mismatched.insert(.quarter) }
@@ -1928,7 +1802,6 @@ private extension DateComponents {
         if self.weekOfYear != other.weekOfYear { mismatched.insert(.weekOfYear) }
         if self.yearForWeekOfYear != other.yearForWeekOfYear { mismatched.insert(.yearForWeekOfYear) }
         if self.nanosecond != other.nanosecond { mismatched.insert(.nanosecond) }
-        
         return mismatched
     }
 }

@@ -574,13 +574,8 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         var iterations = -1
         
         repeat {
-            defer {
-                logger.info("----------------------------------------------------")
-            }
-            logger.info("----------------------------------------------------")
             iterations += 1
             do {
-                logger.info("enumerateDates: (Iteration \(iterations))")
                 let result = try _enumerateDatesStep(startingAfter: start, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction, inSearchingDate: searchingDate, previouslyReturnedMatchDate: previouslyReturnedMatchDate)
                 
                 if let found = result.result {
@@ -593,15 +588,12 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
                 } else if iterations < STOP_EXHAUSTIVE_SEARCH_AFTER_MAX_ITERATIONS {
                     // Try again on nil result
                     searchingDate = result.newSearchDate
-                    logger.info("enumerateDates: Try again with new searching date -> \(searchingDate)")
                     continue
                 } else {
                     // Give up
-                    logger.info("enumerateDates: Give up")
                     return
                 }
             } catch {
-                logger.error("\(error.localizedDescription)")
                 return
             }
         } while true
