@@ -7,16 +7,16 @@
 
 public struct Calendar : Hashable, Codable, CustomStringConvertible {
     internal var platformValue: java.util.Calendar
-
+    
     public static var current: Calendar {
         return Calendar(platformValue: java.util.Calendar.getInstance())
     }
-
+    
     @available(*, unavailable)
     public static var autoupdatingCurrent: Calendar {
         fatalError()
     }
-
+    
     private static func platformValue(for identifier: Calendar.Identifier) -> java.util.Calendar {
         switch identifier {
         case .gregorian:
@@ -28,31 +28,31 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             return java.util.Calendar.getInstance()
         }
     }
-
+    
     public init(_ platformValue: java.util.Calendar) {
         self.platformValue = platformValue
         self.locale = Locale.current
     }
-
+    
     public init(identifier: Calendar.Identifier) {
         self.platformValue = Self.platformValue(for: identifier)
         self.locale = Locale.current
     }
-
+    
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let identifier = try container.decode(Calendar.Identifier.self)
         self.platformValue = Self.platformValue(for: identifier)
         self.locale = Locale.current
     }
-
+    
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(identifier)
     }
-
+    
     public var locale: Locale
-
+    
     public var timeZone: TimeZone {
         get {
             return TimeZone(platformValue.getTimeZone())
@@ -61,11 +61,11 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             platformValue.setTimeZone(newValue.platformValue)
         }
     }
-
+    
     public var description: String {
         return platformValue.description
     }
-
+    
     public var identifier: Calendar.Identifier {
         // TODO: non-gregorian calendar
         if gregorianCalendar != nil {
@@ -74,19 +74,19 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             return Calendar.Identifier.iso8601
         }
     }
-
+    
     internal func toDate() -> Date {
         Date(platformValue: platformValue.getTime())
     }
-
+    
     private var dateFormatSymbols: java.text.DateFormatSymbols {
         java.text.DateFormatSymbols.getInstance(locale.platformValue)
     }
-
+    
     private var gregorianCalendar: java.util.GregorianCalendar? {
         return platformValue as? java.util.GregorianCalendar
     }
-
+    
     public var firstWeekday: Int {
         get {
             return platformValue.getFirstDayOfWeek()
@@ -95,103 +95,103 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             platformValue.setFirstDayOfWeek(newValue)
         }
     }
-
+    
     @available(*, unavailable)
     public var minimumDaysInFirstWeek: Int {
         fatalError()
     }
-
+    
     public var eraSymbols: [String] {
         return Array(dateFormatSymbols.getEras().toList())
     }
-
+    
     @available(*, unavailable)
     public var longEraSymbols: [String] {
         fatalError()
     }
-
+    
     public var monthSymbols: [String] {
         // The java.text.DateFormatSymbols.getInstance().getMonths() method in Java returns an array of 13 symbols because it includes both the 12 months of the year and an additional symbol
         // some documentation says the blank symbol is at index 0, but other tests show it at the end, so just pare it out
         return Array(dateFormatSymbols.getMonths().toList()).filter({ $0?.isEmpty == false })
     }
-
+    
     public var shortMonthSymbols: [String] {
         return Array(dateFormatSymbols.getShortMonths().toList()).filter({ $0?.isEmpty == false })
     }
-
+    
     @available(*, unavailable)
     public var veryShortMonthSymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var standaloneMonthSymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var shortStandaloneMonthSymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var veryShortStandaloneMonthSymbols: [String] {
         fatalError()
     }
-
+    
     public var weekdaySymbols: [String] {
         return Array(dateFormatSymbols.getWeekdays().toList()).filter({ $0?.isEmpty == false })
     }
-
+    
     public var shortWeekdaySymbols: [String] {
         return Array(dateFormatSymbols.getShortWeekdays().toList()).filter({ $0?.isEmpty == false })
     }
-
+    
     @available(*, unavailable)
     public var veryShortWeekdaySymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var standaloneWeekdaySymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var shortStandaloneWeekdaySymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var veryShortStandaloneWeekdaySymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var quarterSymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var shortQuarterSymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var standaloneQuarterSymbols: [String] {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public var shortStandaloneQuarterSymbols: [String] {
         fatalError()
     }
-
+    
     public var amSymbol: String {
         return dateFormatSymbols.getAmPmStrings()[0]
     }
-
+    
     public var pmSymbol: String {
         return dateFormatSymbols.getAmPmStrings()[1]
     }
@@ -547,7 +547,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         // Return the new Date representing the start of the day
         return Date(platformValue: platformCal.time)
     }
-
+    
     public func compare(_ date1: Date, to date2: Date, toGranularity component: Calendar.Component) -> ComparisonResult {
         let platformCal1 = platformValue.clone() as java.util.Calendar
         let platformCal2 = platformValue.clone() as java.util.Calendar
@@ -578,15 +578,15 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             return .orderedSame
         }
     }
-
+    
     public func isDate(_ date1: Date, equalTo date2: Date, toGranularity component: Calendar.Component) -> Bool {
         return compare(date1, to: date2, toGranularity: component) == .orderedSame
     }
-
+    
     public func isDate(_ date1: Date, inSameDayAs date2: Date) -> Bool {
         return isDate(date1, equalTo: date2, toGranularity: .day)
     }
-
+    
     public func isDateInToday(_ date: Date) -> Bool {
         let platformCal = platformValue.clone() as java.util.Calendar
         platformCal.time = Date().platformValue
@@ -597,27 +597,27 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return platformCal.get(java.util.Calendar.YEAR) == targetCal.get(java.util.Calendar.YEAR)
             && platformCal.get(java.util.Calendar.DAY_OF_YEAR) == targetCal.get(java.util.Calendar.DAY_OF_YEAR)
     }
-
+    
     @available(*, unavailable)
     public func isDateInYesterday(_ date: Date) -> Bool {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public func isDateInTomorrow(_ date: Date) -> Bool {
         fatalError()
     }
-
+    
     public func isDateInWeekend(_ date: Date) -> Bool {
         let components = dateComponents(from: date)
         return components.weekday == java.util.Calendar.SATURDAY || components.weekday == java.util.Calendar.SUNDAY
     }
-
+    
     @available(*, unavailable)
     public func dateIntervalOfWeekend(containing date: Date, start: inout Date, interval: inout TimeInterval) -> Bool {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public func dateIntervalOfWeekend(containing date: Date) -> DateInterval? {
         fatalError()
