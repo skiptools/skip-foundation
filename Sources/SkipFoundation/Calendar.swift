@@ -570,12 +570,12 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     public func dateIntervalOfWeekend(containing date: Date) -> DateInterval? {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public func nextWeekend(startingAfter date: Date, start: inout Date, interval: inout TimeInterval, direction: Calendar.SearchDirection = .forward) -> Bool {
         fatalError()
     }
-
+    
     @available(*, unavailable)
     public func nextWeekend(startingAfter date: Date, direction: Calendar.SearchDirection = .forward) -> DateInterval? {
         fatalError()
@@ -591,7 +591,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         repeat {
             iterations += 1
             do {
-                let result = try _enumerateDatesStep(startingAfter: start, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction, inSearchingDate: searchingDate, previouslyReturnedMatchDate: previouslyReturnedMatchDate)
+                let result = try self._enumerateDatesStep(startingAfter: start, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction, inSearchingDate: searchingDate, previouslyReturnedMatchDate: previouslyReturnedMatchDate)
                 
                 if let found = result.result {
                     let (matchDate, exactMatch) = found
@@ -616,7 +616,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     
     public func nextDate(after date: Date, matching components: DateComponents, matchingPolicy: Calendar.MatchingPolicy, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
         var result: Date?
-        enumerateDates(startingAfter: date, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) { date, exactMatch, stop in
+        self.enumerateDates(startingAfter: date, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) { date, exactMatch, stop in
             result = date
             stop = true
         }
@@ -630,7 +630,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         guard currentValue != value else {
             return date
         }
-
+        
         var result: Date?
         var targetComponents = DateComponents()
         targetComponents.setValue(value, for: component)
@@ -642,7 +642,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     }
     
     public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: Calendar.MatchingPolicy = .nextTime, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
-        guard let interval = dateInterval(of: .day, for: date) else {
+        guard let interval = self.dateInterval(of: .day, for: date) else {
             return nil
         }
         
@@ -654,12 +654,12 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             restrictedMatchingPolicy = .nextTime
         }
         
-        guard let result = nextDate(after: interval.start.addingTimeInterval(-0.5), matching: comps, matchingPolicy: restrictedMatchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) else {
+        guard let result = self.nextDate(after: interval.start.addingTimeInterval(-0.5), matching: comps, matchingPolicy: restrictedMatchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) else {
             return nil
         }
         
         if result < interval.start {
-            return nextDate(after: interval.start, matching: comps, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction)
+            return self.nextDate(after: interval.start, matching: comps, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction)
         } else {
             return result
         }
@@ -672,7 +672,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             return components.value(for: unit) != nil
         }
         
-        return components == dateComponents(actualUnits, from: date)
+        return components == self.dateComponents(actualUnits, from: date)
     }
     
     public enum Component: Sendable {
