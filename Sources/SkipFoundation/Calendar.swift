@@ -196,6 +196,10 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return dateFormatSymbols.getAmPmStrings()[1]
     }
     
+    public func component(_ component: Calendar.Component, from date: Date) -> Int {
+        return dateComponents([component], from: date).value(for: component) ?? 0
+    }
+    
     public func minimumRange(of component: Calendar.Component) -> Range<Int>? {
         let platformCal = platformValue.clone() as java.util.Calendar
         
@@ -313,12 +317,21 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         
         return nil
     }
-
+    
     private func clearTime(in calendar: java.util.Calendar) {
         calendar.set(java.util.Calendar.HOUR_OF_DAY, 0) // “The HOUR_OF_DAY, HOUR and AM_PM fields are handled independently and the the resolution rule for the time of day is applied. Clearing one of the fields doesn't reset the hour of day value of this Calendar. Use set(Calendar.HOUR_OF_DAY, 0) to reset the hour value.”
         calendar.set(java.util.Calendar.MINUTE, 0)
         calendar.set(java.util.Calendar.SECOND, 0)
         calendar.set(java.util.Calendar.MILLISECOND, 0)
+    }
+    
+    public func dateInterval(of component: Calendar.Component, for date: Date) -> DateInterval? {
+        var start = Date()
+        var interval: TimeInterval = 0
+        if dateInterval(of: component, start: &start, interval: &interval, for: date) {
+            return DateInterval(start: start, duration: interval)
+        }
+        return nil
     }
     
     public func dateInterval(of component: Calendar.Component, start: inout Date, interval: inout TimeInterval, for date: Date) -> Bool {
@@ -409,16 +422,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             return false
         }
     }
-
-    public func dateInterval(of component: Calendar.Component, for date: Date) -> DateInterval? {
-        var start = Date()
-        var interval: TimeInterval = 0
-        if dateInterval(of: component, start: &start, interval: &interval, for: date) {
-            return DateInterval(start: start, duration: interval)
-        }
-        return nil
-    }
-
+    
     public func ordinality(of smaller: Calendar.Component, in larger: Calendar.Component, for date: Date) -> Int? {
         let platformCal = platformValue.clone() as java.util.Calendar
         platformCal.time = date.platformValue
@@ -441,25 +445,13 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         }
         return nil
     }
-
+    
     public func date(from components: DateComponents) -> Date? {
         var localComponents = components
         localComponents.calendar = self
         return Date(platformValue: localComponents.createCalendarComponents(timeZone: self.timeZone).getTime())
     }
-
-    public func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents {
-        return DateComponents(fromCalendar: self, in: zone ?? self.timeZone, from: date)
-    }
-
-    public func dateComponents(_ components: Set<Calendar.Component>, from start: Date, to end: Date) -> DateComponents {
-        return DateComponents(fromCalendar: self, in: self.timeZone, from: start, to: end)
-    }
-
-    public func dateComponents(_ components: Set<Calendar.Component>, from date: Date) -> DateComponents {
-        return DateComponents(fromCalendar: self, in: self.timeZone, from: date, with: components)
-    }
-
+    
     public func date(byAdding components: DateComponents, to date: Date, wrappingComponents: Bool = false) -> Date? {
         var comps = DateComponents(fromCalendar: self, in: self.timeZone, from: date)
         if !wrappingComponents {
@@ -469,7 +461,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         }
         return date(from: comps)
     }
-
+    
     public func date(byAdding component: Calendar.Component, value: Int, to date: Date, wrappingComponents: Bool = false) -> Date? {
         var comps = DateComponents(fromCalendar: self, in: self.timeZone, from: date)
         if !wrappingComponents {
@@ -479,11 +471,71 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         }
         return date(from: comps)
     }
-
-    public func component(_ component: Calendar.Component, from date: Date) -> Int {
-        return dateComponents([component], from: date).value(for: component) ?? 0
+    
+    public func date(bySetting component: Calendar.Component, value: Int, of date: Date) -> Date? {
+        guard let currentValue = self.dateComponents([component], from: date).value(for: component) else {
+            return nil
+        }
+        guard currentValue != value else {
+            return date
+        }
+        
+        var result: Date?
+        var targetComponents = DateComponents()
+        targetComponents.setValue(value, for: component)
+        self.enumerateDates(startingAfter: date, matching: targetComponents, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: .forward) { date, exactMatch, stop in
+            result = date
+            stop = true
+        }
+        return result
     }
-
+    
+    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: Calendar.MatchingPolicy = .nextTime, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
+        guard let interval = self.dateInterval(of: .day, for: date) else {
+            return nil
+        }
+        
+        let comps = DateComponents(hour: hour, minute: minute, second: second)
+        let restrictedMatchingPolicy: MatchingPolicy
+        if matchingPolicy == .nextTime || matchingPolicy == .strict {
+            restrictedMatchingPolicy = matchingPolicy
+        } else {
+            restrictedMatchingPolicy = .nextTime
+        }
+        
+        guard let result = self.nextDate(after: interval.start.addingTimeInterval(-0.5), matching: comps, matchingPolicy: restrictedMatchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) else {
+            return nil
+        }
+        
+        if result < interval.start {
+            return self.nextDate(after: interval.start, matching: comps, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction)
+        } else {
+            return result
+        }
+    }
+    
+    public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
+        let comparedUnits: Set<Calendar.Component> = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .nanosecond]
+        
+        let actualUnits = comparedUnits.filter { unit in
+            return components.value(for: unit) != nil
+        }
+        
+        return components == self.dateComponents(actualUnits, from: date)
+    }
+    
+    public func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents {
+        return DateComponents(fromCalendar: self, in: zone ?? self.timeZone, from: date)
+    }
+    
+    public func dateComponents(_ components: Set<Calendar.Component>, from start: Date, to end: Date) -> DateComponents {
+        return DateComponents(fromCalendar: self, in: self.timeZone, from: start, to: end)
+    }
+    
+    public func dateComponents(_ components: Set<Calendar.Component>, from date: Date) -> DateComponents {
+        return DateComponents(fromCalendar: self, in: self.timeZone, from: date, with: components)
+    }
+    
     public func startOfDay(for date: Date) -> Date {
         // Clone the calendar to avoid mutating the original
         let platformCal = platformValue.clone() as java.util.Calendar
@@ -621,58 +673,6 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             stop = true
         }
         return result
-    }
-    
-    public func date(bySetting component: Calendar.Component, value: Int, of date: Date) -> Date? {
-        guard let currentValue = self.dateComponents([component], from: date).value(for: component) else {
-            return nil
-        }
-        guard currentValue != value else {
-            return date
-        }
-        
-        var result: Date?
-        var targetComponents = DateComponents()
-        targetComponents.setValue(value, for: component)
-        self.enumerateDates(startingAfter: date, matching: targetComponents, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: .forward) { date, exactMatch, stop in
-            result = date
-            stop = true
-        }
-        return result
-    }
-    
-    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: Calendar.MatchingPolicy = .nextTime, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
-        guard let interval = self.dateInterval(of: .day, for: date) else {
-            return nil
-        }
-        
-        let comps = DateComponents(hour: hour, minute: minute, second: second)
-        let restrictedMatchingPolicy: MatchingPolicy
-        if matchingPolicy == .nextTime || matchingPolicy == .strict {
-            restrictedMatchingPolicy = matchingPolicy
-        } else {
-            restrictedMatchingPolicy = .nextTime
-        }
-        
-        guard let result = self.nextDate(after: interval.start.addingTimeInterval(-0.5), matching: comps, matchingPolicy: restrictedMatchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) else {
-            return nil
-        }
-        
-        if result < interval.start {
-            return self.nextDate(after: interval.start, matching: comps, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction)
-        } else {
-            return result
-        }
-    }
-    
-    public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
-        let comparedUnits: Set<Calendar.Component> = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .nanosecond]
-        
-        let actualUnits = comparedUnits.filter { unit in
-            return components.value(for: unit) != nil
-        }
-        
-        return components == self.dateComponents(actualUnits, from: date)
     }
     
     public enum Component: Sendable {
