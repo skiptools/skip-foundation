@@ -1,8 +1,9 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
+// This code is adapted from https://github.com/swiftlang/swift-foundation/blob/main/Sources/FoundationEssentials/Calendar/Calendar_Enumerate.swift which has the following license:
 
-// This class is adapted from https://github.com/swiftlang/swift-foundation/blob/main/Sources/FoundationEssentials/Calendar/Calendar_Enumerate.swift which has the following license:
-
+//===----------------------------------------------------------------------===//
+//
 // This source file is part of the Swift.org open source project
 //
 // Copyright (c) 2014 - 2022 Apple Inc. and the Swift project authors
@@ -11,6 +12,7 @@
 // See https://swift.org/LICENSE.txt for license information
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+//===----------------------------------------------------------------------===//
 
 #if SKIP
 
