@@ -216,7 +216,34 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(calendar.component(.month, from: thisDay), 10)
         XCTAssertEqual(calendar.component(.day, from: thisDay), 4)
     }
-
+    
+    func test_dateInterval() {
+        let calendar = Calendar(identifier: .gregorian)
+        let testDate = calendar.date(from: DateComponents(year: 2026, month: 2, day: 14, hour: 10, minute: 30, second: 45))!
+        
+        if let interval = calendar.dateInterval(of: .day, for: testDate) {
+            let expectedStart = calendar.date(from: DateComponents(year: 2026, month: 2, day: 14, hour: 0, minute: 0, second: 0))!
+            XCTAssertEqual(interval.start, expectedStart)
+            XCTAssertEqual(interval.duration, 86400)
+        }
+        
+        if let interval = calendar.dateInterval(of: .month, for: testDate) {
+            let expectedStart = calendar.date(from: DateComponents(year: 2026, month: 2, day: 1, hour: 0, minute: 0, second: 0))!
+            XCTAssertEqual(interval.start, expectedStart)
+            XCTAssertEqual(interval.duration, 2419200)
+        }
+        
+        if let interval = calendar.dateInterval(of: .year, for: testDate) {
+            let expectedStart = calendar.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 0, minute: 0, second: 0))!
+            XCTAssertEqual(interval.start, expectedStart)
+            XCTAssertEqual(interval.duration, 31536000)
+        }
+        
+        if let interval = calendar.dateInterval(of: .weekOfYear, for: testDate) {
+            XCTAssertEqual(interval.duration, 604800)
+        }
+    }
+    
     func test_addingDates() {
         let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
         let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4))!
@@ -290,7 +317,47 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(dayAfterComponents.month, 10)
         XCTAssertEqual(dayAfterComponents.day, 5)
     }
-
+    
+    func test_matchesComponents() {
+        let calendar = Calendar(identifier: .gregorian)
+        let testDate = calendar.date(from: DateComponents(year: 2026, month: 2, day: 14, hour: 10, minute: 30, second: 0))!
+        
+        let dateComponents = DateComponents(year: 2026, month: 2, day: 14)
+        XCTAssertTrue(calendar.date(testDate, matchesComponents: dateComponents))
+        let weekdayComponent = DateComponents(weekday: 7)
+        XCTAssertTrue(calendar.date(testDate, matchesComponents: weekdayComponent))
+        let timeComponents = DateComponents(hour: 10, minute: 30)
+        XCTAssertTrue(calendar.date(testDate, matchesComponents: timeComponents))
+        let yearComponent = DateComponents(year: 2025)
+        XCTAssertFalse(calendar.date(testDate, matchesComponents: yearComponent))
+        let dayComponents = DateComponents(day: 14, weekday: 7)
+        XCTAssertTrue(calendar.date(testDate, matchesComponents: dayComponents))
+    }
+    
+    func test_settingComponents() {
+        let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
+        let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4))!
+        var dayAfter = calendar.date(bySetting: .year, value: 2026, of: thisDay)
+        dayAfter = calendar.date(bySetting: .month, value: 2, of: dayAfter!)
+        dayAfter = calendar.date(bySetting: .day, value: 14, of: dayAfter!)
+        
+        let dayAfterComponents = calendar.dateComponents(Set([Calendar.Component.year, Calendar.Component.month, Calendar.Component.day]), from: dayAfter!)
+        XCTAssertEqual(dayAfterComponents.year, 2026)
+        XCTAssertEqual(dayAfterComponents.month, 2)
+        XCTAssertEqual(dayAfterComponents.day, 14)
+    }
+    
+    func test_settingTimeComponents() {
+        let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
+        let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4))!
+        let dayAfter = calendar.date(bySettingHour: 1, minute: 2, second: 3, of: thisDay)
+        
+        let dayAfterComponents = calendar.dateComponents(Set([Calendar.Component.hour, Calendar.Component.minute, Calendar.Component.second]), from: dayAfter!)
+        XCTAssertEqual(dayAfterComponents.hour, 1)
+        XCTAssertEqual(dayAfterComponents.minute, 2)
+        XCTAssertEqual(dayAfterComponents.second, 3)
+    }
+    
     func test_datesNotOnWeekend() {
         let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
         let mondayInDecember = calendar.date(from: DateComponents(year: 2018, month: 12, day: 10))!
@@ -341,8 +408,7 @@ class TestCalendar: XCTestCase {
         ]
         checkHashable(calendars, equalityOracle: { $0 == $1 })
 
-        // autoupdating calendar isn't equal to the current, even though it's
-        // likely to be the same.
+        // Autoupdating calendar isn't equal to the current, even though it's likely to be the same.
         let calendars2: [Calendar] = [
             Calendar.autoupdatingCurrent,
             Calendar.current,
@@ -360,16 +426,11 @@ class TestCalendar: XCTestCase {
         var calendar = Calendar(identifier: Calendar.Identifier.gregorian)
         calendar.locale = Locale(identifier: "en_US_POSIX")
         calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
-
-        let expectedDescription = calendar.timeZone == TimeZone.current ? "GMT (current)" : "GMT (fixed)"
-
+        
         let calendarCopy = calendar
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
-//        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
-
         let dc = try calendarCopy.dateComponents(in: XCTUnwrap(TimeZone(identifier: "America/New_York")), from: XCTUnwrap(df.date(from: "2019-01-01")))
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
-//        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
 
         let dt = try XCTUnwrap(calendarCopy.date(from: dc))
         XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
@@ -379,7 +440,6 @@ class TestCalendar: XCTestCase {
         throw XCTSkip("TODO: dateComponents interval calculations")
         #endif
         XCTAssertEqual(dt.description, "2019-01-01 00:00:00 +0000")
-//        XCTAssertEqual(calendarCopy.timeZone.description, expectedDescription)
     }
 
     func test_sr10638() {
@@ -547,30 +607,100 @@ class TestCalendar: XCTestCase {
     
     func testMinimumRangeOfComponents() {
         let calendar = Calendar(identifier: .gregorian)
-
-        // Test range for months
+        
+        let eraRange = calendar.minimumRange(of: .era)
+        XCTAssertEqual(eraRange, 0..<2)
+        
+        let yearRange = calendar.minimumRange(of: .year)
+        #if SKIP
+        XCTAssertEqual(yearRange, 1..<292278994)
+        #else
+        XCTAssertEqual(yearRange, 1..<140743)
+        #endif
+        
+        let quarterRange = calendar.minimumRange(of: .quarter)
+        XCTAssertEqual(quarterRange, 1..<5)
+        
         let monthRange = calendar.minimumRange(of: .month)
         XCTAssertEqual(monthRange, 1..<13)
-
-        // Test range for days in a month
+        
+        let weekOfYearRange = calendar.minimumRange(of: .weekOfYear)
+        XCTAssertEqual(weekOfYearRange, 1..<53)
+        
+        let weekOfMonthRange = calendar.minimumRange(of: .weekOfMonth)
+        XCTAssertEqual(weekOfMonthRange, 1..<5)
+        
         let dayRange = calendar.minimumRange(of: .day)
         XCTAssertEqual(dayRange, 1..<29)
-
-        // Test range for hours in a day
+        
+        if #available(macOS 15, iOS 18, *) {
+            let dayOfYearRange = calendar.minimumRange(of: .dayOfYear)
+            XCTAssertEqual(dayOfYearRange, 1..<366)
+        }
+        
         let hourRange = calendar.minimumRange(of: .hour)
         XCTAssertEqual(hourRange, 0..<24)
-
-        // Test range for minutes in an hour
+        
         let minuteRange = calendar.minimumRange(of: .minute)
         XCTAssertEqual(minuteRange, 0..<60)
-
-        // Test range for seconds in a minute
+        
         let secondRange = calendar.minimumRange(of: .second)
         XCTAssertEqual(secondRange, 0..<60)
-
-        // Test range for weekdays (usually 1..<8) where 1 = Sunday, 2 = Monday...
-        let eraRange = calendar.minimumRange(of: .weekday)
-        XCTAssertEqual(eraRange, 1..<8)
+        
+        let weekdayRange = calendar.minimumRange(of: .weekday)
+        XCTAssertEqual(weekdayRange, 1..<8)
+        
+        let weekdayOrdinalRange = calendar.minimumRange(of: .weekdayOrdinal)
+        XCTAssertEqual(weekdayOrdinalRange, 1..<5)
+    }
+    
+    func testMaximumRangeOfComponents() {
+        let calendar = Calendar(identifier: .gregorian)
+        
+        let eraRange = calendar.maximumRange(of: .era)
+        XCTAssertEqual(eraRange, 0..<2)
+        
+        let yearRange = calendar.maximumRange(of: .year)
+        #if SKIP
+        XCTAssertEqual(yearRange, 1..<292278994)
+        #else
+        XCTAssertEqual(yearRange, 1..<144684)
+        #endif
+        
+        let quarterRange = calendar.maximumRange(of: .quarter)
+        XCTAssertEqual(quarterRange, 1..<5)
+        
+        let monthRange = calendar.maximumRange(of: .month)
+        XCTAssertEqual(monthRange, 1..<13)
+        
+        let weekOfYearRange = calendar.maximumRange(of: .weekOfYear)
+        XCTAssertEqual(weekOfYearRange, 1..<54)
+        
+        let weekOfMonthRange = calendar.maximumRange(of: .weekOfMonth)
+        XCTAssertEqual(weekOfMonthRange, 1..<7)
+        
+        let dayRange = calendar.maximumRange(of: .day)
+        XCTAssertEqual(dayRange, 1..<32)
+        
+        if #available(macOS 15, iOS 18, *) {
+            let dayOfYearRange = calendar.maximumRange(of: .dayOfYear)
+            XCTAssertEqual(dayOfYearRange, 1..<367)
+        }
+        
+        let hourRange = calendar.maximumRange(of: .hour)
+        XCTAssertEqual(hourRange, 0..<24)
+        
+        let minuteRange = calendar.maximumRange(of: .minute)
+        XCTAssertEqual(minuteRange, 0..<60)
+        
+        let secondRange = calendar.maximumRange(of: .second)
+        XCTAssertEqual(secondRange, 0..<60)
+        
+        let weekdayRange = calendar.maximumRange(of: .weekday)
+        XCTAssertEqual(weekdayRange, 1..<8)
+        
+        let weekdayOrdinalRange = calendar.maximumRange(of: .weekdayOrdinal)
+        XCTAssertEqual(weekdayOrdinalRange, 1..<6)
     }
     
     func testRangeOfComponents() {
