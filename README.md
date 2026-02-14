@@ -280,7 +280,7 @@ Support levels:
         <details>
           <summary><code>DateComponents</code></summary>
           <ul>
-            <li><code>nanosecond</code>, <code>weekdayOrdinal</code>, <code>quarter</code>, <code>yearForWeekOfYear</code> are not supported</li>
+            <li><code>nanosecond</code>, <code>yearForWeekOfYear</code> are not supported</li>
           </ul>
         </details> 
       </td>
