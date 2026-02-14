@@ -29,9 +29,9 @@ extension Calendar {
         case unexpectedResult(Calendar.Component, Date /* failing date */)
     }
     
-    func _enumerateDatesStep(startingAfter start: Date, matching matchingComponents: DateComponents, matchingPolicy: MatchingPolicy, repeatedTimePolicy: RepeatedTimePolicy, direction: SearchDirection, inSearchingDate searchingDate: Date, previouslyReturnedMatchDate: Date?) throws -> SearchStepResult {
+    private func _enumerateDatesStep(startingAfter start: Date, matching matchingComponents: DateComponents, matchingPolicy: MatchingPolicy, repeatedTimePolicy: RepeatedTimePolicy, direction: SearchDirection, inSearchingDate searchingDate: Date, previouslyReturnedMatchDate: Date?) throws -> SearchStepResult {
         
-        // Step A: Call helper method that does the searching
+        // Step A: Call helper method that does the searching.
         let compsToMatch = self._adjustedComponents(matchingComponents, date: searchingDate, direction: direction)
         guard let unadjustedMatchDate = try self._matchingDate(after: searchingDate, matching: compsToMatch, direction: direction, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy) else {
             return SearchStepResult(result: nil, newSearchDate: searchingDate)
@@ -308,7 +308,7 @@ extension Calendar {
                 if direction == .backward {
                     let numMonth = self.component(.month, from: foundRange.start)
                     if numMonth == 3 && (self.identifier == .gregorian || self.identifier == .buddhist || self.identifier == .japanese || self.identifier == .iso8601 || self.identifier == .republicOfChina) {
-                        // Take it back 3 days so we land in february.  That is, March has 31 days, and Feb can have 28 or 29, so to ensure we get to either Feb 1 or 2, we need to take it back 3 days.
+                        // Take it back 3 days so we land in february. That is, March has 31 days, and Feb can have 28 or 29, so to ensure we get to either Feb 1 or 2, we need to take it back 3 days.
                         duration -= 86400 * 3
                     } else {
                         // Take it back a day.
@@ -368,7 +368,7 @@ extension Calendar {
                 result = searchDate
             }
             
-            try verifyAdvancingResult(result, previous: lastResult, direction: direction)
+            try self.verifyAdvancingResult(result, previous: lastResult, direction: direction)
         } while weekOfYear != dateWeekOfYear
         
         return result
@@ -456,7 +456,7 @@ extension Calendar {
             }
             
             dateWeekOfMonth = self.component(.weekOfMonth, from: tempSearchDate!)
-            try verifyAdvancingResult(tempSearchDate, previous: result, direction: direction)
+            try self.verifyAdvancingResult(tempSearchDate, previous: result, direction: direction)
             result = tempSearchDate
         } while weekOfMonth != dateWeekOfMonth
         
@@ -572,7 +572,7 @@ extension Calendar {
                         tempSearchDate = foundRange.start.addingTimeInterval(-foundRange.duration)
                     }
                 } else {
-                    // This is always correct to do since we are using today's length on today -- there can't be a mismatch.
+                    // This is always correct to do since we are using today's length on today - there can't be a mismatch.
                     tempSearchDate = foundRange.end
                  }
                 
@@ -639,7 +639,7 @@ extension Calendar {
         // NOTE: In order for an ordinal weekday to not be ambiguous, it needs both
         //  - the ordinality (e.g. 1st)
         //  - the weekday (e.g. Tuesday)
-        // If the weekday is not set, we assume the client just wants the first time in a month where the number of occurrences of a day matches the weekdayOrdinal value (e.g. for weekdayOrdinal = 4, this means the first time a weekday is the 4th of that month. So if the start date is 2017-06-01, then the first time we hit a day that is the 4th occurrence of a weekday would be 2017-06-22. I recommend looking at the month in its entirety on a calendar to see what I'm talking about.).  This is an odd request, but we will return that result to the client while silently judging them.
+        // If the weekday is not set, we assume the client just wants the first time in a month where the number of occurrences of a day matches the weekdayOrdinal value (e.g. for weekdayOrdinal = 4, this means the first time a weekday is the 4th of that month. So if the start date is 2017-06-01, then the first time we hit a day that is the 4th occurrence of a weekday would be 2017-06-22. I recommend looking at the month in its entirety on a calendar to see what I'm talking about.). This is an odd request, but we will return that result to the client while silently judging them.
         // For a non-ambiguous ordinal weekday (i.e. the ordinality and the weekday have both been set), we need to ensure that we get the exact ordinal day that we are looking for. Hence the below weekday check.
         guard let weekday = components.weekday else {
             // Skip weekday
@@ -689,7 +689,7 @@ extension Calendar {
             let nextDayComponents = self.dateComponents(units, from: nextDay)
             
             guard let weekday = nextDayComponents.weekday, let weekdayOrdinal = nextDayComponents.weekdayOrdinal else {
-                // This should not be possible
+                // This should not be possible.
                 throw CalendarEnumerationError.unexpectedResult(.weekday, nextDay)
             }
             
@@ -849,23 +849,23 @@ extension Calendar {
                 
                 adjustedSearchStartDate = true
                 
-                // Verify the hour value (it changes even if the result does not)
+                // Verify the hour value (it changes even if the result does not).
                 if (result == lastResult && prevDateHour == dateHour) {
-                    // We are not advancing. Bail out of the loop
+                    // We are not advancing. Bail out of the loop.
                     throw CalendarEnumerationError.notAdvancing(result, lastResult)
                 }
             } while hour != dateHour
             
             if direction == .backward && originalStartDate < result {
-                // We've gone into the future when we were supposed to go into the past.  We're ahead by a day.
+                // We've gone into the future when we were supposed to go into the past. We're ahead by a day.
                 if let rolledBack = self.date(byAdding: .day, value: -1, to: result) {
                     result = rolledBack
                 }
                 
-                // Check hours again to see if they match (they may not because of DST change already being handled implicitly by dateByAddingUnit:)
+                // Check hours again to see if they match (they may not because of DST change already being handled implicitly by dateByAddingUnit:).
                 dateHour = self.component(.hour, from: result)
                 if (dateHour - hour) == 1 {
-                    // Detecting a DST transition
+                    // Detecting a DST transition.
                     // We have moved an hour ahead of where we want to be so we go back 1 hour to readjust.
                     if let adjusted = self.date(byAdding: .hour, value: -1, to: result) { result = adjusted }
                 } else if (hour - dateHour) == 1 {
@@ -978,7 +978,7 @@ extension Calendar {
             if originalStartDate < result {
                 if direction == .backward {
                     // We've gone into the future when we were supposed to go into the past.
-                    // There are multiple times a day where the seconds repeat.  Need to take that into account.
+                    // There are multiple times a day where the seconds repeat. Need to take that into account.
                     let originalStartSecond = self.component(.second, from: originalStartDate)
                     if dateSecond > originalStartSecond {
                         guard let new = self.date(byAdding: .minute, value: -1, to: result) else {
@@ -987,7 +987,7 @@ extension Calendar {
                         result = new
                     }
                 } else {
-                    // This handles the case where dateSecond started ahead of second, so doing the above landed us in the next minute.  If minute is not set, we are fine.  But if minute is set, then we are now in the wrong minute and we have to readjust. <rdar://problem/31098131>
+                    // This handles the case where dateSecond started ahead of second, so doing the above landed us in the next minute. If minute is not set, we are fine. But if minute is set, then we are now in the wrong minute and we have to readjust. <rdar://problem/31098131>
                     var searchStartMin = self.component(.minute, from: result)
                     if let minute = components.minute {
                         if searchStartMin > minute {
@@ -1483,7 +1483,7 @@ extension Calendar {
     }
     
     private func _adjustedComponents(_ comps: DateComponents, date: Date, direction: SearchDirection) -> DateComponents {
-        // This method ensures that the algorithm enumerates through each year or month if they are not explicitly set in the DateComponents passed into enumerateDates.  This only applies to cases where the highest set unit is month or day (at least for now).  For full in context explanation, see where it gets called in enumerateDates.
+        // This method ensures that the algorithm enumerates through each year or month if they are not explicitly set in the DateComponents passed into enumerateDates. This only applies to cases where the highest set unit is month or day (at least for now). For full in context explanation, see where it gets called in enumerateDates.
         let highestSetUnit = comps.highestSetUnit
         switch highestSetUnit {
         case .month:
