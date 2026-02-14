@@ -24,7 +24,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
     public var weekOfMonth: Int? = nil
     public var weekOfYear: Int? = nil
     public var yearForWeekOfYear: Int? = nil
-    
+
     public init(calendar: Calendar? = nil, timeZone: TimeZone? = nil, era: Int? = nil, year: Int? = nil, month: Int? = nil, day: Int? = nil, dayOfYear: Int? = nil, hour: Int? = nil, minute: Int? = nil, second: Int? = nil, nanosecond: Int? = nil, weekday: Int? = nil, weekdayOrdinal: Int? = nil, quarter: Int? = nil, weekOfMonth: Int? = nil, weekOfYear: Int? = nil, yearForWeekOfYear: Int? = nil) {
         self.calendar = calendar
         self.timeZone = timeZone
@@ -44,26 +44,26 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         self.weekOfYear = weekOfYear
         self.yearForWeekOfYear = yearForWeekOfYear
     }
-    
+
     internal init(fromCalendar calendar: Calendar, in zone: TimeZone? = nil, from date: Date? = nil, to endDate: Date? = nil, with components: Set<Calendar.Component>? = nil) {
         let platformCal = calendar.platformValue.clone() as java.util.Calendar
-        
+
         if let date = date {
             platformCal.time = date.platformValue
         }
-        
+
         let tz = zone ?? calendar.timeZone
         platformCal.timeZone = tz.platformValue
-        
+
         if components?.contains(.timeZone) != false {
             self.timeZone = tz
         }
-        
+
         if let endDate = endDate {
             let endPlatformCal = calendar.platformValue.clone() as java.util.Calendar
             endPlatformCal.time = endDate.platformValue
             endPlatformCal.timeZone = tz.platformValue
-            
+
             // Calculate differences based on components.
             if components?.contains(.era) != false {
                 self.era = endPlatformCal.get(java.util.Calendar.ERA) - platformCal.get(java.util.Calendar.ERA)
@@ -148,21 +148,21 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
                 self.weekOfYear = platformCal.get(java.util.Calendar.WEEK_OF_YEAR)
             }
         }
-        
+
         // unsupported fields in java.util.Calendar:
         //self.nanosecond = platformCal.get(java.util.Calendar.NANOSECOND)
         //self.yearForWeekOfYear = platformCal.get(java.util.Calendar.YEARFORWEEKOFYEAR)
     }
-    
+
     /// Builds a java.util.Calendar from the fields.
     internal func createCalendarComponents(timeZone: TimeZone? = nil) -> java.util.Calendar {
         let c: java.util.Calendar = (self.calendar?.platformValue ?? Calendar.current.platformValue)
         let cal: java.util.Calendar = (c as java.util.Calendar).clone() as java.util.Calendar
-        
+
         //cal.setLenient(false)
         cal.clear() // clear the time and set the fields afresh
         cal.setTimeZone((timeZone ?? self.timeZone ?? TimeZone.current).platformValue)
-        
+
         if let era = self.era {
             cal.set(java.util.Calendar.ERA, era)
         }
@@ -212,14 +212,14 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         if let nanosecond = self.nanosecond {
             cal.set(java.util.Calendar.MILLISECOND, nanosecond * 1_000_000)
         }
-        
+
         return cal
     }
-    
+
     public var date: Date? {
         Date(platformValue: createCalendarComponents().getTime())
     }
-    
+
     public mutating func setValue(_ value: Int?, for component: Calendar.Component) {
         switch component {
         case .era: self.era = value
@@ -242,7 +242,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             break
         }
     }
-    
+
     public mutating func add(components: DateComponents) {
         let cal = createCalendarComponents()
 
