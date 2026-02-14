@@ -668,25 +668,11 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
         let comparedUnits: Set<Calendar.Component> = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .nanosecond]
         
-        let actualUnits = comparedUnits.filter { u in
-            return components.value(for: u) != nil
+        let actualUnits = comparedUnits.filter { unit in
+            return components.value(for: unit) != nil
         }
         
-        var comp = dateComponents(actualUnits, from: date)
-        var tempComp = components
-        
-        // Apply an epsilon to comparison of nanosecond values
-        if let nanosecond = comp.nanosecond, let tempNanosecond = tempComp.nanosecond {
-            let diff = Int64(nanosecond) - Int64(tempNanosecond)
-            if abs(diff) > 500 {
-                return false
-            } else {
-                comp.nanosecond = 0
-                tempComp.nanosecond = 0
-            }
-        }
-        
-        return tempComp == comp
+        return components == dateComponents(actualUnits, from: date)
     }
     
     public enum Component: Sendable {
