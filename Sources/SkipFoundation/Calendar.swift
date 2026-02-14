@@ -201,7 +201,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         
         switch component {
         case .era:
-            // Eras (BC/AD) are internally represented as 0 and 1.
+            // Eras are internally represented as 0 and 1 (BC/AD).
             return platformCal.getMinimum(java.util.Calendar.ERA)..< (platformCal.getLeastMaximum(java.util.Calendar.ERA) + 1)
             
         case .year:
