@@ -206,7 +206,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         switch component {
         case .era:
             // Eras are internally represented as 0 and 1 (BC/AD).
-            return platformCal.getMinimum(java.util.Calendar.ERA)..< (platformCal.getLeastMaximum(java.util.Calendar.ERA) + 1)
+            return platformCal.getMinimum(java.util.Calendar.ERA)..<(platformCal.getLeastMaximum(java.util.Calendar.ERA) + 1)
             
         case .year:
             // Year typically starts at 1 and has no defined maximum.
@@ -221,19 +221,19 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             return 1..<(platformCal.getMaximum(java.util.Calendar.MONTH) + 2)
             
         case .weekday:
-            // Weekday values are in the range from 1 to 7.
+            // Weekday ranges from 1 (Sunday) to 7 (Saturday).
             return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK)..<(platformCal.getMaximum(java.util.Calendar.DAY_OF_WEEK) + 1)
             
         case .weekdayOrdinal:
-            // Weekday ordinal values are in the range from 1 to 4 (smallest possible maximum occurrences in a month).
+            // Weekday ordinal ranges from 1 to 4 (smallest possible maximum occurrences in a month).
             return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK_IN_MONTH)..< (platformCal.getLeastMaximum(java.util.Calendar.DAY_OF_WEEK_IN_MONTH) + 1)
             
         case .weekOfMonth:
-            // Week-of-month values are in the range from 1 to 4 (smallest possible maximum).
+            // Week-of-month ranges from 1 to 4 (smallest possible maximum).
             return platformCal.getMinimum(java.util.Calendar.WEEK_OF_MONTH)..< (platformCal.getLeastMaximum(java.util.Calendar.WEEK_OF_MONTH) + 1)
             
          case .weekOfYear:
-            // Week-of-year values are in the range from 1 to 52 (smallest possible maximum).
+            // Week-of-year ranges from 1 to 52 (smallest possible maximum).
             return platformCal.getMinimum(java.util.Calendar.WEEK_OF_YEAR)..< (platformCal.getLeastMaximum(java.util.Calendar.WEEK_OF_YEAR) + 1)
             
         case .day:
@@ -250,7 +250,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             return platformCal.getMinimum(java.util.Calendar.DATE)..<platformCal.getActualMaximum(java.util.Calendar.DATE) + 1
             
         case .dayOfYear:
-            // Day-of-year values are in the range from 1 to 365 (smallest possible maximum).
+            // Day-of-year ranges from 1 to 365 (smallest possible maximum).
             return platformCal.getMinimum(java.util.Calendar.DAY_OF_YEAR)..< (platformCal.getLeastMaximum(java.util.Calendar.DAY_OF_YEAR) + 1)
             
         case .hour:
