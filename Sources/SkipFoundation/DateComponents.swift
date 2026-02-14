@@ -362,14 +362,6 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.add(java.util.Calendar.MONTH, value * 3)
         case .month:
             cal.add(java.util.Calendar.MONTH, value)
-        case .day:
-            cal.add(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
-        case .hour:
-            cal.add(java.util.Calendar.HOUR_OF_DAY, value)
-        case .minute:
-            cal.add(java.util.Calendar.MINUTE, value)
-        case .second:
-            cal.add(java.util.Calendar.SECOND, value)
         case .weekday:
             cal.add(java.util.Calendar.DAY_OF_WEEK, value)
         case .weekdayOrdinal:
@@ -381,6 +373,14 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .yearForWeekOfYear:
             //cal.add(java.util.Calendar.YEARFORWEEKOFYEAR, value)
             fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
+        case .day:
+            cal.add(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
+        case .hour:
+            cal.add(java.util.Calendar.HOUR_OF_DAY, value)
+        case .minute:
+            cal.add(java.util.Calendar.MINUTE, value)
+        case .second:
+            cal.add(java.util.Calendar.SECOND, value)
         case .nanosecond:
             break // unsupported
         case .calendar, .timeZone: // , .isLeapMonth:
@@ -411,14 +411,6 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.set(java.util.Calendar.MONTH, newMonth)
         case .month:
             cal.roll(java.util.Calendar.MONTH, value)
-        case .day:
-            cal.roll(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
-        case .hour:
-            cal.roll(java.util.Calendar.HOUR_OF_DAY, value)
-        case .minute:
-            cal.roll(java.util.Calendar.MINUTE, value)
-        case .second:
-            cal.roll(java.util.Calendar.SECOND, value)
         case .weekday:
             cal.roll(java.util.Calendar.DAY_OF_WEEK, value)
         case .weekdayOrdinal:
@@ -430,6 +422,14 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .yearForWeekOfYear:
             //cal.roll(java.util.Calendar.YEARFORWEEKOFYEAR, value)
             fatalError("Skip DateComponents.yearForWeekOfYear unsupported in Skip")
+        case .day:
+            cal.roll(java.util.Calendar.DATE, value) // i.e., DAY_OF_MONTH
+        case .hour:
+            cal.roll(java.util.Calendar.HOUR_OF_DAY, value)
+        case .minute:
+            cal.roll(java.util.Calendar.MINUTE, value)
+        case .second:
+            cal.roll(java.util.Calendar.SECOND, value)
         case .nanosecond:
             break // unsupported
         case .calendar, .timeZone: // , .isLeapMonth:
@@ -448,17 +448,17 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         case .era: return self.era
         case .year: return self.year
         case .month: return self.month
-        case .day: return self.day
-        case .dayOfYear: return self.dayOfYear
-        case .hour: return self.hour
-        case .minute: return self.minute
-        case .second: return self.second
         case .weekday: return self.weekday
         case .weekdayOrdinal: return self.weekdayOrdinal
         case .quarter: return self.quarter
         case .weekOfMonth: return self.weekOfMonth
         case .weekOfYear: return self.weekOfYear
         case .yearForWeekOfYear: return self.yearForWeekOfYear
+        case .day: return self.day
+        case .dayOfYear: return self.dayOfYear
+        case .hour: return self.hour
+        case .minute: return self.minute
+        case .second: return self.second
         case .nanosecond: return self.nanosecond
         case .calendar, .timeZone: // , .isLeapMonth:
             return nil
@@ -485,6 +485,21 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         if let month = self.month {
             strs.append("month=\(month)")
         }
+        if let weekday = self.weekday {
+            strs.append("weekday=\(weekday)")
+        }
+        if let weekdayOrdinal = self.weekdayOrdinal {
+            strs.append("weekdayOrdinal=\(weekdayOrdinal)")
+        }
+        if let weekOfMonth = self.weekOfMonth {
+            strs.append("weekOfMonth=\(weekOfMonth)")
+        }
+        if let weekOfYear = self.weekOfYear {
+            strs.append("weekOfYear=\(weekOfYear)")
+        }
+        if let yearForWeekOfYear = self.yearForWeekOfYear {
+            strs.append("yearForWeekOfYear=\(yearForWeekOfYear)")
+        }
         if let day = self.day {
             strs.append("day=\(day)")
         }
@@ -502,21 +517,6 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         }
         if let nanosecond = self.nanosecond {
             strs.append("nanosecond=\(nanosecond)")
-        }
-        if let weekday = self.weekday {
-            strs.append("weekday=\(weekday)")
-        }
-        if let weekdayOrdinal = self.weekdayOrdinal {
-            strs.append("weekdayOrdinal=\(weekdayOrdinal)")
-        }
-        if let weekOfMonth = self.weekOfMonth {
-            strs.append("weekOfMonth=\(weekOfMonth)")
-        }
-        if let weekOfYear = self.weekOfYear {
-            strs.append("weekOfYear=\(weekOfYear)")
-        }
-        if let yearForWeekOfYear = self.yearForWeekOfYear {
-            strs.append("yearForWeekOfYear=\(yearForWeekOfYear)")
         }
         return strs.joined(separator: " ")
     }

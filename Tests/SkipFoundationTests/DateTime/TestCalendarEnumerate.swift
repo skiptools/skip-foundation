@@ -6,18 +6,23 @@ import XCTest
 final class TestCalendarEnumerate: XCTestCase {
     
     // MARK: - Variables
-    private let sut: Calendar = {
-        var result = Calendar(identifier: .gregorian)
-        result.timeZone = TimeZone(identifier: "UTC")!
-        return result
-    }()
+    private var sut: Calendar!
     
-    /*
+    // MARK: - Initialization
+    
+    /// Suite-level setup method called before the class begins to run any of its test methods
+    /// or their associated per-instance setUp methods.
+    override func setUp() {
+        super.setUp()
+        
+        self.sut = Calendar(identifier: .gregorian)
+        self.sut.timeZone = TimeZone(identifier: "UTC")!
+    }
     
     // MARK: - Enumerate Dates (Year) Tests
     
     /// Forward
-    func testEnumerateDates_years_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_years_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -28,6 +33,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -47,15 +53,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
-    func testEnumerateDates_years_backwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_years_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -66,6 +73,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -85,17 +93,18 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     // MARK: - Enumerate Dates (Quarter) Tests
     
     /// Forward
-    func testEnumerateDates_quarters_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_quarters_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -107,6 +116,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -127,15 +137,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
-    func testEnumerateDates_quarters_backwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_quarters_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -147,6 +158,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -167,17 +179,18 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     // MARK: - Enumerate Dates (Month) Tests
     
     /// Forward
-    func testEnumerateDates_month_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_month_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -189,6 +202,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -209,15 +223,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
-    func testEnumerateDates_month_backwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_month_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -229,6 +244,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -249,17 +265,18 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     // MARK: - Enumerate Dates (Week of Year) Tests
     
     /// Forward
-    func testEnumerateDates_weekOfYear_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_weekOfYear_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -271,6 +288,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -291,15 +309,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
-    func testEnumerateDates_weekOfYear_backwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_weekOfYear_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -311,6 +330,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -331,17 +351,18 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     // MARK: - Enumerate Dates (Week of Month) Tests
     
     /// Forward
-    func testEnumerateDates_weekOfMonth_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_weekOfMonth_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -354,6 +375,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -375,15 +397,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
-    func testEnumerateDates_weekOfMonth_backwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_weekOfMonth_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -396,6 +419,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -404,7 +428,7 @@ final class TestCalendarEnumerate: XCTestCase {
         XCTAssertEqual(results[0].ISO8601Format(), "2022-10-03T00:00:00Z")
     }
     
-    func testEnumerateDates_weekOfYear_backwardDirection_invalidComponents_shouldReturnNil() {
+    func testEnumerateDates_weekOfMonth_backwardDirection_invalidComponents_shouldReturnNil() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -417,18 +441,19 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     // MARK: - Enumerate Dates (Day of Year) Tests
     
     /// Forward
     @available(macOS 15, iOS 18, *)
-    func testEnumerateDates_dayOfYear_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_dayOfYear_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -440,6 +465,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -461,15 +487,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     @available(macOS 15, iOS 18, *)
-    func testEnumerateDates_dayOfYear_forwardDirection_isLeapYear_shouldReturnExpectedDate() {
+    func testEnumerateDates_dayOfYear_forwardDirection_isLeapYear_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2024-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -481,6 +508,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -502,16 +530,17 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
     @available(macOS 15, iOS 18, *)
-    func testEnumerateDates_dayOfYear_backwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_dayOfYear_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -523,6 +552,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -544,15 +574,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     @available(macOS 15, iOS 18, *)
-    func testEnumerateDates_dayOfYear_backwardDirection_isLeapYear_shouldReturnExpectedDate() {
+    func testEnumerateDates_dayOfYear_backwardDirection_isLeapYear_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2025-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -564,6 +595,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -585,17 +617,18 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     // MARK: - Enumerate Dates (Day) Tests
     
     /// Forward
-    func testEnumerateDates_day_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_day_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -608,6 +641,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -629,14 +663,15 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
-    func testEnumerateDates_day_forwardDirection_isLeapYear_shouldReturnExpectedDate() {
+    func testEnumerateDates_day_forwardDirection_isLeapYear_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2024-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -649,6 +684,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -670,15 +706,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
-    func testEnumerateDates_day_backwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_day_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2023-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -691,6 +728,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -712,14 +750,15 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
-    func testEnumerateDates_day_backwardDirection_isLeapYear_shouldReturnExpectedDate() {
+    func testEnumerateDates_day_backwardDirection_isLeapYear_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2025-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -732,6 +771,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -753,17 +793,18 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     // MARK: - Enumerate Dates (Weekday) Tests
     
     /// Forward
-    func testEnumerateDates_weekday_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_weekday_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -776,6 +817,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -797,11 +839,12 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
@@ -818,12 +861,13 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
         /// Maybe a bug in the Swift foundation library itself? Would have expected: 2020-01-07T00:00:00Z.
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     func testEnumerateDates_weekday_backwardDirection_invalidComponents_shouldReturnNil() {
@@ -839,17 +883,18 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     // MARK: - Enumerate Dates (Weekday Ordinal) Tests
     
     /// Forward
-    func testEnumerateDates_weekdayOrdinal_forwardDirection_validComponents_shouldReturnExpectedDate() {
+    func testEnumerateDates_weekdayOrdinal_forwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -863,6 +908,7 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
@@ -885,15 +931,16 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     /// Backward
-    func testEnumerateDates_weekdayOrdinal_backwardDirection_validComponents_shouldReturnNil() {
+    func testEnumerateDates_weekdayOrdinal_backwardDirection_validComponents_shouldReturnExpectedResult() {
         // Arrange
         let start = ISO8601DateFormatter().date(from: "2021-01-01T00:00:00Z")!
         var components = DateComponents()
@@ -907,12 +954,13 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
         /// Maybe a bug in the Swift foundation library itself? Would have expected: 2020-01-28T00:00:00Z.
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
     func testEnumerateDates_weekdayOrdinal_backwardDirection_invalidComponents_shouldReturnNil() {
@@ -929,12 +977,325 @@ final class TestCalendarEnumerate: XCTestCase {
         self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
             if let date = date {
                 results.append(date)
+                stop = true
             }
         }
         
         // Assert
-        XCTAssertEqual(results.count, 0)
+        XCTAssertTrue(results.isEmpty)
     }
     
-    */
+    // MARK: - Enumerate Dates (Time) Tests
+    
+    /// Forward
+    func testEnumerateDates_time_forwardDirection_validComponents_shouldReturnExpectedResult() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2020
+        components.hour = 12
+        components.minute = 12
+        components.second = 12
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertEqual(results.count, 1)
+        XCTAssertEqual(results[0].ISO8601Format(), "2020-01-01T12:12:12Z")
+    }
+    
+    func testEnumerateDates_time_forwardDirection_invalidHour_shouldReturnNil() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2020
+        components.hour = 25
+        components.minute = 12
+        components.second = 12
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertTrue(results.isEmpty)
+    }
+    
+    func testEnumerateDates_time_forwardDirection_invalidMinute_shouldReturnNil() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2020
+        components.hour = 12
+        components.minute = 61
+        components.second = 12
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertTrue(results.isEmpty)
+    }
+    
+    func testEnumerateDates_time_forwardDirection_invalidSecond_shouldReturnNil() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2020
+        components.hour = 12
+        components.minute = 12
+        components.second = 61
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertTrue(results.isEmpty)
+    }
+    
+    /// Backward
+    func testEnumerateDates_time_backwardDirection_validComponents_shouldReturnExpectedResult() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2019
+        components.hour = 12
+        components.minute = 12
+        components.second = 12
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertEqual(results.count, 1)
+        XCTAssertEqual(results[0].ISO8601Format(), "2019-12-31T12:12:12Z")
+    }
+    
+    func testEnumerateDates_time_backwardDirection_invalidHour_shouldReturnNil() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2019
+        components.hour = 25
+        components.minute = 12
+        components.second = 12
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertTrue(results.isEmpty)
+    }
+    
+    func testEnumerateDates_time_backwardDirection_invalidMinute_shouldReturnNil() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2019
+        components.hour = 12
+        components.minute = 61
+        components.second = 12
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertTrue(results.isEmpty)
+    }
+    
+    func testEnumerateDates_time_backwardDirection_invalidSecond_shouldReturnNil() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2020-01-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2019
+        components.hour = 12
+        components.minute = 12
+        components.second = 61
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertTrue(results.isEmpty)
+    }
+    
+    // MARK: - Special Tests
+    func testEnumerateDates_dstGap_forwardDirection_nextTime_shouldReturnExpectedResult() {
+        // Arrange
+        self.sut.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        
+        let start = ISO8601DateFormatter().date(from: "2024-03-31T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2024
+        components.day = 31
+        components.month = 3
+        components.hour = 2
+        components.minute = 30
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .nextTime, direction: .forward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertEqual(results.count, 1)
+        XCTAssertEqual(results[0].ISO8601Format(), "2024-03-31T01:00:00Z")
+    }
+    
+    func testEnumerateDates_dstGap_forwardDirection_strict_shouldReturnNil() {
+        // Arrange
+        self.sut.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        
+        let start = ISO8601DateFormatter().date(from: "2024-03-31T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2024
+        components.day = 31
+        components.month = 3
+        components.hour = 2
+        components.minute = 30
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertTrue(results.isEmpty)
+    }
+    
+    func testEnumerateDates_dstGap_backwardDirection_nextTime_shouldReturnExpectedResult() {
+        // Arrange
+        self.sut.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        
+        let start = ISO8601DateFormatter().date(from: "2024-04-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2024
+        components.day = 31
+        components.month = 3
+        components.hour = 2
+        components.minute = 30
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .nextTime, direction: .backward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertEqual(results.count, 1)
+        XCTAssertEqual(results[0].ISO8601Format(), "2024-03-31T01:00:00Z")
+    }
+    
+    func testEnumerateDates_dstGap_backwardDirection_strict_shouldReturnExpectedResult() {
+        // Arrange
+        self.sut.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        
+        let start = ISO8601DateFormatter().date(from: "2024-04-01T00:00:00Z")!
+        var components = DateComponents()
+        components.year = 2024
+        components.day = 31
+        components.month = 3
+        components.hour = 2
+        components.minute = 30
+        
+        // Act
+        var results: [Date] = []
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .backward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertTrue(results.isEmpty)
+    }
+    
+    func testEnumerateDates_thanksgivingForMultipleYears_shouldReturnExpectedResult() {
+        // Arrange
+        let start = ISO8601DateFormatter().date(from: "2024-01-01T00:00:00Z")!
+        
+        var components = DateComponents()
+        components.month = 11
+        components.weekday = 5
+        components.weekdayOrdinal = 4
+        
+        // Act
+        var results: [Date] = []
+        var iterations = 0
+        self.sut.enumerateDates(startingAfter: start, matching: components, matchingPolicy: .strict, direction: .forward) { (date, _, stop) in
+            if let date = date {
+                results.append(date)
+            }
+            iterations += 1
+            if iterations >= 3 {
+                stop = true
+            }
+        }
+        
+        // Assert
+        XCTAssertEqual(results.count, 3)
+        XCTAssertEqual(results[0].ISO8601Format(), "2024-11-28T00:00:00Z")
+        XCTAssertEqual(results[1].ISO8601Format(), "2025-11-27T00:00:00Z")
+        XCTAssertEqual(results[2].ISO8601Format(), "2026-11-26T00:00:00Z")
+    }
 }
