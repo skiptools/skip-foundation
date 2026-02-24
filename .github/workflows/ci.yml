@@ -39,9 +39,12 @@ jobs:
             echo ""
             echo "=== DigiCert / example.com-related aliases ==="
             keytool -list -keystore "$CACERTS" -storepass changeit 2>&1 | grep -i -E "digicert|example" || echo "(none found)"
+            echo ""
+            echo "=== Comodo / Sectigo / AAA (www.example.com actual chain root) ==="
+            keytool -list -keystore "$CACERTS" -storepass changeit 2>&1 | grep -i -E "comodo|sectigo|aaa certificate" || echo "(none found)"
           else
             echo "cacerts not found at $CACERTS"
           fi
           echo ""
           echo "=== OpenSSL connect to www.example.com (system trust) ==="
-          echo | openssl s_client -connect www.example.com:443 -servername www.example.com 2>&1 | head -25
+          echo | openssl s_client -connect www.example.com:443 -servername www.example.com 2>&1 | head -30
