@@ -14,3 +14,34 @@ permissions:
 jobs:
   call-workflow:
     uses: skiptools/actions/.github/workflows/skip-framework.yml@v1
+
+  # Temporary: diagnose JVM truststore on CI (same runner as call-workflow).
+  # Remove this job once SSL/truststore issue is resolved.
+  diagnose-truststore:
+    runs-on: macos-15-intel
+    steps:
+      - name: Java and truststore
+        run: |
+          echo "=== Java ==="
+          which java || true
+          java -version 2>&1 || true
+          echo "JAVA_HOME=${JAVA_HOME:-not set}"
+          echo ""
+          echo "=== Cacerts path ==="
+          JAVA_HOME_ACTUAL=$(java -XshowSettings:properties -version 2>&1 | sed -n 's/^[[:space:]]*java.home = //p')
+          echo "java.home = $JAVA_HOME_ACTUAL"
+          CACERTS="${JAVA_HOME_ACTUAL}/lib/security/cacerts"
+          if [ -f "$CACERTS" ]; then
+            echo "cacerts exists: $CACERTS"
+            echo ""
+            echo "=== Cert count in cacerts ==="
+            keytool -list -keystore "$CACERTS" -storepass changeit 2>&1 | tail -5
+            echo ""
+            echo "=== DigiCert / example.com-related aliases ==="
+            keytool -list -keystore "$CACERTS" -storepass changeit 2>&1 | grep -i -E "digicert|example" || echo "(none found)"
+          else
+            echo "cacerts not found at $CACERTS"
+          fi
+          echo ""
+          echo "=== OpenSSL connect to www.example.com (system trust) ==="
+          echo | openssl s_client -connect www.example.com:443 -servername www.example.com 2>&1 | head -25
