@@ -337,7 +337,7 @@ public class Bundle : Hashable, SwiftCustomBridged {
         androidContext.getPackageManager()
     }
 
-    private static var packageInfo: android.content.pm.PackageInfo {
+    private static var packageInfo: android.content.pm.PackageInfo? {
         return packageManager.getPackageInfo(androidContext.getPackageName(), android.content.pm.PackageManager.GET_META_DATA)
     }
 
@@ -362,13 +362,14 @@ public class Bundle : Hashable, SwiftCustomBridged {
         
         var info = [String : Any]()
         info["CFBundleIdentifier"] = Self.androidContext.getPackageName()
-        info["CFBundleName"] = packageManager.getApplicationLabel(applicationInfo).toString()
-        info["CFBundleDisplayName"] = packageManager.getApplicationLabel(applicationInfo).toString()
-        info["CFBundleShortVersionString"] = packageInfo.versionName ?? ""
+        let appLabel = packageManager.getApplicationLabel(applicationInfo)?.toString() ?? ""
+        info["CFBundleName"] = appLabel
+        info["CFBundleDisplayName"] = appLabel
+        info["CFBundleShortVersionString"] = packageInfo?.versionName ?? ""
         if android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P {
-            info["CFBundleVersion"] = packageInfo.longVersionCode.toString()
+            info["CFBundleVersion"] = packageInfo?.longVersionCode.toString() ?? "0"
         } else {
-            info["CFBundleVersion"] = packageInfo.versionCode.toString()
+            info["CFBundleVersion"] = packageInfo?.versionCode.toString() ?? "0"
         }
         info["CFBundleExecutable"] = androidContext.getPackageName()
         info["DTPlatformName"] = "android"
