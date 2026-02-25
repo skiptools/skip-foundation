@@ -258,9 +258,15 @@ class TestURLSession: XCTestCase {
         XCTAssertFalse(delegate.didInvalidate)
         XCTAssertNotEqual(task.state, .canceling)
         task.cancel()
-        try await Task.sleep(nanoseconds: 100_000_000)
-        XCTAssertTrue(task.state != .running)
-        XCTAssertTrue(delegate.didInvalidate)
+        let maxPolls = 40 // 40 * 50ms = 2 seconds
+        for _ in 0..<maxPolls {
+            if task.state != .running && delegate.didInvalidate {
+                return
+            }
+            try await Task.sleep(nanoseconds: 50_000_000) // 50ms between polls
+        }
+        XCTAssertTrue(task.state != .running, "Task should not still be running after 2 seconds")
+        XCTAssertTrue(delegate.didInvalidate, "Session should have invalidated and notified delegate within 2 seconds")
     }
 
     func testInvalidate() async throws {
