@@ -87,7 +87,7 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
 
     public init(contentsOf url: URL, options: Data.ReadingOptions = []) throws {
         if url.scheme == "content" {
-            let uri = android.net.Uri.parse(url.absoluteString)
+            let uri = url.toAndroidUri()
             if let inputStream = ProcessInfo.processInfo.androidContext.getContentResolver().openInputStream(uri) {
                 var buffer = ByteArray(8192)
                 var output = java.io.ByteArrayOutputStream()
@@ -318,7 +318,7 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
 
         @available(*, unavailable)
         public static let uncached = ReadingOptions(rawValue: 2)
-        
+
         @available(*, unavailable)
         public static let alwaysMapped = ReadingOptions(rawValue: 4)
     }
