@@ -21,10 +21,9 @@ func writePlatformData(_ bytes: kotlin.ByteArray, to path: java.nio.file.Path, a
         do {
             java.nio.file.Files.write(tmp, bytes)
             java.nio.file.Files.move(tmp, path,
-                *(arrayOf(
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING,
-                    java.nio.file.StandardCopyOption.ATOMIC_MOVE
-                ) as kotlin.Array<java.nio.file.CopyOption>))
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                java.nio.file.StandardCopyOption.ATOMIC_MOVE
+                )
         } catch {
             // Clean up the temp file on failure
             try? java.nio.file.Files.deleteIfExists(tmp)
@@ -32,11 +31,10 @@ func writePlatformData(_ bytes: kotlin.ByteArray, to path: java.nio.file.Path, a
         }
     } else {
         java.nio.file.Files.write(path, bytes,
-            *(arrayOf(
-                java.nio.file.StandardOpenOption.CREATE,
-                java.nio.file.StandardOpenOption.WRITE,
-                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
-            ) as kotlin.Array<java.nio.file.OpenOption>))
+            java.nio.file.StandardOpenOption.CREATE,
+            java.nio.file.StandardOpenOption.WRITE,
+            java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+            )
     }
 }
 

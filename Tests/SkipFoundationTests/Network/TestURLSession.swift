@@ -197,21 +197,46 @@ class TestURLSession: XCTestCase {
                 let session = URLSession(configuration: URLSessionConfiguration.default)
                 let task = session.dataTask(with: URLRequest(url: testURL))
                 task.resume()
-                var tasks = await session.allTasks
-                XCTAssertEqual(tasks.count, 1)
-                XCTAssertTrue(tasks.first === task)
                 var (dataTasks, uploadTasks, downloadTasks) = await session.tasks
                 XCTAssertEqual(dataTasks.count, 1)
                 XCTAssertEqual(uploadTasks.count, 0)
                 XCTAssertEqual(downloadTasks.count, 0)
                 XCTAssertTrue(dataTasks.first === task)
                 task.cancel()
-                tasks = await session.allTasks
-                XCTAssertEqual(tasks.count, 0)
                 (dataTasks, uploadTasks, downloadTasks) = await session.tasks
                 XCTAssertEqual(dataTasks.count, 0)
                 XCTAssertEqual(uploadTasks.count, 0)
                 XCTAssertEqual(downloadTasks.count, 0)
+                return
+            } catch let error as AssertionError {
+                // try multiple times: sometimes the task fails due to transient network issues
+                if i == 5 {
+                    throw error
+                } else {
+                    Thread.sleep(forTimeInterval: Double(i * i)) // exponential backoff 1, 4, 9, 16, 25
+                }
+            }
+        }
+    }
+
+    func testGetAllTasks() async throws {
+        #if SKIP
+        typealias AssertionError = java.lang.AssertionError
+        #else
+        typealias AssertionError = Error
+        #endif
+
+        for i in 1...5 {
+            do {
+                let session = URLSession(configuration: URLSessionConfiguration.default)
+                let task = session.dataTask(with: URLRequest(url: testURL))
+                task.resume()
+                var tasks = await session.allTasks
+                XCTAssertEqual(tasks.count, 1)
+                XCTAssertTrue(tasks.first === task)
+                task.cancel()
+                tasks = await session.allTasks
+                XCTAssertEqual(tasks.count, 0)
                 return
             } catch let error as AssertionError {
                 // try multiple times: sometimes the task fails due to transient network issues
@@ -233,9 +258,15 @@ class TestURLSession: XCTestCase {
         XCTAssertFalse(delegate.didInvalidate)
         XCTAssertNotEqual(task.state, .canceling)
         task.cancel()
-        try await Task.sleep(nanoseconds: 100_000_000)
-        XCTAssertTrue(task.state != .running)
-        XCTAssertTrue(delegate.didInvalidate)
+        let maxPolls = 40 // 40 * 50ms = 2 seconds
+        for _ in 0..<maxPolls {
+            if task.state != .running && delegate.didInvalidate {
+                return
+            }
+            try await Task.sleep(nanoseconds: 50_000_000) // 50ms between polls
+        }
+        XCTAssertTrue(task.state != .running, "Task should not still be running after 2 seconds")
+        XCTAssertTrue(delegate.didInvalidate, "Session should have invalidated and notified delegate within 2 seconds")
     }
 
     func testInvalidate() async throws {
