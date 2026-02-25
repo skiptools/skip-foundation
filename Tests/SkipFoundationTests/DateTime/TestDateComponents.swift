@@ -138,6 +138,7 @@ class TestDateComponents: XCTestCase {
     func testDateComponentsInitializationWithDate() {
         let calendar = Calendar(identifier: .gregorian)
         let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
         
         var startComponents = DateComponents()
         startComponents.year = 2024
@@ -206,6 +207,7 @@ class TestDateComponents: XCTestCase {
     func testDateComponentsWithSelectedComponents() {
         let calendar = Calendar(identifier: .gregorian)
         let timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.timeZone = timeZone
         
         var startComponents = DateComponents()
         startComponents.year = 2024
@@ -271,5 +273,3 @@ class TestDateComponents: XCTestCase {
 
     #endif
 }
-
-

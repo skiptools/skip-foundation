@@ -196,21 +196,50 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return dateFormatSymbols.getAmPmStrings()[1]
     }
 
+    public func component(_ component: Calendar.Component, from date: Date) -> Int {
+        return dateComponents([component], from: date).value(for: component) ?? 0
+    }
+
     public func minimumRange(of component: Calendar.Component) -> Range<Int>? {
         let platformCal = platformValue.clone() as java.util.Calendar
 
         switch component {
+        case .era:
+            // Eras are internally represented as 0 and 1 (BC/AD).
+            return platformCal.getMinimum(java.util.Calendar.ERA)..<(platformCal.getLeastMaximum(java.util.Calendar.ERA) + 1)
+
         case .year:
             // Year typically starts at 1 and has no defined maximum.
             return 1..<platformCal.getMaximum(java.util.Calendar.YEAR)
+
+        case .quarter:
+            // There are always 4 quarters in a year.
+            return 1..<5
+
         case .month:
             // Java's month is 0-based (0-11), but Swift expects 1-based (1-12).
             return 1..<(platformCal.getMaximum(java.util.Calendar.MONTH) + 2)
-            
+
+        case .weekday:
+            // Weekday ranges from 1 (Sunday) to 7 (Saturday).
+            return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK)..<(platformCal.getMaximum(java.util.Calendar.DAY_OF_WEEK) + 1)
+
+        case .weekdayOrdinal:
+            // Weekday ordinal ranges from 1 to 4 (smallest possible maximum occurrences in a month).
+            return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK_IN_MONTH)..< (platformCal.getLeastMaximum(java.util.Calendar.DAY_OF_WEEK_IN_MONTH) + 2)
+
+        case .weekOfMonth:
+            // Week of month ranges from 1 to 4 (smallest possible maximum).
+            return platformCal.getMinimum(java.util.Calendar.WEEK_OF_MONTH) + 1..< (platformCal.getLeastMaximum(java.util.Calendar.WEEK_OF_MONTH) + 2)
+
+         case .weekOfYear:
+            // Week of year ranges from 1 to 52 (smallest possible maximum).
+            return 1..<53
+
         case .day:
             // getMaximum() gives the largest value that field could theoretically have.
             // getActualMaximum() gives the largest value that field actually has for the specific calendar state.
-            
+
             // calendar.getActualMaximum(java.util.Calendar.DATE)
             // will return 28 because February 2023 has 28 days (it’s not a leap year).
             platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
@@ -219,29 +248,23 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             platformCal.set(java.util.Calendar.YEAR, 2023)
             // Minimum days in a month is 1, maximum can vary (28 for February).
             return platformCal.getMinimum(java.util.Calendar.DATE)..<platformCal.getActualMaximum(java.util.Calendar.DATE) + 1
+
+        case .dayOfYear:
+            // Day of year ranges from 1 to 365 (smallest possible maximum).
+            return 1..<366
+
         case .hour:
             // Hours are in the range 0-23.
             return platformCal.getMinimum(java.util.Calendar.HOUR_OF_DAY)..<(platformCal.getMaximum(java.util.Calendar.HOUR_OF_DAY) + 1)
-            
+
         case .minute:
             // Minutes are in the range 0-59.
             return platformCal.getMinimum(java.util.Calendar.MINUTE)..<(platformCal.getMaximum(java.util.Calendar.MINUTE) + 1)
-            
+
         case .second:
             // Seconds are in the range 0-59.
             return platformCal.getMinimum(java.util.Calendar.SECOND)..<(platformCal.getMaximum(java.util.Calendar.SECOND) + 1)
-            
-        case .weekday:
-            // Weekday ranges from 1 (Sunday) to 7 (Saturday).
-            return platformCal.getMinimum(java.util.Calendar.DAY_OF_WEEK)..<(platformCal.getMaximum(java.util.Calendar.DAY_OF_WEEK) + 1)
-            
-        case .weekOfMonth, .weekOfYear:
-            // Not supported yet...
-            fatalError()    
-        case .quarter:
-            // There are always 4 quarters in a year.
-            return 1..<5
-            
+
         default:
             return nil
         }
@@ -251,22 +274,24 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         let platformCal = platformValue.clone() as java.util.Calendar
         switch component {
         case .day:
-            // Maximum number of days in a month can vary (e.g., 28, 29, 30, or 31 days)
+            // Maximum number of days in a month can vary (e.g., 28, 29, 30, or 31 days).
             return platformCal.getMinimum(java.util.Calendar.DATE)..<(platformCal.getMaximum(java.util.Calendar.DATE) + 1)
-        case .weekOfMonth, .weekOfYear:
-            // Not supported yet...
-            fatalError()
+        case .weekOfYear, .dayOfYear, .weekdayOrdinal:
+            let minRange = minimumRange(of: component)!
+            return minRange.lowerBound..<(minRange.upperBound + 1)
+        case .weekOfMonth:
+            let minRange = minimumRange(of: component)!
+            return minRange.lowerBound..<(minRange.upperBound + 2)
         default:
             // Maximum range is usually the same logic as minimum but could differ in some cases.
             return minimumRange(of: component)
         }
     }
 
-    
     public func range(of smaller: Calendar.Component, in larger: Calendar.Component, for date: Date) -> Range<Int>? {
         let platformCal = platformValue.clone() as java.util.Calendar
         platformCal.time = date.platformValue
-        
+
         switch larger {
         case .month:
             if smaller == .day {
@@ -295,53 +320,15 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         default:
             return nil
         }
-        
+
         return nil
     }
 
     private func clearTime(in calendar: java.util.Calendar) {
         calendar.set(java.util.Calendar.HOUR_OF_DAY, 0) // “The HOUR_OF_DAY, HOUR and AM_PM fields are handled independently and the the resolution rule for the time of day is applied. Clearing one of the fields doesn't reset the hour of day value of this Calendar. Use set(Calendar.HOUR_OF_DAY, 0) to reset the hour value.”
-        calendar.clear(java.util.Calendar.HOUR_OF_DAY)
-        calendar.clear(java.util.Calendar.MINUTE)
-        calendar.clear(java.util.Calendar.SECOND)
-        calendar.clear(java.util.Calendar.MILLISECOND)
-    }
-
-    public func dateInterval(of component: Calendar.Component, start: inout Date, interval: inout TimeInterval, for date: Date) -> Bool {
-        let platformCal = platformValue.clone() as java.util.Calendar
-        platformCal.time = date.platformValue
-        
-        switch component {
-        case .day:
-            clearTime(in: platformCal)
-            start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(24 * 60 * 60)
-            return true
-        case .month:
-            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
-            clearTime(in: platformCal)
-            start = Date(platformValue: platformCal.time)
-            let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
-            interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
-            return true
-        case .weekOfMonth, .weekOfYear:
-            platformCal.set(java.util.Calendar.DAY_OF_WEEK, platformCal.firstDayOfWeek)
-            clearTime(in: platformCal)
-            start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(7 * 24 * 60 * 60)
-            return true
-        case .quarter:
-            let currentMonth = platformCal.get(java.util.Calendar.MONTH)
-            let quarterStartMonth = (currentMonth / 3) * 3  // Find the first month of the current quarter
-            platformCal.set(java.util.Calendar.MONTH, quarterStartMonth)
-            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
-            clearTime(in: platformCal)
-            start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)) * TimeInterval(24 * 60 * 60 * 3)
-            return true
-        default:
-            return false
-        }
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
     }
 
     public func dateInterval(of component: Calendar.Component, for date: Date) -> DateInterval? {
@@ -353,10 +340,99 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return nil
     }
 
+    public func dateInterval(of component: Calendar.Component, start: inout Date, interval: inout TimeInterval, for date: Date) -> Bool {
+        let platformCal = platformValue.clone() as java.util.Calendar
+        platformCal.time = date.platformValue
+
+        switch component {
+        case .second:
+            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            start = Date(platformValue: platformCal.time)
+            interval = TimeInterval(1)
+            return true
+
+        case .minute:
+            platformCal.set(java.util.Calendar.SECOND, 0)
+            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            start = Date(platformValue: platformCal.time)
+            interval = TimeInterval(60)
+            return true
+
+        case .hour:
+            platformCal.set(java.util.Calendar.MINUTE, 0)
+            platformCal.set(java.util.Calendar.SECOND, 0)
+            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            start = Date(platformValue: platformCal.time)
+            interval = TimeInterval(60 * 60)
+            return true
+
+        case .day, .dayOfYear:
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            interval = TimeInterval(24 * 60 * 60)
+            return true
+
+        case .weekday, .weekdayOrdinal:
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            interval = TimeInterval(24 * 60 * 60)
+            return true
+
+        case .month:
+            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
+            interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
+            return true
+
+        case .weekOfMonth, .weekOfYear:
+            platformCal.set(java.util.Calendar.DAY_OF_WEEK, platformCal.firstDayOfWeek)
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            interval = TimeInterval(7 * 24 * 60 * 60)
+            return true
+
+        case .quarter:
+            let currentMonth = platformCal.get(java.util.Calendar.MONTH)
+            let quarterStartMonth = (currentMonth / 3) * 3 // Find the first month of the current quarter
+            platformCal.set(java.util.Calendar.MONTH, quarterStartMonth)
+            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            let nextQuarterCal = platformCal.clone() as java.util.Calendar
+            nextQuarterCal.add(java.util.Calendar.MONTH, 3)
+            let durationMillis = nextQuarterCal.timeInMillis - platformCal.timeInMillis
+            interval = TimeInterval(durationMillis) / 1000.0
+            return true
+
+        case .year:
+            platformCal.set(java.util.Calendar.MONTH, java.util.Calendar.JANUARY)
+            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_YEAR)
+            interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
+            return true
+
+        case .era:
+            platformCal.set(java.util.Calendar.YEAR, 1)
+            platformCal.set(java.util.Calendar.MONTH, java.util.Calendar.JANUARY)
+            platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            clearTime(in: platformCal)
+            start = Date(platformValue: platformCal.time)
+            interval = Double.infinity
+            return true
+
+        default:
+            return false
+        }
+    }
+
     public func ordinality(of smaller: Calendar.Component, in larger: Calendar.Component, for date: Date) -> Int? {
         let platformCal = platformValue.clone() as java.util.Calendar
         platformCal.time = date.platformValue
-        
+
         switch larger {
         case .year:
             if smaller == .day {
@@ -382,18 +458,6 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return Date(platformValue: localComponents.createCalendarComponents(timeZone: self.timeZone).getTime())
     }
 
-    public func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents {
-        return DateComponents(fromCalendar: self, in: zone ?? self.timeZone, from: date)
-    }
-
-    public func dateComponents(_ components: Set<Calendar.Component>, from start: Date, to end: Date) -> DateComponents {
-        return DateComponents(fromCalendar: self, in: self.timeZone, from: start, to: end)
-    }
-
-    public func dateComponents(_ components: Set<Calendar.Component>, from date: Date) -> DateComponents {
-        return DateComponents(fromCalendar: self, in: self.timeZone, from: date, with: components)
-    }
-
     public func date(byAdding components: DateComponents, to date: Date, wrappingComponents: Bool = false) -> Date? {
         var comps = DateComponents(fromCalendar: self, in: self.timeZone, from: date)
         if !wrappingComponents {
@@ -414,8 +478,68 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         return date(from: comps)
     }
 
-    public func component(_ component: Calendar.Component, from date: Date) -> Int {
-        return dateComponents([component], from: date).value(for: component) ?? 0
+    public func date(bySetting component: Calendar.Component, value: Int, of date: Date) -> Date? {
+        guard let currentValue = self.dateComponents([component], from: date).value(for: component) else {
+            return nil
+        }
+        guard currentValue != value else {
+            return date
+        }
+
+        var result: Date?
+        var targetComponents = DateComponents()
+        targetComponents.setValue(value, for: component)
+        self.enumerateDates(startingAfter: date, matching: targetComponents, matchingPolicy: .nextTime, repeatedTimePolicy: .first, direction: .forward) { date, exactMatch, stop in
+            result = date
+            stop = true
+        }
+        return result
+    }
+
+    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: Calendar.MatchingPolicy = .nextTime, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
+        guard let interval = self.dateInterval(of: .day, for: date) else {
+            return nil
+        }
+
+        let comps = DateComponents(hour: hour, minute: minute, second: second)
+        let restrictedMatchingPolicy: MatchingPolicy
+        if matchingPolicy == .nextTime || matchingPolicy == .strict {
+            restrictedMatchingPolicy = matchingPolicy
+        } else {
+            restrictedMatchingPolicy = .nextTime
+        }
+
+        guard let result = self.nextDate(after: interval.start.addingTimeInterval(-0.5), matching: comps, matchingPolicy: restrictedMatchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) else {
+            return nil
+        }
+
+        if result < interval.start {
+            return self.nextDate(after: interval.start, matching: comps, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction)
+        } else {
+            return result
+        }
+    }
+
+    public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
+        let comparedUnits: Set<Calendar.Component> = [.era, .year, .month, .day, .hour, .minute, .second, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .nanosecond]
+
+        let actualUnits = comparedUnits.filter { unit in
+            return components.value(for: unit) != nil
+        }
+
+        return components == self.dateComponents(actualUnits, from: date)
+    }
+
+    public func dateComponents(in zone: TimeZone? = nil, from date: Date) -> DateComponents {
+        return DateComponents(fromCalendar: self, in: zone ?? self.timeZone, from: date)
+    }
+
+    public func dateComponents(_ components: Set<Calendar.Component>, from start: Date, to end: Date) -> DateComponents {
+        return DateComponents(fromCalendar: self, in: self.timeZone, from: start, to: end)
+    }
+
+    public func dateComponents(_ components: Set<Calendar.Component>, from date: Date) -> DateComponents {
+        return DateComponents(fromCalendar: self, in: self.timeZone, from: date, with: components)
     }
 
     public func startOfDay(for date: Date) -> Date {
@@ -472,10 +596,10 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
     public func isDateInToday(_ date: Date) -> Bool {
         let platformCal = platformValue.clone() as java.util.Calendar
         platformCal.time = Date().platformValue
-        
+
         let targetCal = platformValue.clone() as java.util.Calendar
         targetCal.time = date.platformValue
-        
+
         return platformCal.get(java.util.Calendar.YEAR) == targetCal.get(java.util.Calendar.YEAR)
             && platformCal.get(java.util.Calendar.DAY_OF_YEAR) == targetCal.get(java.util.Calendar.DAY_OF_YEAR)
     }
@@ -515,29 +639,46 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         fatalError()
     }
 
-    @available(*, unavailable)
     public func enumerateDates(startingAfter start: Date, matching components: DateComponents, matchingPolicy: Calendar.MatchingPolicy, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward, using block: (_ result: Date?, _ exactMatch: Bool, _ stop: inout Bool) -> Void) {
-        fatalError()
+
+        let STOP_EXHAUSTIVE_SEARCH_AFTER_MAX_ITERATIONS = 100 // To prevent infinite loops
+        var searchingDate = start
+        var previouslyReturnedMatchDate: Date? = nil
+        var iterations = -1
+
+        repeat {
+            iterations += 1
+            do {
+                let result = try self._enumerateDatesStep(startingAfter: start, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction, inSearchingDate: searchingDate, previouslyReturnedMatchDate: previouslyReturnedMatchDate)
+
+                if let found = result.result {
+                    let (matchDate, exactMatch) = found
+                    var stop = false
+                    previouslyReturnedMatchDate = matchDate
+                    block(matchDate, exactMatch, &stop)
+                    if stop { return }
+                    searchingDate = matchDate
+                } else if iterations < STOP_EXHAUSTIVE_SEARCH_AFTER_MAX_ITERATIONS {
+                    // Try again on nil result
+                    searchingDate = result.newSearchDate
+                    continue
+                } else {
+                    // Give up
+                    return
+                }
+            } catch {
+                return
+            }
+        } while true
     }
 
-    @available(*, unavailable)
     public func nextDate(after date: Date, matching components: DateComponents, matchingPolicy: Calendar.MatchingPolicy, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public func date(bySetting component: Calendar.Component, value: Int, of date: Date) -> Date? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: Calendar.MatchingPolicy = .nextTime, repeatedTimePolicy: Calendar.RepeatedTimePolicy = .first, direction: Calendar.SearchDirection = .forward) -> Date? {
-        fatalError()
-    }
-
-    @available(*, unavailable)
-    public func date(_ date: Date, matchesComponents components: DateComponents) -> Bool {
-        fatalError()
+        var result: Date?
+        self.enumerateDates(startingAfter: date, matching: components, matchingPolicy: matchingPolicy, repeatedTimePolicy: repeatedTimePolicy, direction: direction) { date, exactMatch, stop in
+            result = date
+            stop = true
+        }
+        return result
     }
 
     public enum Component: Sendable {
@@ -545,6 +686,7 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         case year
         case month
         case day
+        case dayOfYear
         case hour
         case minute
         case second
