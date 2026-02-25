@@ -3,6 +3,8 @@
 import Foundation
 import XCTest
 
+#if SKIP || canImport(Darwin)
+
 @available(macOS 13, iOS 16, watchOS 10, tvOS 16, *)
 final class LocaleTests: XCTestCase {
     func testLanguageCodes() throws {
@@ -1056,3 +1058,5 @@ let xcstringsSample = """
 }
 
 """
+#endif
+
