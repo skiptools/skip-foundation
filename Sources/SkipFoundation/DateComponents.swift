@@ -182,11 +182,6 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
         if let year = self.year {
             cal.set(java.util.Calendar.YEAR, year)
         }
-        if let yearForWeekOfYear = self.yearForWeekOfYear {
-            let week = Int(self.weekOfYear ?? 1)
-            let dayOfWeek = Int(self.weekday ?? cal.getFirstDayOfWeek())
-            cal.setWeekDate(yearForWeekOfYear, week, dayOfWeek)
-        }
         if let quarter = self.quarter {
             let monthForQuarter = (quarter - 1) * 3
             cal.set(java.util.Calendar.MONTH, monthForQuarter)
@@ -196,7 +191,12 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             // Foundation starts at 1, but Java: “Field number for get and set indicating the month. This is a calendar-specific value. The first month of the year in the Gregorian and Julian calendars is JANUARY which is 0; the last depends on the number of months in a year.”
             cal.set(java.util.Calendar.MONTH, month - 1)
         }
-        if let weekOfYear = self.weekOfYear {
+        if let yearForWeekOfYear = self.yearForWeekOfYear {
+            let week = Int(self.weekOfYear ?? 1)
+            let dayOfWeek = Int(self.weekday ?? cal.getFirstDayOfWeek())
+            cal.setWeekDate(yearForWeekOfYear, week, dayOfWeek)
+        } else if let weekOfYear = self.weekOfYear {
+            // Only set the week of year if no year for week of year is defined.
             cal.set(java.util.Calendar.WEEK_OF_YEAR, weekOfYear)
         }
         if let weekOfMonth = self.weekOfMonth {
