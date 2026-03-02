@@ -860,7 +860,7 @@ class TestCalendar: XCTestCase {
 
     func testDateComparison() {
         let calendar = Calendar(identifier: .gregorian)
-        let date1 = Date()
+        let date1 = dt("2024-01-01T00:00:00Z")!
         let date2 = calendar.date(byAdding: .day, value: 1, to: date1)!
 
         let comparisonResult = calendar.compare(date1, to: date2, toGranularity: .day)
