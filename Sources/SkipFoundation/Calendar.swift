@@ -96,9 +96,13 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
         }
     }
 
-    @available(*, unavailable)
     public var minimumDaysInFirstWeek: Int {
-        fatalError()
+        get {
+            return Int(platformValue.getMinimalDaysInFirstWeek())
+        }
+        set {
+            platformValue.setMinimalDaysInFirstWeek(newValue)
+        }
     }
 
     public var eraSymbols: [String] {
