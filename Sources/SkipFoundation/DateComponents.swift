@@ -59,15 +59,10 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             self.timeZone = tz
         }
 
-        platformCal.setFirstDayOfWeek(calendar.firstWeekday)
-        platformCal.setMinimalDaysInFirstWeek(calendar.minimumDaysInFirstWeek)
-
         if let endDate = endDate {
             let endPlatformCal = calendar.platformValue.clone() as java.util.Calendar
             endPlatformCal.time = endDate.platformValue
             endPlatformCal.timeZone = tz.platformValue
-            endPlatformCal.setFirstDayOfWeek(calendar.firstWeekday)
-            endPlatformCal.setMinimalDaysInFirstWeek(calendar.minimumDaysInFirstWeek)
 
             // Calculate differences based on components.
             if components?.contains(.era) != false {
