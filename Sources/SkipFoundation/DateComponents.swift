@@ -59,10 +59,15 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             self.timeZone = tz
         }
 
+        platformCal.setFirstDayOfWeek(calendar.firstWeekday)
+        platformCal.setMinimalDaysInFirstWeek(calendar.minimumDaysInFirstWeek)
+
         if let endDate = endDate {
             let endPlatformCal = calendar.platformValue.clone() as java.util.Calendar
             endPlatformCal.time = endDate.platformValue
             endPlatformCal.timeZone = tz.platformValue
+            endPlatformCal.setFirstDayOfWeek(calendar.firstWeekday)
+            endPlatformCal.setMinimalDaysInFirstWeek(calendar.minimumDaysInFirstWeek)
 
             // Calculate differences based on components.
             if components?.contains(.era) != false {
@@ -110,8 +115,8 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
                 self.second = endPlatformCal.get(java.util.Calendar.SECOND) - platformCal.get(java.util.Calendar.SECOND)
             }
             if components?.contains(.nanosecond) != false {
-                let startNanos = platformCal.get(java.util.Calendar.MILLISECOND) * 1_000_000
-                let endNanos = endPlatformCal.get(java.util.Calendar.MILLISECOND) * 1_000_000
+                let startNanos = platformCal.get(java.util.Calendar.MILLISECOND) / 1_000_000
+                let endNanos = endPlatformCal.get(java.util.Calendar.MILLISECOND) / 1_000_000
                 self.nanosecond = Int(endNanos - startNanos)
             }
         } else {
@@ -178,9 +183,9 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.set(java.util.Calendar.YEAR, year)
         }
         if let yearForWeekOfYear = self.yearForWeekOfYear {
-            let week = Int32(self.weekOfYear ?? 1)
-            let dayOfWeek = Int32(self.weekday ?? cal.getFirstDayOfWeek())
-            cal.setWeekDate(Int32(yearForWeekOfYear), week, dayOfWeek)
+            let week = Int(self.weekOfYear ?? 1)
+            let dayOfWeek = Int(self.weekday ?? cal.getFirstDayOfWeek())
+            cal.setWeekDate(yearForWeekOfYear, week, dayOfWeek)
         }
         if let quarter = self.quarter {
             let monthForQuarter = (quarter - 1) * 3
@@ -219,7 +224,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.set(java.util.Calendar.SECOND, second)
         }
         if let nanosecond = self.nanosecond {
-            cal.set(java.util.Calendar.MILLISECOND, nanosecond / 1_000_000)
+            cal.set(java.util.Calendar.MILLISECOND, nanosecond * 1_000_000)
         }
 
         return cal
