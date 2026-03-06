@@ -259,9 +259,8 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
     public mutating func replaceSubrange(_ subrange: Range<Int>, with bytes: Any /* UnsafeRawPointer */, count: Int) {
     }
 
-    @available(*, unavailable)
     public func subdata(in range: Range<Int>) -> Data {
-        fatalError()
+        return Data(platformValue: platformValue.copyOfRange(range.lowerBound, range.upperBound))
     }
 
     @available(*, unavailable)
