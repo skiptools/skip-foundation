@@ -250,6 +250,7 @@ Support levels:
 <li><code>var utf8String: String?</code></li>
 <li><code>func base64EncodedString() -> String</code></li>
 <li><code>func sha256() -> Data</code></li>
+<li><code>func subdata(in range: Range<Int>) -> Data</code></li>
 <li><code>func hex() -> String</code></li>
 <li><code>mutating func reserveCapacity(_ minimumCapacity: Int)</code></li>
 <li><code>mutating func append(_ other: Data)</code></li>
