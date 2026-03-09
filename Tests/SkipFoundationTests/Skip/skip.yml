@@ -1,4 +1,4 @@
-# skip.tools per-configuration file
+# Skip configuration for SkipFoundationTests module
 
 # the blocks to add to the build.gradle.kts
 #build:
@@ -6,4 +6,3 @@
 #    - block: 'dependencies'
 #      contents:
 #        - '// no new dependencies in SkipFoundationKtTests'
-# skip.tools per-configuration file
