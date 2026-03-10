@@ -196,10 +196,21 @@ public class Bundle : Hashable, SwiftCustomBridged {
 
     static func listAssets(in folderName: String, recursive: Bool) -> [String] {
         let am = ProcessInfo.processInfo.androidContext.resources.assets
-        guard let contents = am.list(folderName) else { return [] }
-        let contentArray = Array(contents.toList()).map({ folderName + "/" + $0})
-        if !recursive { return contentArray }
-        return contentArray + contentArray.flatMap({ listAssets(in: $0, recursive: recursive) })
+        guard let contents = am.list(folderName), contents.count() > 0 else { return [] }
+        let contentPaths = Array(contents.toList()).map({ folderName + "/" + $0 })
+        if !recursive { return contentPaths }
+        var result: [String] = []
+        for path in contentPaths {
+            let subAssets = listAssets(in: path, recursive: true)
+            if subAssets.isEmpty {
+                // Leaf node (file) — include it directly
+                result.append(path)
+            } else {
+                // Directory — include its recursive contents but not the directory entry itself
+                result += subAssets
+            }
+        }
+        return result
     }
 
     /// We default to en as the development localization

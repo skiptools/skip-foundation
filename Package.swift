@@ -9,12 +9,12 @@ let package = Package(
         .library(name: "SkipFoundation", targets: ["SkipFoundation"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.tools/skip.git", from: "1.6.0"),
-        .package(url: "https://source.skip.tools/skip-lib.git", from: "1.3.7"),
+        .package(url: "https://source.skip.tools/skip.git", from: "1.7.5"),
+        .package(url: "https://source.skip.tools/skip-lib.git", from: "1.3.8"),
     ],
     targets: [
         .target(name: "SkipFoundation", dependencies: [.product(name: "SkipLib", package: "skip-lib")], plugins: [.plugin(name: "skipstone", package: "skip")]),
-        .testTarget(name: "SkipFoundationTests", dependencies: ["SkipFoundation", .product(name: "SkipTest", package: "skip")], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        .testTarget(name: "SkipFoundationTests", dependencies: ["SkipFoundation", .product(name: "SkipTest", package: "skip")], resources: [.process("Resources"), .copy("ResourcesCopy")], plugins: [.plugin(name: "skipstone", package: "skip")]),
     ]
 )
 
