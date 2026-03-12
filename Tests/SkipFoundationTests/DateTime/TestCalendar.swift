@@ -307,13 +307,17 @@ class TestCalendar: XCTestCase {
 
     func test_addingComponents() {
         let calendar = Calendar(identifier: Calendar.Identifier.gregorian)
-        let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4))!
+        let thisDay = calendar.date(from: DateComponents(year: 2016, month: 10, day: 4, hour: 1, minute: 2, second: 3, nanosecond: 4))!
         let dayAfter = calendar.date(byAdding: .day, value: 1, to: thisDay)
 
-        let dayAfterComponents = calendar.dateComponents(Set([Calendar.Component.year, Calendar.Component.month, Calendar.Component.day]), from: dayAfter!)
+        let dayAfterComponents = calendar.dateComponents(Set([Calendar.Component.year, Calendar.Component.month, Calendar.Component.day, Calendar.Component.hour, Calendar.Component.minute, Calendar.Component.second, Calendar.Component.nanosecond]), from: dayAfter!)
         XCTAssertEqual(dayAfterComponents.year, 2016)
         XCTAssertEqual(dayAfterComponents.month, 10)
         XCTAssertEqual(dayAfterComponents.day, 5)
+        XCTAssertEqual(dayAfterComponents.hour, 1)
+        XCTAssertEqual(dayAfterComponents.minute, 2)
+        XCTAssertEqual(dayAfterComponents.second, 3)
+        XCTAssertEqual(dayAfterComponents.nanosecond, 0)
     }
 
     func test_matchesComponents() {
