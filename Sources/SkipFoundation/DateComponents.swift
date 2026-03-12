@@ -219,7 +219,7 @@ public struct DateComponents : Codable, Hashable, CustomStringConvertible {
             cal.set(java.util.Calendar.SECOND, second)
         }
         if let nanosecond = self.nanosecond {
-            cal.set(java.util.Calendar.MILLISECOND, nanosecond * 1_000_000)
+            cal.set(java.util.Calendar.MILLISECOND, nanosecond / 1_000_000)
         }
 
         return cal
