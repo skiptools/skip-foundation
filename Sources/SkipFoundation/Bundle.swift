@@ -264,10 +264,23 @@ public class Bundle : Hashable, SwiftCustomBridged {
             let table = tableName ?? "Localizable"
             var locTable = localizedTables[table]
             if locTable == nil {
-                let resURL = url(forResource: table, withExtension: "strings")
-                let resTable = resURL == nil ? nil : try? PropertyListSerialization.propertyList(from: Data(contentsOf: resURL!), format: nil)
-                locTable = Self.stringFormatsTable(from: resTable)
-                localizedTables[table] = locTable!
+                let newTable = mutableMapOf<String, Triple<String, String, MarkdownNode?>>()
+                let resTypes: [(extension: String, format: PropertyListSerialization.PropertyListFormat)] = [
+                    (extension: "strings", format: .openStep),
+                    (extension: "stringsdict", format: .xml)
+                ]
+                for resType in resTypes {
+                    if let resURL = url(forResource: table, withExtension: resType.extension),
+                       let resData = try? Data(contentsOf: resURL),
+                       let resTable = try? PropertyListSerialization.propertyList(from: resData, format: resType.format) {
+                        for (sKey, sValue) in resTable where newTable[sKey] == nil {
+                            newTable[sKey] = Triple(sValue, sValue.kotlinFormatString, MarkdownNode.from(string: sValue))
+                        }
+                    }
+                }
+
+                locTable = newTable
+                localizedTables[table] = newTable
             }
             if let formats = locTable?[key] {
                 return formats

@@ -127,6 +127,44 @@ final class LocaleTests: XCTestCase {
         ])
     }
 
+    func testLocalizableStringsDictParsing() throws {
+        let locstr = #"""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>repeats_every_day</key>
+            <dict>
+                <key>NSStringLocalizedFormatKey</key>
+                <string>%#@num_days@</string>
+                <key>num_days</key>
+                <dict>
+                    <key>NSStringFormatSpecTypeKey</key>
+                    <string>NSStringPluralRuleType</string>
+                    <key>NSStringFormatValueTypeKey</key>
+                    <string>d</string>
+                    <key>zero</key>
+                    <string>Ne se répète jamais</string>
+                    <key>one</key>
+                    <string>Se répète quotidiennement</string>
+                    <key>other</key>
+                    <string>Se répète tous les %d jours</string>
+                </dict>
+            </dict>
+        </dict>
+        </plist>
+        """#
+
+        let data = try XCTUnwrap(locstr.data(using: .utf8))
+        let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+
+        // SKIP NOWARN
+        let dict = try XCTUnwrap(plist as? [String: Any])
+
+        XCTAssertEqual(1, dict.count)
+        XCTAssertNotNil(dict["repeats_every_day"])
+    }
+
     func testLocaleFormats() throws {
         #if !SKIP
         // TODO
@@ -803,6 +841,29 @@ final class LocaleTests: XCTestCase {
         //XCTAssertEqual("lower-case", String(localized: LocalizedStringResource("lower-case", locale: Locale(identifier: "fr"), bundle: moduleBundle)))
         // "sk" is not localized at all, so the expected behavior is to fall back to base.lproj, which is en, and so "lower-case" will be translated as "UPPER-CASE"
         XCTAssertEqual("UPPER-CASE", String(localized: LocalizedStringResource("lower-case", locale: Locale(identifier: "sk"), bundle: moduleBundle)))
+    }
+    
+    func testLocalizedPluralStringFormatting() throws {
+        #if os(macOS)
+        if !isJava && Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: "en") == nil {
+            throw XCTSkip("Localizable.xcstrings not compiled to strings/stringsdict")
+        }
+        #endif
+
+        let bundleDesc = LocalizedStringResource.BundleDescription.atURL(Bundle.module.bundleURL)
+        var resource = LocalizedStringResource("repeats_every_day", bundle: bundleDesc)
+
+        // English
+        resource.locale = Locale(identifier: "en")
+        XCTAssertEqual(String.localizedStringWithFormat(String(localized: resource), 0), "Repeats never")
+        XCTAssertEqual(String.localizedStringWithFormat(String(localized: resource), 1), "Repeats daily")
+        XCTAssertEqual(String.localizedStringWithFormat(String(localized: resource), 5), "Repeats every 5 days")
+
+        // French
+        resource.locale = Locale(identifier: "fr")
+        XCTAssertEqual(String.localizedStringWithFormat(String(localized: resource), 0), "Ne se répète jamais")
+        XCTAssertEqual(String.localizedStringWithFormat(String(localized: resource), 1), "Se répète quotidiennement")
+        XCTAssertEqual(String.localizedStringWithFormat(String(localized: resource), 5), "Se répète tous les 5 jours")
     }
 }
 
