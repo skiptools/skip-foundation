@@ -1,24 +1,149 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if SKIP
+import android.util.Xml
+import org.xmlpull.v1.XmlPullParser
+import java.io.ByteArrayInputStream
 
 public class PropertyListSerialization {
+    
     @available(*, unavailable)
     public static func propertyList(_ propertyList: Any, isValidFor: PropertyListSerialization.PropertyListFormat) -> Bool {
         fatalError()
     }
 
+    public static func propertyList(from data: Data, options: PropertyListSerialization.ReadOptions = [], format: Any?) throws -> [String: String]? {
+        let text = data.utf8String
+        guard let text = text else {
+            // should this throw an error?
+            return nil
+        }
 
-    public static func propertyList(from: Data, options: PropertyListSerialization.ReadOptions = [], format: Any?) throws -> [String: String]? {
-        // TODO: auto-detect format from data content if the format argument is unset
-        return try openStepPropertyList(from: from, options: options)
+        switch format {
+        case PropertyListFormat.xml:
+            return try convertStringsDictToICUDict(from: data)
+        default:
+            // TODO: auto-detect format from data content if the format argument is unset
+            return try openStepPropertyList(from: data, options: options)
+        }
     }
 
-    static func openStepPropertyList(from: Data, options: PropertyListSerialization.ReadOptions = []) throws -> [String: String]? {
+    private static func convertStringsDictToICUDict(from data: Data) throws -> [String: String]? {
+        let parser = Xml.newPullParser()
+        parser.setInput(ByteArrayInputStream(data.platformValue), "UTF-8")
+
+        var result: [String: String] = [:]
+        var dictStack: [[String: Any]] = []
+        var keyStack: [String] = []
+        var textAccumulator = ""
+
+        var eventType = parser.getEventType()
+        while eventType != XmlPullParser.END_DOCUMENT {
+
+            let tagName = parser.getName()
+            switch eventType {
+            case XmlPullParser.START_TAG:
+                textAccumulator = ""
+                if tagName == "dict" {
+                    dictStack.append([:])
+                }
+
+            case XmlPullParser.TEXT:
+                textAccumulator += parser.getText() ?? ""
+
+            case XmlPullParser.END_TAG:
+                let content = textAccumulator.trimmingCharacters(in: .whitespacesAndNewlines)
+                switch tagName {
+                case "key":
+                    keyStack.append(content)
+                case "string":
+                    if let key = keyStack.popLast(), !dictStack.isEmpty {
+                        dictStack[dictStack.count - 1][key] = content
+                    }
+                case "dict":
+                    if let finishedDict = dictStack.popLast() {
+                        if let parentKey = keyStack.popLast(), !dictStack.isEmpty {
+                            dictStack[dictStack.count - 1][parentKey] = finishedDict
+                        } else {
+                            for (key, value) in finishedDict {
+                                /* SKIP NOWARN */
+                                if let stringsDict = value as? [String: Any],
+                                   let icuString = convertStringsDictToICUString(stringsDict) {
+                                    result[key] = icuString
+                                }
+                            }
+                        }
+                    }
+                default:
+                    break
+                }
+
+                textAccumulator = ""
+            default:
+                break
+            }
+
+            eventType = parser.next()
+        }
+
+        return result
+    }
+
+    private static func convertStringsDictToICUString(_ stringsDict: [String: Any]) -> String? {
+        guard let formatKey = stringsDict["NSStringLocalizedFormatKey"] as? String else {
+            return nil
+        }
+
+        var result: String = formatKey
+
+        /* SKIP NOWARN */
+        for (key, varDict) in stringsDict.compactMapValues({ $0 as? [String: Any] }) {
+            guard let specType = varDict["NSStringFormatSpecTypeKey"] as? String, specType == "NSStringPluralRuleType"
+            else {
+                continue
+            }
+
+            let categories = ["zero", "one", "two", "few", "many", "other"]
+            let rules = categories.compactMap { (category: String) -> String? in
+                guard let pluralString = varDict[category] as? String else { return nil }
+                var cleaned = pluralString!
+                for index in 1...10 {
+                    cleaned = cleaned
+                        .replacingOccurrences(of: "%\(index)$@", with: "{\(index-1)}")
+                        .replacingOccurrences(of: "%\(index)$d", with: "{\(index-1)}")
+                }
+                let icuCategory = category == "zero" ? "=0" : category
+                return "\(icuCategory){\(cleaned)}"
+            }.joined(separator: " ")
+
+            if !rules.isEmpty {
+                let pattern = "%#@\(key)@"
+                let replacement = "{0, plural, \(rules)}"
+
+                if result.contains(pattern) {
+                    result = result.replacingOccurrences(of: pattern, with: replacement)
+                } else if result.contains("%#@") {
+                    let parts = result.components(separatedBy: "%#@")
+                    if parts.count > 1 {
+                        let prefix = parts[0]
+                        let remaining = parts[1]
+                        let subParts = remaining.components(separatedBy: "@")
+                        if subParts.count > 1 {
+                            let suffix = subParts[1...].joined(separator: "@")
+                            result = prefix + replacement + suffix
+                        }
+                    }
+                }
+            }
+        }
+
+        return result
+    }
+
+    private static func openStepPropertyList(from data: Data, options: PropertyListSerialization.ReadOptions = []) throws -> [String: String]? {
         var dict: Dictionary<String, String> = [:]
 
-        let text = from.utf8String
-
+        let text = data.utf8String
         guard let text = text else {
             // should this throw an error?
             return nil
