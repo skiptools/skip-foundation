@@ -106,16 +106,14 @@ public class PropertyListSerialization {
             let categories = ["zero", "one", "two", "few", "many", "other"]
             let rules = categories.compactMap { (category: String) -> String? in
                 guard let pluralString = varDict[category] as? String else { return nil }
-                var cleaned = pluralString
-                    .replacingOccurrences(of: "%d", with: "#")
-                    .replacingOccurrences(of: "%f", with: "#")
-                    .replacingOccurrences(of: "%@", with: "{0}")
+                var cleaned = pluralString!
                 for index in 1...10 {
                     cleaned = cleaned
                         .replacingOccurrences(of: "%\(index)$@", with: "{\(index-1)}")
                         .replacingOccurrences(of: "%\(index)$d", with: "{\(index-1)}")
                 }
-                return "\(category){\(cleaned)}"
+                let icuCategory = category == "zero" ? "=0" : category
+                return "\(icuCategory){\(cleaned)}"
             }.joined(separator: " ")
 
             if !rules.isEmpty {
