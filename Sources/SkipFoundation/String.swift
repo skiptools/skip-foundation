@@ -15,6 +15,8 @@
 //===----------------------------------------------------------------------===//
 
 #if SKIP
+import android.icu.text.MessageFormat
+import java.util.ArrayList
 
 public typealias NSString = kotlin.String
 public func NSString(string: String) -> NSString { string }
@@ -106,6 +108,23 @@ extension String {
     @available(*, unavailable)
     public func localizedStandardCompare(_ string: String) -> ComparisonResult {
         fatalError("unsupported")
+    }
+
+    public static func localizedStringWithFormat(_ format: String, _ arguments: Any...) -> String {
+        let list = ArrayList<Any>()
+        for argument in arguments { list.add(argument) }
+        let platformArguments = list.toArray()
+
+        let locale = Locale.current.platformValue
+        if format.contains("{0, plural,") {
+            return MessageFormat(format, locale).format(platformArguments)
+        }
+
+        if !arguments.isEmpty {
+            return java.lang.String.format(locale, format, platformArguments)
+        }
+
+        return format
     }
 
     public func trimmingCharacters(in set: CharacterSet) -> String {
