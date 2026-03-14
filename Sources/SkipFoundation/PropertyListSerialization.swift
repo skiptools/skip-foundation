@@ -19,11 +19,11 @@ public class PropertyListSerialization {
             return nil
         }
 
-        switch format {
-        case PropertyListFormat.xml:
+        // TODO: auto-detect format from data content if the format argument is unset
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if (format as? PropertyListFormat) == .xml || trimmed.hasPrefix("<?xml") || trimmed.hasPrefix("<plist") {
             return try convertStringsDictToICUDict(from: data)
-        default:
-            // TODO: auto-detect format from data content if the format argument is unset
+        } else {
             return try openStepPropertyList(from: data, options: options)
         }
     }
