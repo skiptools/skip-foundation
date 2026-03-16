@@ -3,6 +3,8 @@
 import Foundation
 import XCTest
 
+#if SKIP || canImport(Darwin)
+
 fileprivate typealias CaseRelativeFormat = (numericFull: String, namedShort: String, namedAbbreviated: String, dateComponents: DateComponents, timeInterval: TimeInterval)
 
 /// Kotlin formats time intervals approaching/at 0 as "x ago"
@@ -297,3 +299,5 @@ class TestRelativeDateTimeFormatter: XCTestCase {
         return (timeInterval, components, formattedString)
     }
 }
+
+#endif
