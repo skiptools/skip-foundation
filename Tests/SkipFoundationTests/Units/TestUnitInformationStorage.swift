@@ -18,9 +18,6 @@ import XCTest
 class TestUnitInformationStorage: XCTestCase {
     @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
     func testUnitInformationStorage() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let bits = Measurement(value: 8, unit: UnitInformationStorage.bits)
         XCTAssertEqual(
             bits.converted(to: .bytes).value,
@@ -44,7 +41,6 @@ class TestUnitInformationStorage: XCTestCase {
             accuracy: 1.0e-12,
             "Conversion from bits to gibibits"
         )
-        #endif // !SKIP
     }
 }
 

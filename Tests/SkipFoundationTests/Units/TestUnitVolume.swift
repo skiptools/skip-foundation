@@ -17,9 +17,6 @@ import XCTest
 
 class TestUnitVolume: XCTestCase {
     func testMetricVolumeConversions() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let cubicKilometers = Measurement(value: 4, unit: UnitVolume.cubicKilometers)
         XCTAssertEqual(cubicKilometers, Measurement(value: 4e9, unit: UnitVolume.cubicMeters), "Conversion from cubicKilometers to cubicMeters")
 
@@ -40,22 +37,14 @@ class TestUnitVolume: XCTestCase {
         XCTAssertEqual(liters, Measurement(value: 5000, unit: UnitVolume.milliliters), "Conversion from liters to milliliters")
         XCTAssertEqual(liters, Measurement(value: 5000, unit: UnitVolume.cubicCentimeters), "Conversion from liters to cubicCentimeters")
         XCTAssertEqual(liters, Measurement(value: 5e6, unit: UnitVolume.cubicMillimeters), "Conversion from liters to cubicMillimeters")
-        #endif // !SKIP
     }
 
     func testMetricToImperialVolumeConversion() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let liters = Measurement(value: 10, unit: UnitVolume.liters)
         XCTAssertEqual(liters.converted(to: .cubicInches).value, 610.236, accuracy: 0.001, "Conversion from liters to cubicInches")
-        #endif // !SKIP
     }
 
     func testImperialVolumeConversions() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let cubicMiles = Measurement(value: 1, unit: UnitVolume.cubicMiles)
         XCTAssertEqual(cubicMiles.converted(to: .cubicYards).value, 1760 * 1760 * 1760, accuracy: 1_000_000, "Conversion from cubicMiles to cubicYards")
 
@@ -85,7 +74,6 @@ class TestUnitVolume: XCTestCase {
 
         let teaspoons = Measurement(value: 1, unit: UnitVolume.teaspoons)
         XCTAssertEqual(teaspoons.converted(to: .cubicInches).value, 0.3, accuracy: 0.001, "Conversion from teaspoons to cubicInches")
-        #endif // !SKIP
     }
 }
 

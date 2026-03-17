@@ -19,9 +19,6 @@ class TestUnit: XCTestCase {
 
     @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
     func test_equality() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let s1 = "a"
         let s2 = "ab"
 
@@ -97,7 +94,6 @@ class TestUnit: XCTestCase {
         testEquality(ofDimensionSubclass: UnitSpeed.self)
         testEquality(ofDimensionSubclass: UnitTemperature.self)
         testEquality(ofDimensionSubclass: UnitVolume.self)
-        #endif // !SKIP
     }
 
 }

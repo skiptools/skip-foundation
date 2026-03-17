@@ -32,9 +32,6 @@ class CustomUnit: Unit {
 
 class TestMeasurement: XCTestCase {
     func testHashing() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let lengths: [[Measurement<UnitLength>]] = [
             [
                 Measurement(value: 5, unit: UnitLength.kilometers),
@@ -79,7 +76,6 @@ class TestMeasurement: XCTestCase {
         ]
         checkHashable(custom, equalityOracle: { $0 == $1 })
 #endif
-        #endif // !SKIP
     }
 
     #if !SKIP
@@ -92,23 +88,15 @@ class TestMeasurement: XCTestCase {
     #endif
 
     func testCodingRoundtrip() throws {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         for fixture in fixtures {
             try fixture.assertValueRoundtripsInCoder()
         }
-        #endif // !SKIP
     }
     
     func testLoadedValuesMatch() throws {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         for fixture in fixtures {
 //            try fixture.assertLoadedValuesMatch()
         }
-        #endif // !SKIP
     }
 }
 
