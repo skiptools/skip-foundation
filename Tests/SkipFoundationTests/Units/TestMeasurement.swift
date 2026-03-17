@@ -111,7 +111,7 @@ class TestMeasurement: XCTestCase {
     func testMeasurementArithmetic() {
         let a = Measurement(value: 2.0, unit: UnitMass.kilograms)
         let b = Measurement(value: 500.0, unit: UnitMass.grams)
-        let sum = a + b
+        let sum = a.adding(b)
         XCTAssertEqual(sum.converted(to: UnitMass.kilograms).value, 2.5, accuracy: 0.001)
     }
 }

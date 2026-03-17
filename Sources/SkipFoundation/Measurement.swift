@@ -103,4 +103,35 @@ public struct Measurement<UnitType: FoundationUnit> : Hashable, Comparable, Cust
     // swift-corelibs-foundation).
 }
 
+#else
+import Foundation
+
+// Provide the same named methods on native Foundation.Measurement
+// so that cross-platform code can use either operators or named methods.
+extension Measurement where UnitType: Dimension {
+    public func adding(_ other: Measurement) -> Measurement {
+        if unit == other.unit {
+            return Measurement(value: value + other.value, unit: unit)
+        }
+        let otherConverted = other.converted(to: unit)
+        return Measurement(value: value + otherConverted.value, unit: unit)
+    }
+
+    public func subtracting(_ other: Measurement) -> Measurement {
+        if unit == other.unit {
+            return Measurement(value: value - other.value, unit: unit)
+        }
+        let otherConverted = other.converted(to: unit)
+        return Measurement(value: value - otherConverted.value, unit: unit)
+    }
+
+    public func multiplied(by scalar: Double) -> Measurement {
+        return Measurement(value: value * scalar, unit: unit)
+    }
+
+    public func divided(by scalar: Double) -> Measurement {
+        return Measurement(value: value / scalar, unit: unit)
+    }
+}
+
 #endif

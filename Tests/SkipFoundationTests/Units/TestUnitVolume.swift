@@ -46,7 +46,7 @@ class TestUnitVolume: XCTestCase {
 
     func testImperialVolumeConversions() {
         let cubicMiles = Measurement(value: 1, unit: UnitVolume.cubicMiles)
-        XCTAssertEqual(cubicMiles.converted(to: UnitVolume.cubicYards).value, 1760 * 1760 * 1760, accuracy: 1_000_000, "Conversion from cubicMiles to cubicYards")
+        XCTAssertEqual(cubicMiles.converted(to: UnitVolume.cubicYards).value, 1760.0 * 1760.0 * 1760.0, accuracy: 1_000_000, "Conversion from cubicMiles to cubicYards")
 
         let cubicYards = Measurement(value: 1, unit: UnitVolume.cubicYards)
         XCTAssertEqual(cubicYards.converted(to: UnitVolume.cubicFeet).value, 27, accuracy: 0.001, "Conversion from cubicYards to cubicFeet")
