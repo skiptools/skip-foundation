@@ -18,11 +18,7 @@ import XCTest
 class TestDimension: XCTestCase {
 
     func test_encodeDecode() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let original = Dimension(symbol: "symbol", converter: UnitConverterLinear(coefficient: 1.0))
-        #endif // !SKIP
     }
 
 }

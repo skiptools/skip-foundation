@@ -18,34 +18,28 @@ import XCTest
 class TestUnitInformationStorage: XCTestCase {
     @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
     func testUnitInformationStorage() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let bits = Measurement(value: 8, unit: UnitInformationStorage.bits)
         XCTAssertEqual(
-            bits.converted(to: .bytes).value,
+            bits.converted(to: UnitInformationStorage.bytes).value,
             1,
             "Conversion from bits to bytes"
         )
         XCTAssertEqual(
-            bits.converted(to: .nibbles).value,
+            bits.converted(to: UnitInformationStorage.nibbles).value,
             2,
             "Conversion from bits to nibbles"
         )
         XCTAssertEqual(
-            bits.converted(to: .yottabits).value,
+            bits.converted(to: UnitInformationStorage.yottabits).value,
             8.0e-24,
             accuracy: 1.0e-27,
             "Conversion from bits to yottabits"
         )
         XCTAssertEqual(
-            bits.converted(to: .gibibits).value,
+            bits.converted(to: UnitInformationStorage.gibibits).value,
             7.450581e-09,
             accuracy: 1.0e-12,
             "Conversion from bits to gibibits"
         )
-        #endif // !SKIP
     }
 }
-
-
