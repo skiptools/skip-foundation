@@ -41,40 +41,38 @@ class TestUnitVolume: XCTestCase {
 
     func testMetricToImperialVolumeConversion() {
         let liters = Measurement(value: 10, unit: UnitVolume.liters)
-        XCTAssertEqual(liters.converted(to: .cubicInches).value, 610.236, accuracy: 0.001, "Conversion from liters to cubicInches")
+        XCTAssertEqual(liters.converted(to: UnitVolume.cubicInches).value, 610.236, accuracy: 0.001, "Conversion from liters to cubicInches")
     }
 
     func testImperialVolumeConversions() {
         let cubicMiles = Measurement(value: 1, unit: UnitVolume.cubicMiles)
-        XCTAssertEqual(cubicMiles.converted(to: .cubicYards).value, 1760 * 1760 * 1760, accuracy: 1_000_000, "Conversion from cubicMiles to cubicYards")
+        XCTAssertEqual(cubicMiles.converted(to: UnitVolume.cubicYards).value, 1760 * 1760 * 1760, accuracy: 1_000_000, "Conversion from cubicMiles to cubicYards")
 
         let cubicYards = Measurement(value: 1, unit: UnitVolume.cubicYards)
-        XCTAssertEqual(cubicYards.converted(to: .cubicFeet).value, 27, accuracy: 0.001, "Conversion from cubicYards to cubicFeet")
+        XCTAssertEqual(cubicYards.converted(to: UnitVolume.cubicFeet).value, 27, accuracy: 0.001, "Conversion from cubicYards to cubicFeet")
 
         let cubicFeet = Measurement(value: 1, unit: UnitVolume.cubicFeet)
-        XCTAssertEqual(cubicFeet.converted(to: .cubicInches).value, 1728, accuracy: 0.01, "Conversion from cubicFeet to cubicInches")
+        XCTAssertEqual(cubicFeet.converted(to: UnitVolume.cubicInches).value, 1728, accuracy: 0.01, "Conversion from cubicFeet to cubicInches")
 
         let gallons = Measurement(value: 1, unit: UnitVolume.gallons)
-        XCTAssertEqual(gallons.converted(to: .quarts).value, 4, accuracy: 0.001, "Conversion from gallons to quarts")
+        XCTAssertEqual(gallons.converted(to: UnitVolume.quarts).value, 4, accuracy: 0.001, "Conversion from gallons to quarts")
 
         let quarts = Measurement(value: 1, unit: UnitVolume.quarts)
-        XCTAssertEqual(quarts.converted(to: .pints).value, 2, accuracy: 0.001, "Conversion from quarts to pints")
+        XCTAssertEqual(quarts.converted(to: UnitVolume.pints).value, 2, accuracy: 0.001, "Conversion from quarts to pints")
 
         let pints = Measurement(value: 1, unit: UnitVolume.pints)
-        XCTAssertEqual(pints.converted(to: .cups).value, 2, accuracy: 0.05, "Conversion from pints to cups")
+        XCTAssertEqual(pints.converted(to: UnitVolume.cups).value, 2, accuracy: 0.05, "Conversion from pints to cups")
 
         let cups = Measurement(value: 1, unit: UnitVolume.cups)
-        XCTAssertEqual(cups.converted(to: .fluidOunces).value, 8.12, accuracy: 0.01, "Conversion from cups to fluidOunces")
+        XCTAssertEqual(cups.converted(to: UnitVolume.fluidOunces).value, 8.12, accuracy: 0.01, "Conversion from cups to fluidOunces")
 
         let fluidOunces = Measurement(value: 1, unit: UnitVolume.fluidOunces)
-        XCTAssertEqual(fluidOunces.converted(to: .tablespoons).value, 2, accuracy: 0.001, "Conversion from fluidOunces to tablespoons")
+        XCTAssertEqual(fluidOunces.converted(to: UnitVolume.tablespoons).value, 2, accuracy: 0.001, "Conversion from fluidOunces to tablespoons")
 
         let tablespoons = Measurement(value: 1, unit: UnitVolume.tablespoons)
-        XCTAssertEqual(tablespoons.converted(to: .teaspoons).value, 3, accuracy: 0.001, "Conversion from tablespoons to teaspoons")
+        XCTAssertEqual(tablespoons.converted(to: UnitVolume.teaspoons).value, 3, accuracy: 0.001, "Conversion from tablespoons to teaspoons")
 
         let teaspoons = Measurement(value: 1, unit: UnitVolume.teaspoons)
-        XCTAssertEqual(teaspoons.converted(to: .cubicInches).value, 0.3, accuracy: 0.001, "Conversion from teaspoons to cubicInches")
+        XCTAssertEqual(teaspoons.converted(to: UnitVolume.cubicInches).value, 0.3, accuracy: 0.001, "Conversion from teaspoons to cubicInches")
     }
 }
-
-

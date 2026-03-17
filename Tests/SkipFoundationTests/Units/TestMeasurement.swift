@@ -15,22 +15,8 @@ import XCTest
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if false && !DARWIN_COMPATIBILITY_TESTS     // https://bugs.swift.org/browse/SR-10904
-class CustomUnit: Unit {
-    override required init(symbol: String) {
-        super.init(symbol: symbol)
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-    }
-
-    public static let bugs = CustomUnit(symbol: "bug")
-    public static let features = CustomUnit(symbol: "feature")
-}
-#endif
-
 class TestMeasurement: XCTestCase {
+    #if !SKIP
     func testHashing() {
         let lengths: [[Measurement<UnitLength>]] = [
             [
@@ -78,26 +64,54 @@ class TestMeasurement: XCTestCase {
 #endif
     }
 
-    #if !SKIP
     let fixtures = [
         Fixtures.zeroMeasurement,
         Fixtures.lengthMeasurement,
         Fixtures.frequencyMeasurement,
         Fixtures.angleMeasurement,
     ]
-    #endif
 
     func testCodingRoundtrip() throws {
         for fixture in fixtures {
             try fixture.assertValueRoundtripsInCoder()
         }
     }
-    
+
     func testLoadedValuesMatch() throws {
         for fixture in fixtures {
 //            try fixture.assertLoadedValuesMatch()
         }
     }
+    #endif
+
+    func testMeasurementCreation() {
+        let m = Measurement(value: 42.0, unit: UnitLength.meters)
+        XCTAssertEqual(m.value, 42.0)
+        XCTAssertEqual(m.unit.symbol, "m")
+    }
+
+    func testMeasurementConversion() {
+        let km = Measurement(value: 1.0, unit: UnitLength.kilometers)
+        let m = km.converted(to: UnitLength.meters)
+        XCTAssertEqual(m.value, 1000.0, accuracy: 0.001)
+    }
+
+    func testMeasurementEquality() {
+        let a = Measurement(value: 1000.0, unit: UnitLength.meters)
+        let b = Measurement(value: 1.0, unit: UnitLength.kilometers)
+        XCTAssertEqual(a, b)
+    }
+
+    func testMeasurementComparison() {
+        let a = Measurement(value: 1.0, unit: UnitLength.kilometers)
+        let b = Measurement(value: 500.0, unit: UnitLength.meters)
+        XCTAssertTrue(a > b)
+    }
+
+    func testMeasurementArithmetic() {
+        let a = Measurement(value: 2.0, unit: UnitMass.kilograms)
+        let b = Measurement(value: 500.0, unit: UnitMass.grams)
+        let sum = a + b
+        XCTAssertEqual(sum.converted(to: UnitMass.kilograms).value, 2.5, accuracy: 0.001)
+    }
 }
-
-
