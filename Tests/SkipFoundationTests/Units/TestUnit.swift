@@ -17,11 +17,11 @@ import XCTest
 
 class TestUnit: XCTestCase {
 
+    // Unit(symbol:) conflicts with kotlin.Unit, and this test uses generics
+    // that don't transpile cleanly. Run on native only.
+    #if !SKIP
     @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
     func test_equality() {
-        #if SKIP
-        throw XCTSkip("TODO")
-        #else
         let s1 = "a"
         let s2 = "ab"
 
@@ -97,9 +97,7 @@ class TestUnit: XCTestCase {
         testEquality(ofDimensionSubclass: UnitSpeed.self)
         testEquality(ofDimensionSubclass: UnitTemperature.self)
         testEquality(ofDimensionSubclass: UnitVolume.self)
-        #endif // !SKIP
     }
+    #endif
 
 }
-
-
