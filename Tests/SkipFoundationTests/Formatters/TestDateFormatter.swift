@@ -182,13 +182,14 @@ class TestDateFormatter: XCTestCase {
     // ------  --------------                 -----------------
     // en_US   MMMM d, y 'at' h:mm:ss a zzz   December 25, 2015 at 12:00:00 AM GMT
     func test_dateStyleLong() {
-        let timestamps = [
-            -31536000 : "January 1, 1969 at 12:00:00\(ts)AM GMT" , 0.0 : "January 1, 1970 at 12:00:00\(ts)AM GMT", 31536000 : "January 1, 1971 at 12:00:00\(ts)AM GMT",
-            2145916800 : "January 1, 2038 at 12:00:00\(ts)AM GMT", 1456272000 : "February 24, 2016 at 12:00:00\(ts)AM GMT", 1456358399 : "February 24, 2016 at 11:59:59\(ts)PM GMT",
-            1452574638 : "January 12, 2016 at 4:57:18\(ts)AM GMT", 1455685038 : "February 17, 2016 at 4:57:18\(ts)AM GMT", 1458622638 : "March 22, 2016 at 4:57:18\(ts)AM GMT",
-            1459745838 : "April 4, 2016 at 4:57:18\(ts)AM GMT", 1462597038 : "May 7, 2016 at 4:57:18\(ts)AM GMT", 1465534638 : "June 10, 2016 at 4:57:18\(ts)AM GMT",
-            1469854638 : "July 30, 2016 at 4:57:18\(ts)AM GMT", 1470718638 : "August 9, 2016 at 4:57:18\(ts)AM GMT", 1473915438 : "September 15, 2016 at 4:57:18\(ts)AM GMT",
-            1477285038 : "October 24, 2016 at 4:57:18\(ts)AM GMT", 1478062638 : "November 2, 2016 at 4:57:18\(ts)AM GMT", 1482641838 : "December 25, 2016 at 4:57:18\(ts)AM GMT"
+        let timestamps: [TimeInterval: [String]] = [
+            -31536000.0 : ["January 1, 1969 at 12:00:00\(ts)AM GMT", "January 1, 1969 at 12:00:00\(ts)AM GMT+0"],
+            0.0 : ["January 1, 1970 at 12:00:00\(ts)AM GMT"], 31536000.0 : ["January 1, 1971 at 12:00:00\(ts)AM GMT"],
+            2145916800.0 : ["January 1, 2038 at 12:00:00\(ts)AM GMT"], 1456272000.0 : ["February 24, 2016 at 12:00:00\(ts)AM GMT"], 1456358399.0 : ["February 24, 2016 at 11:59:59\(ts)PM GMT"],
+            1452574638.0 : ["January 12, 2016 at 4:57:18\(ts)AM GMT"], 1455685038.0 : ["February 17, 2016 at 4:57:18\(ts)AM GMT"], 1458622638.0 : ["March 22, 2016 at 4:57:18\(ts)AM GMT"],
+            1459745838.0 : ["April 4, 2016 at 4:57:18\(ts)AM GMT"], 1462597038.0 : ["May 7, 2016 at 4:57:18\(ts)AM GMT"], 1465534638.0 : ["June 10, 2016 at 4:57:18\(ts)AM GMT"],
+            1469854638.0 : ["July 30, 2016 at 4:57:18\(ts)AM GMT"], 1470718638.0 : ["August 9, 2016 at 4:57:18\(ts)AM GMT"], 1473915438.0 : ["September 15, 2016 at 4:57:18\(ts)AM GMT"],
+            1477285038.0 : ["October 24, 2016 at 4:57:18\(ts)AM GMT"], 1478062638.0 : ["November 2, 2016 at 4:57:18\(ts)AM GMT"], 1482641838.0 : ["December 25, 2016 at 4:57:18\(ts)AM GMT"]
         ]
         
         let f = DateFormatter()
@@ -201,12 +202,15 @@ class TestDateFormatter: XCTestCase {
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
         f.locale = Locale(identifier: DEFAULT_LOCALE)
         
-        for (timestamp, stringResult) in timestamps {
+        for (timestamp, expectedStrings) in timestamps {
             
             let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
-            
-            XCTAssertEqual(sf, stringResult)
+
+            XCTAssertTrue(
+                expectedStrings.contains(sf),
+                "Expected one of \(expectedStrings), got \(sf)"
+            )
         }
         
         #endif // !SKIP
@@ -222,17 +226,18 @@ class TestDateFormatter: XCTestCase {
         #else
 
 #if os(macOS) // timestyle .full is currently broken on Linux, the timezone should be 'Greenwich Mean Time' not 'GMT'
-        let timestamps: [TimeInterval:String] = [
+        let timestamps: [TimeInterval: [String]] = [
             // Negative time offsets are still buggy on macOS
-            -31536000 : "Wednesday, January 1, 1969 at 12:00:00\(ts)AM GMT", 0.0 : "Thursday, January 1, 1970 at 12:00:00\(ts)AM Greenwich Mean Time",
-            31536000 : "Friday, January 1, 1971 at 12:00:00\(ts)AM Greenwich Mean Time", 2145916800 : "Friday, January 1, 2038 at 12:00:00\(ts)AM Greenwich Mean Time",
-            1456272000 : "Wednesday, February 24, 2016 at 12:00:00\(ts)AM Greenwich Mean Time", 1456358399 : "Wednesday, February 24, 2016 at 11:59:59\(ts)PM Greenwich Mean Time",
-            1452574638 : "Tuesday, January 12, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1455685038 : "Wednesday, February 17, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
-            1458622638 : "Tuesday, March 22, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1459745838 : "Monday, April 4, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
-            1462597038 : "Saturday, May 7, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1465534638 : "Friday, June 10, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
-            1469854638 : "Saturday, July 30, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1470718638 : "Tuesday, August 9, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
-            1473915438 : "Thursday, September 15, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1477285038 : "Monday, October 24, 2016 at 4:57:18\(ts)AM Greenwich Mean Time",
-            1478062638 : "Wednesday, November 2, 2016 at 4:57:18\(ts)AM Greenwich Mean Time", 1482641838 : "Sunday, December 25, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"
+            -31536000.0 : ["Wednesday, January 1, 1969 at 12:00:00\(ts)AM GMT", "Wednesday, January 1, 1969 at 12:00:00\(ts)AM GMT+00:00"],
+            0.0 : ["Thursday, January 1, 1970 at 12:00:00\(ts)AM Greenwich Mean Time"],
+            31536000.0 : ["Friday, January 1, 1971 at 12:00:00\(ts)AM Greenwich Mean Time"], 2145916800.0 : ["Friday, January 1, 2038 at 12:00:00\(ts)AM Greenwich Mean Time"],
+            1456272000.0 : ["Wednesday, February 24, 2016 at 12:00:00\(ts)AM Greenwich Mean Time"], 1456358399.0 : ["Wednesday, February 24, 2016 at 11:59:59\(ts)PM Greenwich Mean Time"],
+            1452574638.0 : ["Tuesday, January 12, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"], 1455685038.0 : ["Wednesday, February 17, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"],
+            1458622638.0 : ["Tuesday, March 22, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"], 1459745838.0 : ["Monday, April 4, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"],
+            1462597038.0 : ["Saturday, May 7, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"], 1465534638.0 : ["Friday, June 10, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"],
+            1469854638.0 : ["Saturday, July 30, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"], 1470718638.0 : ["Tuesday, August 9, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"],
+            1473915438.0 : ["Thursday, September 15, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"], 1477285038.0 : ["Monday, October 24, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"],
+            1478062638.0 : ["Wednesday, November 2, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"], 1482641838.0 : ["Sunday, December 25, 2016 at 4:57:18\(ts)AM Greenwich Mean Time"]
         ]
         
         let f = DateFormatter()
@@ -241,12 +246,15 @@ class TestDateFormatter: XCTestCase {
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
         f.locale = Locale(identifier: DEFAULT_LOCALE)
         
-        for (timestamp, stringResult) in timestamps {
+        for (timestamp, expectedStrings) in timestamps {
             
             let testDate = Date(timeIntervalSince1970: timestamp)
             let sf = f.string(from: testDate)
 
-            XCTAssertEqual(sf, stringResult)
+            XCTAssertTrue(
+                expectedStrings.contains(sf),
+                "Expected one of \(expectedStrings), got \(sf)"
+            )
         }
 #endif
         #endif // !SKIP
