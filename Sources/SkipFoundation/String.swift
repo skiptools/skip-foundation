@@ -132,11 +132,11 @@ extension String {
     }
 
     public func addingPercentEncoding(withAllowedCharacters allowedCharacters: CharacterSet) -> String? {
-        return UrlEncoderUtil.encode(self, allowedCharacters.platformValue, spaceToPlus: true)
+        return UrlEncoderUtil.encode(self, allowedCharacters.platformValue, spaceToPlus: false)
     }
 
     public var removingPercentEncoding: String? {
-        return UrlEncoderUtil.decode(self, plusToSpace: true)
+        return UrlEncoderUtil.decode(self, plusToSpace: false)
     }
 
     public func range(of searchString: String) -> Range<String.Index>? {

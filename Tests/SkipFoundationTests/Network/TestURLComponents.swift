@@ -63,11 +63,7 @@ class TestURLComponents: XCTestCase {
         components?.percentEncodedQueryItems?.forEach {
             query[$0.name] = $0.value ?? ""
         }
-        #if SKIP
-        XCTAssertEqual(["feed+me": "feed+me"], query)
-        #else
         XCTAssertEqual(["feed%20me": "feed%20me"], query)
-        #endif
     }
 
     func test_string() {
@@ -266,13 +262,8 @@ class TestURLComponents: XCTestCase {
             XCTFail("first element is missing")
             return
         }
-        #if SKIP
-        XCTAssertEqual(item.name, "simple+string")
-        XCTAssertEqual(item.value, "true+is+false")
-        #else
         XCTAssertEqual(item.name, "simple%20string")
         XCTAssertEqual(item.value, "true%20is%20false")
-        #endif
     }
 
     func test_path() {
