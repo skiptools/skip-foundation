@@ -210,12 +210,29 @@ final class DateTests: XCTestCase {
         XCTAssertEqual("หลังเที่ยง", calendar.pmSymbol)
         #endif
 
-        #if !SKIP // fails on Android API 28
-        XCTAssertEqual(["ก่อน ค.ศ.", "ค.ศ."], calendar.eraSymbols)
+        // This test is highly sensitive to the locale data
+        // It varies across versions of macOS and Android
+        // So we're making a list of acceptable values; any of these are fine.
+        let thaiEraSymbols = calendar.eraSymbols
+        let acceptableThaiEraSymbols: [[String]] = [
+            ["ก่อน ค.ศ.", "ค.ศ."],
+            ["ปีก่อน ค.ศ.", "ค.ศ."],
+        ]
+        XCTAssertTrue(
+            acceptableThaiEraSymbols.contains { $0 == thaiEraSymbols },
+            "Unexpected Thai eraSymbols: \(thaiEraSymbols)"
+        )
         XCTAssertEqual(["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"], calendar.monthSymbols)
         XCTAssertEqual(["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."], calendar.shortMonthSymbols)
         XCTAssertEqual(["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"], calendar.weekdaySymbols)
-        XCTAssertEqual(["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."], calendar.shortWeekdaySymbols)
-        #endif
+        let thaiShortWeekdaySymbols = calendar.shortWeekdaySymbols
+        let acceptableThaiShortWeekdaySymbols: [[String]] = [
+            ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."],
+            ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"],
+        ]
+        XCTAssertTrue(
+            acceptableThaiShortWeekdaySymbols.contains { $0 == thaiShortWeekdaySymbols },
+            "Unexpected Thai shortWeekdaySymbols: \(thaiShortWeekdaySymbols)"
+        )
     }
 }
