@@ -151,7 +151,7 @@ class TestRelativeDateTimeFormatter: XCTestCase {
         #if SKIP
         throw XCTSkip("TODO")
         #else
-        // e.g.: Test Suite 'Selected tests' started at 2025-03-01 22:20:41.197.Test Suite 'skip-foundationPackageTests.xctest' started at 2025-03-01 22:20:41.199.Test Suite 'TestRelativeDateTimeFormatter' started at 2025-03-01 22:20:41.199.Test Case '-[SkipFoundationTests.TestRelativeDateTimeFormatter test_numericSpelledOut]' started./Users/runner/work/skip-foundation/skip-foundation/Tests/SkipFoundationTests/Formatters/TestRelativeDateTimeFormatter.swift:157: error: -[SkipFoundationTests.TestRelativeDateTimeFormatter test_numericSpelledOut] : XCTAssertEqual failed: ("one year ago") is not equal to ("eleven months ago")Test Case '-[SkipFoundationTests.TestRelativeDateTimeFormatter test_numericSpelledOut]' failed (0.709 seconds).
+        // e.g.: ("one year ago") is not equal to ("eleven months ago")
         throw XCTSkip("relative date formatting assumptions break when current date is at beginnging or end of month")
         formatter.dateTimeStyle = .numeric
         formatter.unitsStyle = .spellOut
@@ -181,7 +181,7 @@ class TestRelativeDateTimeFormatter: XCTestCase {
     }
 
     func test_namedShort() throws {
-        // e.g.: [✗] Test Case '-[SkipFoundationTests.TestRelativeDateTimeFormatter test_namedShort]' started./Users/runner/work/skip-foundation/skip-foundation/Tests/SkipFoundationTests/Formatters/TestRelativeDateTimeFormatter.swift:184: error: -[SkipFoundationTests.TestRelativeDateTimeFormatter test_namedShort] : XCTAssertEqual failed: ("last yr.") is not equal to ("11 mo. ago")Test Case '-[SkipFoundationTests.TestRelativeDateTimeFormatter test_namedShort]' failed (0.695 seconds).Test Suite 'TestRelativeDateTimeFormatter' failed at 2025-03-01 22:20:41.874.
+        // e.g.: ("last yr.") is not equal to ("11 mo. ago")
         throw XCTSkip("relative date formatting assumptions break when current date is at beginnging or end of month")
         formatter.dateTimeStyle = .named
         formatter.unitsStyle = .short
@@ -218,7 +218,7 @@ class TestRelativeDateTimeFormatter: XCTestCase {
         #if SKIP
         throw XCTSkip("TODO")
         #else
-        // e.g.: Test Suite 'Selected tests' started at 2025-03-01 22:20:41.122.Test Suite 'skip-foundationPackageTests.xctest' started at 2025-03-01 22:20:41.123.Test Suite 'TestRelativeDateTimeFormatter' started at 2025-03-01 22:20:41.123.Test Case '-[SkipFoundationTests.TestRelativeDateTimeFormatter test_namedAbbreviated]' started./Users/runner/work/skip-foundation/skip-foundation/Tests/SkipFoundationTests/Formatters/TestRelativeDateTimeFormatter.swift:220: error: -[SkipFoundationTests.TestRelativeDateTimeFormatter test_namedAbbreviated] : XCTAssertEqual failed: ("last yr.") is not equal to ("11 mo. ago")Test Case '-[SkipFoundationTests.TestRelativeDateTimeFormatter test_namedAbbreviated]' failed (0.751 seconds).Test Suite 'TestRelativeDateTimeFormatter' failed at 2025-03-01 22:20:41.874.
+        // e.g.: ("last yr.") is not equal to ("11 mo. ago")
         throw XCTSkip("relative date formatting assumptions break when current date is at beginnging or end of month")
         formatter.dateTimeStyle = .named
         formatter.unitsStyle = .abbreviated
