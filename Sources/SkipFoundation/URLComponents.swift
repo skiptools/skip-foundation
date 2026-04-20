@@ -167,7 +167,7 @@ public struct URLComponents : Hashable, Equatable, Sendable {
 
     public var percentEncodedQuery: String? {
         get {
-            return URLQueryItem.queryString(from: percentEncodedQueryItems)
+            return URLQueryItem.queryString(from: queryItems)
         }
         set {
             self.query = newValue?.removingPercentEncoding
@@ -262,8 +262,9 @@ public struct URLQueryItem : Hashable, Equatable, Sendable {
         }
         var query = ""
         for item in items {
-            let name = item.name
-            let value = item.value ?? ""
+            let name = item.name.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? item.name
+            let rawValue = item.value ?? ""
+            let value = rawValue.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? rawValue
             if !query.isEmpty {
                 query += "&"
             }

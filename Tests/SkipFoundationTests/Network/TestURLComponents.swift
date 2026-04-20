@@ -66,6 +66,34 @@ class TestURLComponents: XCTestCase {
         XCTAssertEqual(["feed%20me": "feed%20me"], query)
     }
 
+    func test_mailtoBodyPreservesNewlinesAsPercentEncoding() throws {
+        let letterBody = "Dear Kate,\n\nHere's to the crazy ones.\n\nTake care,\nJohn Appleseed"
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = "support@example.com"
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: "Diagnostics"),
+            URLQueryItem(name: "body", value: letterBody)
+        ]
+
+        // Query encoding matches Darwin once `urlQueryAllowed` includes comma, apostrophe, etc.
+        let expectedEncodedBody =
+            "Dear%20Kate,%0A%0AHere's%20to%20the%20crazy%20ones.%0A%0ATake%20care,%0AJohn%20Appleseed"
+        let percentEncodedItems = try XCTUnwrap(components.percentEncodedQueryItems)
+        let encodedBody = try XCTUnwrap(percentEncodedItems.first(where: { $0.name == "body" })?.value)
+        XCTAssertEqual(encodedBody, expectedEncodedBody)
+
+        let expectedPercentEncodedQuery = "subject=Diagnostics&body=\(expectedEncodedBody)"
+        let percentEncodedQuery = try XCTUnwrap(components.percentEncodedQuery)
+        XCTAssertEqual(percentEncodedQuery, expectedPercentEncodedQuery)
+
+        let expectedAbsolute = "mailto:support@example.com?\(expectedPercentEncodedQuery)"
+        XCTAssertEqual(components.string, expectedAbsolute)
+        let url = try XCTUnwrap(components.url)
+        let absolute = url.absoluteString
+        XCTAssertEqual(absolute, expectedAbsolute)
+    }
+
     func test_string() {
         #if SKIP
         throw XCTSkip("TODO")
