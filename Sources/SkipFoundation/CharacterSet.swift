@@ -131,13 +131,14 @@ public struct CharacterSet : SetAlgebra, Hashable {
         fatalError("SKIP TODO: CharacterSet")
     }
 
-    public static var urlHostAllowed: CharacterSet {
-        return urlPathAllowed
-    }
+    /// swift -e 'import Foundation; print((0..<128).compactMap(UnicodeScalar.init).filter(CharacterSet.urlHostAllowed.contains).map(String.init).joined())'
+    public static var urlHostAllowed = CharacterSet(platformValue: toPlatformValue(["!$&'()*+,-.0123456789:;=ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~"]))
 
-    public static let urlPathAllowed = CharacterSet(platformValue: toPlatformValue(["-", ".", "_", "~", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]))
+    /// swift -e 'import Foundation; print((0..<128).compactMap(UnicodeScalar.init).filter(CharacterSet.urlPathAllowed.contains).map(String.init).joined())'
+    public static let urlPathAllowed = CharacterSet(platformValue: toPlatformValue(["!$&'()*+,-./0123456789:;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"]))
 
-    public static let urlQueryAllowed = CharacterSet(platformValue: toPlatformValue(["/", "?", "&", "=", "+", "-", ".", "_", "~", "@", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]))
+    /// swift -e 'import Foundation; print((0..<128).compactMap(UnicodeScalar.init).filter(CharacterSet.urlQueryAllowed.contains).map(String.init).joined())'
+    public static let urlQueryAllowed = CharacterSet(platformValue: toPlatformValue(["!$&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"]))
 
     public static var urlFragmentAllowed: CharacterSet {
         return urlQueryAllowed
