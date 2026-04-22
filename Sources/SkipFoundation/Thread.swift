@@ -26,6 +26,11 @@ public struct Thread : Hashable, Sendable, KotlinConverting<java.lang.Thread> {
         self == Thread.current
     }
 
+    public var name: String? {
+        get { platformValue.getName() }
+        set { platformValue.setName(newValue ?? "") }
+    }
+
     public static var callStackSymbols: [String] {
         Array(Thread.current.platformValue.getStackTrace().map({ $0.toString() }))
     }
