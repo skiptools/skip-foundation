@@ -378,7 +378,8 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         if !newPath.hasSuffix("/") {
             newPath += "/"
         }
-        newPath += pathComponent
+        let encodedPathComponent = pathComponent.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!
+        newPath += encodedPathComponent
         components.percentEncodedPath = newPath
         return components.url(relativeTo: baseURL)!
     }

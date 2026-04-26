@@ -779,14 +779,15 @@ class TestURL : XCTestCase {
     }
 
     func test_appendingPathComponent() {
-        let appendComponent = "foo"
         let urlsExpected = [
-            ("www.swift.org", "www.swift.org/\(appendComponent)"),
-            ("https://www.swift.org/", "https://www.swift.org/\(appendComponent)"),
-            ("https://www.swift.org/a+b#hash", "https://www.swift.org/a+b/\(appendComponent)#hash"),
-            ("https://www.swift.org/a%20b/#hash?q", "https://www.swift.org/a%20b/\(appendComponent)#hash?q"),
+            ("www.swift.org", "foo", "www.swift.org/foo"),
+            ("https://www.swift.org/", "foo", "https://www.swift.org/foo"),
+            ("https://www.swift.org/a+b#hash", "foo", "https://www.swift.org/a+b/foo#hash"),
+            ("https://www.swift.org/a%20b/#hash?q", "foo", "https://www.swift.org/a%20b/foo#hash?q"),
+            ("https://example.com/", "foo bar (1).png", "https://example.com/foo%20bar%20(1).png"),
+            ("https://example.com/", "foo/bar", "https://example.com/foo/bar"),
         ]
-        for (urlString, expected) in urlsExpected {
+        for (urlString, appendComponent, expected) in urlsExpected {
             let url = URL(string: urlString)!
             XCTAssertEqual(url.appendingPathComponent(appendComponent).absoluteString, expected)
         }
