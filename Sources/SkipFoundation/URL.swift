@@ -15,9 +15,20 @@
 //===----------------------------------------------------------------------===//
 
 #if SKIP
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
 public typealias NSURL = URL
 
 public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting<java.net.URI>, SwiftCustomBridged {
+    public enum DirectoryHint {
+        case isDirectory
+        case notDirectory
+        case checkFileSystem
+        case inferFromPath
+    }
+
     internal let platformValue: java.net.URI
     private let isDirectoryFlag: Bool?
 
@@ -117,7 +128,12 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         self.baseURL = baseURL
         // Use the same logic as the constructor so that `URL(fileURLWithPath: "/tmp/") == URL(string: "file:///tmp/")`
         let scheme = baseURL?.platformValue.scheme ?? self.platformValue.scheme
-        self.isDirectoryFlag = scheme == "file" && string.hasSuffix("/")
+        let isDir: Bool? = (scheme == "file" ? string.hasSuffix("/") : nil)
+        self.isDirectoryFlag = isDir
+        if isDir == true, let p = self.platformValue.path, !p.isEmpty, p != "/", p.hasSuffix("/") {
+            // store the platform value without a trailing slash
+            self.platformValue = java.net.URI(self.platformValue.scheme, nil, String(p.dropLast()), self.platformValue.query, self.platformValue.fragment)
+        }
     }
 
     public init?(string: String, encodingInvalidCharacters: Bool) {
@@ -139,13 +155,71 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
             }
         }
         self.baseURL = nil
-        self.isDirectoryFlag = self.platformValue.scheme == "file" && string.hasSuffix("/")
+        let isDir: Bool? = (self.platformValue.scheme == "file" ? string.hasSuffix("/") : nil)
+        self.isDirectoryFlag = isDir
+        if isDir == true, let p = self.platformValue.path, !p.isEmpty, p != "/", p.hasSuffix("/") {
+            // store the platform value without a trailing slash
+            self.platformValue = java.net.URI(self.platformValue.scheme, nil, String(p.dropLast()), self.platformValue.query, self.platformValue.fragment)
+        }
     }
 
     public init(fileURLWithPath path: String, isDirectory: Bool? = nil, relativeTo base: URL? = nil) {
-        self.platformValue = java.net.URI("file://" + path) // TODO: escaping
+        self.init(
+            filePath: path,
+            // TODO: This "should" be .checkFileSystem, but nobody _likes_ that
+            directoryHint: (isDirectory == true ? .isDirectory : (isDirectory == false ? .notDirectory : .inferFromPath)),
+            relativeTo: base
+        )
+    }
+
+    private static func _isDirectoryFor(filePath path: String, directoryHint: DirectoryHint, relativeTo base: URL?) -> Bool {
+        switch directoryHint {
+        case .isDirectory:
+            return true
+        case .inferFromPath, .notDirectory: // Swift Foundation treats .notDirectory as .inferFromPath
+            return path.hasSuffix("/")
+        case .checkFileSystem:
+            let isBaseFileURL = base?.isFileURL ?? true
+            if !isBaseFileURL || path.hasSuffix("/") {
+                return true
+            }
+
+            let pathToCheck: Path
+            if Paths.get(path).isAbsolute() {
+                pathToCheck = Paths.get(path)
+            } else if let base = base, base.isFileURL {
+                pathToCheck = Paths.get(base.path).resolve(path)
+            } else {
+                pathToCheck = Paths.get(path)
+            }
+
+            return Files.exists(pathToCheck) && Files.isDirectory(pathToCheck)
+        }
+    }
+
+    private static func _escapedFilePathForURI(_ path: String) -> String {
+        // Encode path-only invalid characters (e.g. spaces) while preserving valid path punctuation.
+        return java.net.URI(nil, nil, path, nil).rawPath ?? path
+    }
+
+    public init(filePath path: String, directoryHint: DirectoryHint = .inferFromPath, relativeTo base: URL? = nil) {
+        let isDirectory = URL._isDirectoryFor(filePath: path, directoryHint: directoryHint, relativeTo: base)
+
+        let resolvedPath: String
+        if let base, !path.hasPrefix("/") {
+            let baseForResolution = base.hasDirectoryPath ? base : base.deletingLastPathComponent()
+            resolvedPath = baseForResolution.appending(path: path, directoryHint: .inferFromPath).platformValue.path
+        } else {
+            resolvedPath = path
+        }
+        if isDirectory && resolvedPath != "/" && !resolvedPath.isEmpty && resolvedPath.hasSuffix("/") {
+            // Store without trailing slash so hasDirectoryPath controls rendering.
+            self.platformValue = java.net.URI("file://" + URL._escapedFilePathForURI(String(resolvedPath.dropLast())))
+        } else {
+            self.platformValue = java.net.URI("file://" + URL._escapedFilePathForURI(resolvedPath))
+        }
         self.baseURL = base
-        self.isDirectoryFlag = isDirectory ?? path.hasSuffix("/") // TODO: should we hit the file system like NSURL does?
+        self.isDirectoryFlag = isDirectory
     }
 
     @available(*, unavailable)
@@ -208,12 +282,12 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var description: String {
-        return platformValue.toString()
+        return absoluteString
     }
 
     /// Converts this URL to a `java.nio.file.Path`.
-    public func toPath() -> java.nio.file.Path {
-        return java.nio.file.Paths.get(absoluteURL.platformValue)
+    public func toPath() -> Path {
+        return Paths.get(absoluteURL.platformValue)
     }
 
     /// Converts this URL to a `android.net.Uri`.
@@ -296,7 +370,12 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
     }
 
     public var absoluteString: String {
-        return absoluteURL.platformValue.toString()
+        let absolute = absoluteURL
+        let s = absolute.platformValue.toString()
+        guard absolute.isFileURL, absolute.isDirectoryFlag == true, !s.hasSuffix("/") else {
+            return s
+        }
+        return s + "/"
     }
 
     public var lastPathComponent: String {
@@ -364,33 +443,20 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
 
     public var absoluteURL: URL {
         if let baseURL = self.baseURL {
-            return URL(platformValue: baseURL.platformValue.resolve(platformValue))
+            let resolved = URL(platformValue: baseURL.platformValue.resolve(platformValue), isDirectory: self.isDirectoryFlag)
+            return resolved
         } else {
             return self
         }
     }
 
-    private func _appendingPathComponent(_ pathComponent: String) -> URL {
-        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
-            return self
-        }
-        var newPath = components.percentEncodedPath
-        if !newPath.hasSuffix("/") {
-            newPath += "/"
-        }
-        let encodedPathComponent = pathComponent.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!
-        newPath += encodedPathComponent
-        components.percentEncodedPath = newPath
-        return components.url(relativeTo: baseURL)!
-    }
-
     public func appendingPathComponent(_ pathComponent: String) -> URL {
-        _appendingPathComponent(pathComponent)
+        // TODO: This "should" use directoryHint: .checkFileSystem, but nobody _likes_ that
+        appending(path: pathComponent)
     }
 
     public func appendingPathComponent(_ pathComponent: String, isDirectory: Bool) -> URL {
-        let string = _appendingPathComponent(pathComponent).absoluteString
-        return URL(platformValue: java.net.URI(string), isDirectory: isDirectory)
+        return appending(path: pathComponent, directoryHint: (isDirectory ? .isDirectory : .notDirectory))
     }
 
     public mutating func appendPathComponent(_ pathComponent: String) {
@@ -399,6 +465,31 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
 
     public mutating func appendPathComponent(_ pathComponent: String, isDirectory: Bool) {
         self = appendingPathComponent(pathComponent, isDirectory: isDirectory)
+    }
+
+    public func appending(path: String, directoryHint: DirectoryHint = .inferFromPath) -> URL {
+        let hasTrailingSlash = path.hasSuffix("/")
+        let isDirectory = URL._isDirectoryFor(filePath: path, directoryHint: directoryHint, relativeTo: self)
+
+        let adjustedPath = (isDirectory && !hasTrailingSlash) ? (path + "/") : path
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return self
+        }
+        var newPath = components.percentEncodedPath
+        if !newPath.hasSuffix("/") {
+            newPath += "/"
+        }
+        let encodedPathComponent = adjustedPath.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlPathAllowed)!
+        newPath += encodedPathComponent
+        components.percentEncodedPath = newPath
+        guard let string = components.string else {
+            return self
+        }
+        return URL(platformValue: java.net.URI(string), isDirectory: isDirectory, baseURL: baseURL)
+    }
+
+    public mutating func append(path: String, directoryHint: DirectoryHint = .inferFromPath) {
+        self = appending(path: path, directoryHint: directoryHint)
     }
 
     @available(*, unavailable)
@@ -509,7 +600,19 @@ public struct URL : Hashable, CustomStringConvertible, Codable, KotlinConverting
         //    return URL(platformValue: normalized.toUri().toURL())
         //}
         do {
-            return URL(platformValue: originalPath.toRealPath().toUri())
+            let resolved = originalPath.toRealPath().toUri()
+            let stored: java.net.URI
+            if resolved.scheme == "file" {
+                let p = resolved.path
+                if !p.isEmpty, p != "/", p.hasSuffix("/") {
+                    stored = java.net.URI(resolved.scheme, nil, String(p.dropLast()), resolved.query, resolved.fragment)
+                } else {
+                    stored = resolved
+                }
+            } else {
+                stored = resolved
+            }
+            return URL(platformValue: stored, isDirectory: self.isDirectoryFlag)
         } catch {
             // this will fail if the file does not exist, but Foundation expects it to return the path itself
             return self

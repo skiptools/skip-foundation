@@ -529,6 +529,66 @@ class TestURL : XCTestCase {
         #endif
     }
 
+    func test_init_filePath_directoryHint_relativeTo() throws {
+        let fileManager = FileManager.default
+        let baseDirectoryURL = URL(fileURLWithPath: TestURL.gBaseTemporaryDirectoryPath, isDirectory: true)
+
+        try? fileManager.removeItem(atPath: TestURL.gBaseTemporaryDirectoryPath)
+        try fileManager.createDirectory(atPath: TestURL.gBaseTemporaryDirectoryPath, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(atPath: TestURL.gBaseTemporaryDirectoryPath) }
+
+        try Data("test".utf8).write(to: URL(fileURLWithPath: TestURL.gFileExistsPath))
+        try fileManager.createDirectory(atPath: TestURL.gDirectoryExistsPath, withIntermediateDirectories: false)
+
+        // Native Foundation behavior: relativeTo is not reflected in absoluteString for these relative filePath inputs.
+        let inferredDirectoryURL = URL(filePath: "docs/", directoryHint: .inferFromPath, relativeTo: baseDirectoryURL)
+        XCTAssertTrue(inferredDirectoryURL.hasDirectoryPath)
+        XCTAssertEqual(inferredDirectoryURL.path, "\(TestURL.gBaseTemporaryDirectoryPath)/docs")
+        XCTAssertEqual(inferredDirectoryURL.absoluteString, "file://\(TestURL.gBaseTemporaryDirectoryPath)/docs/")
+
+        let explicitDirectoryURL = URL(filePath: "docs", directoryHint: .isDirectory, relativeTo: baseDirectoryURL)
+        XCTAssertTrue(explicitDirectoryURL.hasDirectoryPath)
+        XCTAssertEqual(explicitDirectoryURL.path, "\(TestURL.gBaseTemporaryDirectoryPath)/docs")
+        XCTAssertEqual(explicitDirectoryURL.absoluteString, "file://\(TestURL.gBaseTemporaryDirectoryPath)/docs/")
+
+        let missingNoSlash = URL(filePath: TestURL.gFileDoesNotExistPath, directoryHint: .checkFileSystem, relativeTo: baseDirectoryURL)
+        XCTAssertFalse(missingNoSlash.hasDirectoryPath)
+        XCTAssertEqual(missingNoSlash.path, TestURL.gFileDoesNotExistPath)
+        XCTAssertEqual(missingNoSlash.absoluteString, "file://\(TestURL.gFileDoesNotExistPath)")
+
+        let missingWithSlash = URL(filePath: "\(TestURL.gFileDoesNotExistPath)/", directoryHint: .checkFileSystem, relativeTo: baseDirectoryURL)
+        XCTAssertTrue(missingWithSlash.hasDirectoryPath)
+        XCTAssertEqual(missingWithSlash.path, TestURL.gFileDoesNotExistPath)
+        XCTAssertEqual(missingWithSlash.absoluteString, "file://\(TestURL.gFileDoesNotExistPath)/")
+
+        let existingFile = URL(filePath: TestURL.gFileExistsPath, directoryHint: .checkFileSystem, relativeTo: baseDirectoryURL)
+        XCTAssertFalse(existingFile.hasDirectoryPath)
+        XCTAssertEqual(existingFile.path, TestURL.gFileExistsPath)
+        XCTAssertEqual(existingFile.absoluteString, "file://\(TestURL.gFileExistsPath)")
+
+        let escapedName = "foo bar (final) (final2).pdf"
+        let escapedPath = "\(TestURL.gBaseTemporaryDirectoryPath)/\(escapedName)"
+        let escapedFile = URL(filePath: escapedPath, directoryHint: .checkFileSystem, relativeTo: baseDirectoryURL)
+        XCTAssertFalse(escapedFile.hasDirectoryPath)
+        XCTAssertEqual(escapedFile.path, escapedPath)
+        XCTAssertEqual(escapedFile.absoluteString, "file://\(TestURL.gBaseTemporaryDirectoryPath)/foo%20bar%20(final)%20(final2).pdf")
+
+        let existingFileWithSlash = URL(filePath: "\(TestURL.gFileExistsPath)/", directoryHint: .checkFileSystem, relativeTo: baseDirectoryURL)
+        XCTAssertTrue(existingFileWithSlash.hasDirectoryPath)
+        XCTAssertEqual(existingFileWithSlash.path, TestURL.gFileExistsPath)
+        XCTAssertEqual(existingFileWithSlash.absoluteString, "file://\(TestURL.gFileExistsPath)/")
+
+        let existingDirectory = URL(filePath: TestURL.gDirectoryExistsPath, directoryHint: .checkFileSystem, relativeTo: baseDirectoryURL)
+        XCTAssertTrue(existingDirectory.hasDirectoryPath)
+        XCTAssertEqual(existingDirectory.path, TestURL.gDirectoryExistsPath)
+        XCTAssertEqual(existingDirectory.absoluteString, "file://\(TestURL.gDirectoryExistsPath)/")
+
+        let existingDirectoryWithSlash = URL(filePath: "\(TestURL.gDirectoryExistsPath)/", directoryHint: .checkFileSystem, relativeTo: baseDirectoryURL)
+        XCTAssertTrue(existingDirectoryWithSlash.hasDirectoryPath)
+        XCTAssertEqual(existingDirectoryWithSlash.path, TestURL.gDirectoryExistsPath)
+        XCTAssertEqual(existingDirectoryWithSlash.absoluteString, "file://\(TestURL.gDirectoryExistsPath)/")
+    }
+
     func test_URLByResolvingSymlinksInPathShouldRemoveDuplicatedPathSeparators() {
         let url = URL(fileURLWithPath: "//foo///bar////baz/")
         let result = url.resolvingSymlinksInPath()
@@ -794,6 +854,67 @@ class TestURL : XCTestCase {
         #if SKIP
         XCTAssertEqual(URL(string: "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/")!.appendingPathComponent("Localizable").absoluteString, "jar:file:/data/app/~~GrNJyKuGMG-gs4i97rlqHg==/skip.ui.test-5w0MhfIK6rNxUpG8yMuXgg==/base.apk!/skip/ui/Resources/Localizable")
         #endif
+    }
+
+    func test_appending_path_directoryHint() {
+        let baseURL = URL(string: "https://example.com/tmp")!
+
+        let explicitDirectoryURL = baseURL.appending(path: "docs", directoryHint: .isDirectory)
+        XCTAssertEqual(explicitDirectoryURL.absoluteString, "https://example.com/tmp/docs/")
+        XCTAssertTrue(explicitDirectoryURL.hasDirectoryPath)
+
+        let explicitDirectoryURLSlash = baseURL.appending(path: "docs/", directoryHint: .isDirectory)
+        XCTAssertEqual(explicitDirectoryURLSlash.absoluteString, "https://example.com/tmp/docs/")
+        XCTAssertTrue(explicitDirectoryURLSlash.hasDirectoryPath)
+
+        let inferredDirectoryURL = baseURL.appending(path: "docs/", directoryHint: .inferFromPath)
+        XCTAssertEqual(inferredDirectoryURL.absoluteString, "https://example.com/tmp/docs/")
+        XCTAssertTrue(inferredDirectoryURL.hasDirectoryPath)
+
+        let inferredFileURL = baseURL.appending(path: "notes.txt", directoryHint: .inferFromPath)
+        XCTAssertEqual(inferredFileURL.absoluteString, "https://example.com/tmp/notes.txt")
+        XCTAssertFalse(inferredFileURL.hasDirectoryPath)
+
+        // Swift Foundation treats .notDirectory as .inferFromPath
+        // (It is kind of silly to say "append docs/, but this is not a directory"!)
+        let explicitFileURLFromSlashPath = baseURL.appending(path: "docs/", directoryHint: .notDirectory)
+        XCTAssertEqual(explicitFileURLFromSlashPath.absoluteString, "https://example.com/tmp/docs/")
+        XCTAssertTrue(explicitFileURLFromSlashPath.hasDirectoryPath)
+    }
+
+    func test_appending_path_directoryHint_checkFileSystem() throws {
+        try withTemporaryDirectory { temporaryDirectoryURL, _ in
+            let fileManager = FileManager.default
+            let existingFileName = "existing-file.txt"
+            let existingDirectoryName = "existing-directory"
+            let missingName = "missing-entry"
+
+            let existingFileURL = temporaryDirectoryURL.appendingPathComponent(existingFileName)
+            let existingDirectoryURL = temporaryDirectoryURL.appendingPathComponent(existingDirectoryName, isDirectory: true)
+            try Data("test".utf8).write(to: existingFileURL)
+            try fileManager.createDirectory(at: existingDirectoryURL, withIntermediateDirectories: false)
+
+            func assertCheckFileSystemHint(path: String, expectedIsDirectory: Bool, expectedPath: String) {
+                let resultURL = temporaryDirectoryURL.appending(path: path, directoryHint: .checkFileSystem)
+                XCTAssertEqual(resultURL.hasDirectoryPath, expectedIsDirectory, "unexpected hasDirectoryPath for \(path)")
+                let expectedURL = temporaryDirectoryURL.appending(path: expectedPath, directoryHint: .inferFromPath)
+                XCTAssertEqual(resultURL.absoluteString, expectedURL.absoluteString, "unexpected absoluteString for \(path), isDirectory=\(expectedIsDirectory) expected=\(expectedURL.absoluteString) actual=\(resultURL.absoluteString)")
+            }
+
+            // Missing file falls back to path inference.
+            assertCheckFileSystemHint(path: missingName, expectedIsDirectory: false, expectedPath: missingName)
+            assertCheckFileSystemHint(path: "\(missingName)/", expectedIsDirectory: true, expectedPath: "\(missingName)/")
+
+            // Existing file
+            assertCheckFileSystemHint(path: existingFileName, expectedIsDirectory: false, expectedPath: existingFileName)
+
+            // Existing file with trailing slash is actually a missing directory, inferred from path.
+            assertCheckFileSystemHint(path: "\(existingFileName)/", expectedIsDirectory: true, expectedPath: "\(existingFileName)/")
+
+            // Existing directory always ends with slash.
+            assertCheckFileSystemHint(path: existingDirectoryName, expectedIsDirectory: true, expectedPath: "\(existingDirectoryName)/")
+            assertCheckFileSystemHint(path: "\(existingDirectoryName)/", expectedIsDirectory: true, expectedPath: "\(existingDirectoryName)/")
+        }
     }
 
     func test_appendingPathExtension() {
