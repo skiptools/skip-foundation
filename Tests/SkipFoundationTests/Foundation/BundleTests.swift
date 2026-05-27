@@ -81,10 +81,10 @@ final class BundleTests: XCTestCase {
             throw XCTSkip("testMainBundleInfo only checked for Robolectric")
         }
 
-        XCTAssertEqual("skip.foundation.test", info?["CFBundleIdentifier"] as? String) // "com.apple.dt.xctest.tool"
-        XCTAssertEqual("skip.foundation.test", info?["CFBundleName"] as? String) // "xctest"
-        XCTAssertEqual("skip.foundation.test", info?["CFBundleDisplayName"] as? String)
-        XCTAssertEqual("skip.foundation.test", info?["CFBundleExecutable"] as? String) // xctest
+        XCTAssertEqual("skip.foundation.module.test", info?["CFBundleIdentifier"] as? String) // "com.apple.dt.xctest.tool"
+        XCTAssertEqual("skip.foundation.module.test", info?["CFBundleName"] as? String) // "xctest"
+        XCTAssertEqual("skip.foundation.module.test", info?["CFBundleDisplayName"] as? String)
+        XCTAssertEqual("skip.foundation.module.test", info?["CFBundleExecutable"] as? String) // xctest
 
         XCTAssertEqual("0", info?["CFBundleVersion"] as? String) // 23196
         XCTAssertEqual("", info?["CFBundleShortVersionString"] as? String) // 16.0
