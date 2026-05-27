@@ -92,7 +92,7 @@ final class BundleTests: XCTestCase {
         XCTAssertEqual("android", info?["DTPlatformName"] as? String) // macosx
         XCTAssertEqual("36", info?["DTPlatformVersion"] as? String) // 15.0
         XCTAssertEqual("28", info?["MinimumOSVersion"] as? String) // nil
-        XCTAssertEqual("android28", info?["DTSDKName"] as? String) // macosx15.0.internal
+        XCTAssertEqual("android36", info?["DTSDKName"] as? String) // macosx15.0.internal
         XCTAssertEqual("robolectric", info?["BuildMachineOSBuild"] as? String) // 22A380021
     }
 }
