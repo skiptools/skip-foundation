@@ -33,7 +33,7 @@ public class Bundle : Hashable, SwiftCustomBridged {
             self.bundleURL = url
             self.bundleIdentifier = nil
         case .main:
-            let identifer = Self.packageName(forClassName: applicationInfo.className)
+            let identifer = Self.resolveMainBundlePackage()
             self.bundleIdentifier = identifer
             self.bundleURL = Self.createBundleURL(forPackage: identifer)
         case .forClass(let cls):
@@ -52,6 +52,54 @@ public class Bundle : Hashable, SwiftCustomBridged {
         // applicationInfo.className is nil when testing on the Android emulator
         let className = forClassName ?? "skip.foundation.Bundle"
         return className.split(separator: ".").dropLast().joined(separator: ".")
+    }
+
+    /// Resolve the Kotlin package containing the main app's `Resources/` assets.
+    ///
+    /// Normally the package is derived from `applicationInfo.className`. App-wrapping
+    /// tools such as Google Play's PairIP DRM replace `applicationInfo.className`
+    /// with a wrapper class outside the app's real Kotlin namespace, which would
+    /// point `Bundle.main` at a non-existent asset directory and silently break
+    /// `NSLocalizedString` lookups. When no `Resources/` exists at the derived
+    /// path, fall back to deriving the package from the launcher activity's class
+    /// name: the launcher activity must be a real component in the app's namespace
+    /// because Android needs to start it, so wrappers cannot replace it.
+    private static func resolveMainBundlePackage() -> String {
+        let derivedPackage = packageName(forClassName: applicationInfo.className)
+        if hasMainResources(forPackage: derivedPackage) {
+            return derivedPackage
+        }
+        if let activityPackage = mainBundlePackageFromLauncher(),
+           hasMainResources(forPackage: activityPackage) {
+            return activityPackage
+        }
+        // Could not validate either candidate (e.g. no launcher activity, or no
+        // Resources at all). Return the derived value so behavior is no worse than
+        // before the validation was introduced.
+        return derivedPackage
+    }
+
+    /// Returns true if the asset tree contains a non-empty `Resources/` directory
+    /// for the given Kotlin package name.
+    private static func hasMainResources(forPackage packageName: String) -> Bool {
+        let assets = ProcessInfo.processInfo.androidContext.resources.assets
+        let path = packageName.replace(".", "/") + "/Resources"
+        if let contents = assets.list(path), contents.count() > 0 {
+            return true
+        }
+        return false
+    }
+
+    /// Derive the Kotlin package from the app's launcher activity, which is
+    /// declared in the manifest under the app's real `namespace` and therefore
+    /// always lives in the app's actual Kotlin package — even when an
+    /// `Application`-class wrapper has replaced `applicationInfo.className`.
+    private static func mainBundlePackageFromLauncher() -> String? {
+        guard let intent = packageManager.getLaunchIntentForPackage(androidContext.getPackageName()),
+              let className = intent.getComponent()?.getClassName() else {
+            return nil
+        }
+        return packageName(forClassName: className)
     }
 
     /// Convert `showcase.module` into `asset:/showcase/module/Resources`
