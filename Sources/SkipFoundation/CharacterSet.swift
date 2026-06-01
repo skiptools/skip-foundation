@@ -121,15 +121,11 @@ public struct CharacterSet : SetAlgebra, Hashable {
     // Also see SkipLib.Character.isNewline, .whitespacesAndNewlines
     public static let newlines: CharacterSet = CharacterSet(platformValue: toPlatformValue(["\n", "\r", "\u{000B}", "\u{000C}", "\u{0085}", "\u{2028}", "\u{2029}"]))
 
-    @available(*, unavailable)
-    public static var urlUserAllowed: CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
-    }
+    /// swift -e 'import Foundation; let s = CharacterSet.urlUserAllowed; print((0..<0..<128).compactMap { UnicodeScalar($0) }.filter { s.contains($0) }.map { String($0) }.joined())'
+    public static let urlUserAllowed = CharacterSet(platformValue: toPlatformValue(["!$&'()*+,-.0123456789;=ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"]))
 
-    @available(*, unavailable)
-    public static var urlPasswordAllowed: CharacterSet {
-        fatalError("SKIP TODO: CharacterSet")
-    }
+    /// swift -e 'import Foundation; let s = CharacterSet.urlPasswordAllowed; print((0..<0..<128).compactMap { UnicodeScalar($0) }.filter { s.contains($0) }.map { String($0) }.joined())'
+    public static let urlPasswordAllowed = CharacterSet(platformValue: toPlatformValue(["!$&'()*+,-.0123456789;=ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"]))
 
     /// swift -e 'import Foundation; print((0..<128).compactMap(UnicodeScalar.init).filter(CharacterSet.urlHostAllowed.contains).map(String.init).joined())'
     public static var urlHostAllowed = CharacterSet(platformValue: toPlatformValue(["!$&'()*+,-.0123456789:;=ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~"]))

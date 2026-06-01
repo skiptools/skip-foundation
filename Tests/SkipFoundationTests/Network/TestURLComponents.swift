@@ -88,6 +88,7 @@ class TestURLComponents: XCTestCase {
         XCTAssertEqual(percentEncodedQuery, expectedPercentEncodedQuery)
 
         let expectedAbsolute = "mailto:support@example.com?\(expectedPercentEncodedQuery)"
+        XCTAssertEqual(components.string, expectedAbsolute)
         let url = try XCTUnwrap(components.url)
         let absolute = url.absoluteString
         XCTAssertEqual(absolute, expectedAbsolute)
