@@ -32,10 +32,21 @@ public class Bundle : Hashable, SwiftCustomBridged {
         case .atURL(let url):
             self.bundleURL = url
             self.bundleIdentifier = nil
-        case .main:
-            let identifer = Self.packageName(forClassName: applicationInfo.className)
-            self.bundleIdentifier = identifer
-            self.bundleURL = Self.createBundleURL(forPackage: identifer)
+		case .main:
+			  let derivedPackage = Self.packageName(forClassName: applicationInfo.className)
+			  // Validate the derived asset path. Google Play's PairIP DRM may replace
+			  // applicationInfo.className with a DRM wrapper class, causing Bundle.main to
+			  // resolve to the wrong asset directory. If no Resources exist at the derived
+			  // path, search the asset tree for the correct bundle package.
+			  let assets = ProcessInfo.processInfo.androidContext.resources.assets
+			  let identifer: String
+			  if let contents = assets.list(derivedPackage.replace(".", "/") + "/Resources"), contents.count() > 0 {
+				  identifer = derivedPackage
+			  } else {
+				  identifer = Self.findMainBundlePackage() ?? derivedPackage
+			  }
+			  self.bundleIdentifier = identifer
+			  self.bundleURL = Self.createBundleURL(forPackage: identifer)
         case .forClass(let cls):
             let identifer = Self.packageName(forClassName: cls.java.name)
             self.bundleIdentifier = identifer
@@ -53,6 +64,24 @@ public class Bundle : Hashable, SwiftCustomBridged {
         let className = forClassName ?? "skip.foundation.Bundle"
         return className.split(separator: ".").dropLast().joined(separator: ".")
     }
+	
+	/// Search the asset tree for a package directory containing a `Resources` subdirectory.
+	/// Used as a fallback when `applicationInfo.className` has been replaced by a third-party
+	/// wrapper (e.g. Google Play's PairIP DRM), corrupting the `Bundle.main` asset path.
+	private static func findMainBundlePackage() -> String? {
+		let assets = ProcessInfo.processInfo.androidContext.resources.assets
+		guard let topLevel = assets.list(""), topLevel.count() > 0 else { return nil }
+		for top in Array(topLevel.toList()) {
+			guard let secondLevel = assets.list(top), secondLevel.count() > 0 else { continue }
+			for second in Array(secondLevel.toList()) {
+				let candidate = "\(top)/\(second)"
+				if let children = assets.list(candidate), children.contains("Resources") {
+					return candidate.replace("/", ".")
+				}
+			}
+		}
+		return nil
+	}
 
     /// Convert `showcase.module` into `asset:/showcase/module/Resources`
     private static func createBundleURL(forPackage packageName: String) -> URL {
