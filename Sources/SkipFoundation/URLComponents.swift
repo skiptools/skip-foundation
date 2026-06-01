@@ -67,6 +67,10 @@ public struct URLComponents : Hashable, Equatable, Sendable {
                 if let port {
                     string += ":\(port)"
                 }
+            } else if scheme == "file" {
+                // Opaque "file:path" strings are *not* equivalent to the hierarchical `file:///...` form used
+                // by `java.net.URI` / Foundation for local absolute paths, and will confuse path appends.
+                string += "//"
             }
             string += percentEncodedPath
             if let fragment {
