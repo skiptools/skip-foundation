@@ -68,20 +68,20 @@ public class Bundle : Hashable, SwiftCustomBridged {
 	/// Search the asset tree for a package directory containing a `Resources` subdirectory.
 	/// Used as a fallback when `applicationInfo.className` has been replaced by a third-party
 	/// wrapper (e.g. Google Play's PairIP DRM), corrupting the `Bundle.main` asset path.
-	private static func findMainBundlePackage() -> String? {
-		let assets = ProcessInfo.processInfo.androidContext.resources.assets
-		guard let topLevel = assets.list(""), topLevel.count() > 0 else { return nil }
-		for top in Array(topLevel.toList()) {
-			guard let secondLevel = assets.list(top), secondLevel.count() > 0 else { continue }
-			for second in Array(secondLevel.toList()) {
-				let candidate = "\(top)/\(second)"
-				if let children = assets.list(candidate), children.contains("Resources") {
-					return candidate.replace("/", ".")
-				}
-			}
-		}
-		return nil
-	}
+	private static func findMainBundlePackage(path: String = "") -> String? {
+		  let assets = ProcessInfo.processInfo.androidContext.resources.assets
+		  guard let children = assets.list(path), children.count() > 0 else { return nil }
+		  if !path.isEmpty && children.contains("Resources") {
+			  return path.replace("/", ".")
+		  }
+		  for child in Array(children.toList()) {
+			  if child == "Resources" { continue }
+			  let childPath = path.isEmpty ? child : "\(path)/\(child)"
+			  if let found = findMainBundlePackage(path: childPath) { return found }
+		  }
+		  return nil
+	  }
+
 
     /// Convert `showcase.module` into `asset:/showcase/module/Resources`
     private static func createBundleURL(forPackage packageName: String) -> URL {
