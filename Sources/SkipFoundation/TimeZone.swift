@@ -42,7 +42,11 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
     }
 
     public init?(identifier: String) {
-        guard let tz = java.util.TimeZone.getTimeZone(identifier) else {
+        let tz = java.util.TimeZone.getTimeZone(identifier)
+        // Java's getTimeZone() returns a timezone with ID "GMT" for unknown identifiers;
+        // if the result is GMT but the requested identifier wasn't "GMT", it means the
+        // identifier was not recognized.
+        if tz.getID() == "GMT" && identifier != "GMT" {
             return nil
         }
         self.platformValue = tz
@@ -50,25 +54,26 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
 
     public init?(abbreviation: String) {
         guard let identifier = Self.abbreviationDictionary[abbreviation] else {
+            return nil
         }
-        guard let tz = java.util.TimeZone.getTimeZone(identifier) else {
+        let tz = java.util.TimeZone.getTimeZone(identifier)
+        if tz.getID() == "GMT" && identifier != "GMT" {
             return nil
         }
         self.platformValue = tz
     }
 
     public init?(secondsFromGMT seconds: Int) {
-        // java.time.ZoneId is more modern, but doesn't seem to be able to vend a java.util.TimeZone
-        // guard let tz = PlatformTimeZone.getTimeZone(java.time.ZoneId.ofOffset(seconds))
-
-        //let timeZoneId = seconds >= 0
-        //    ? String.format("GMT+%02d:%02d", seconds / 3600, (seconds % 3600) / 60)
-        //    : String.format("GMT-%02d:%02d", -seconds / 3600, (-seconds % 3600) / 60)
-        //guard let tz = PlatformTimeZone.getTimeZone(timeZoneId) else {
-        //    return nil
-        //}
-
-        self.platformValue = java.util.SimpleTimeZone(seconds, "GMT")
+        // Seconds must be within ±18 hours (same constraint as Swift Foundation)
+        guard seconds >= -18 * 3600 && seconds <= 18 * 3600 else {
+            return nil
+        }
+        let absSeconds = abs(seconds)
+        let hours = absSeconds / 3600
+        let minutes = (absSeconds % 3600) / 60
+        let sign = seconds >= 0 ? "+" : "-"
+        let identifier = String(format: "GMT%@%02d:%02d", sign, hours, minutes)
+        self.platformValue = java.util.TimeZone.getTimeZone(identifier)
     }
 
     public init(from decoder: Decoder) throws {
@@ -87,7 +92,7 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
     }
 
     public func abbreviation(for date: Date = Date()) -> String? {
-        return platformValue.getDisplayName(true, java.util.TimeZone.SHORT)
+        return platformValue.getDisplayName(isDaylightSavingTime(for: date), java.util.TimeZone.SHORT)
     }
 
     public func secondsFromGMT(for date: Date = Date()) -> Int {
@@ -127,7 +132,58 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
         return Array(java.time.ZoneId.getAvailableZoneIds())
     }
 
-    public static var abbreviationDictionary: [String : String] = [:]
+    public static var abbreviationDictionary: [String : String] = [
+        "ADT": "America/Halifax",
+        "AKDT": "America/Juneau",
+        "AKST": "America/Juneau",
+        "ART": "America/Argentina/Buenos_Aires",
+        "AST": "America/Halifax",
+        "BDT": "Asia/Dhaka",
+        "BRST": "America/Sao_Paulo",
+        "BRT": "America/Sao_Paulo",
+        "BST": "Europe/London",
+        "CAT": "Africa/Harare",
+        "CDT": "America/Chicago",
+        "CEST": "Europe/Paris",
+        "CET": "Europe/Paris",
+        "COT": "America/Bogota",
+        "CST": "America/Chicago",
+        "EAT": "Africa/Addis_Ababa",
+        "EDT": "America/New_York",
+        "EEST": "Europe/Athens",
+        "EET": "Europe/Athens",
+        "EST": "America/New_York",
+        "GMT": "GMT",
+        "GST": "Asia/Dubai",
+        "HKT": "Asia/Hong_Kong",
+        "HST": "Pacific/Honolulu",
+        "ICT": "Asia/Bangkok",
+        "IRST": "Asia/Tehran",
+        "IST": "Asia/Calcutta",
+        "JST": "Asia/Tokyo",
+        "KST": "Asia/Seoul",
+        "MDT": "America/Denver",
+        "MEST": "Europe/Paris",
+        "MET": "Europe/Paris",
+        "MSK": "Europe/Moscow",
+        "MST": "America/Denver",
+        "MYT": "Asia/Kuala_Lumpur",
+        "NDT": "America/St_Johns",
+        "NST": "America/St_Johns",
+        "NZDT": "Pacific/Auckland",
+        "NZST": "Pacific/Auckland",
+        "PDT": "America/Los_Angeles",
+        "PET": "America/Lima",
+        "PHT": "Asia/Manila",
+        "PKT": "Asia/Karachi",
+        "PST": "America/Los_Angeles",
+        "SGT": "Asia/Singapore",
+        "SST": "Pacific/Pago_Pago",
+        "UTC": "UTC",
+        "WAT": "Africa/Lagos",
+        "WEST": "Europe/Lisbon",
+        "WET": "Europe/Lisbon",
+    ]
 
     @available(*, unavailable)
     public static var timeZoneDataVersion: String {
