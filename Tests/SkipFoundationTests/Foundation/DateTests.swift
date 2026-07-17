@@ -49,6 +49,26 @@ final class DateTests: XCTestCase {
         XCTAssertEqual("4001-01-01T00:00:00Z", Date.distantFuture.ISO8601Format())
     }
 
+    func testISO8601FormattingIsLocaleIndependent() throws {
+        let date = Date(timeIntervalSince1970: 1_783_042_560)
+
+        #if SKIP
+        // Simulates a device configured with Eastern Arabic numerals (0-9 -> ٠-٩).
+        // This replicates the OS-level system settings that would distort technical
+        // string formatting when relying on `Locale.getDefault()`.
+        let originalLocale = java.util.Locale.getDefault()
+        let arabicNumbersLocale = java.util.Locale.Builder()
+            .setLanguage("ar")
+            .setExtension(java.util.Locale.UNICODE_LOCALE_EXTENSION, "nu-arab")
+            .build()
+
+        java.util.Locale.setDefault(arabicNumbersLocale)
+        defer { java.util.Locale.setDefault(originalLocale) }
+        #endif
+
+        XCTAssertEqual("2026-07-03T01:36:00Z", date.ISO8601Format())
+    }
+
     func testDateFormatting() throws {
         func fmt(_ format: String, _ date: Date) -> String {
             let fmt = DateFormatter()

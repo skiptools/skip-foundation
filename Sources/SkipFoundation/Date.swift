@@ -181,9 +181,7 @@ public struct Date : Hashable, CustomStringConvertible, Comparable, Codable, Kot
 
     public func ISO8601Format(_ style: Date.ISO8601FormatStyle = .iso8601) -> String {
         // TODO: use the style parameters
-        // local time zone specific
-        // return java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", java.util.Locale.getDefault()).format(platformValue)
-        var dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault())
+        var dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.ROOT)
         dateFormat.timeZone = java.util.TimeZone.getTimeZone("GMT")
         return dateFormat.format(platformValue)
     }
