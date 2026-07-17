@@ -35,7 +35,7 @@ public let NSStringEncodingErrorKey: String = "NSStringEncodingErrorKey"
 public let NSURLErrorKey: String = "NSURL"
 public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
 
-open class NSError : Error, CustomStringConvertible {
+open class NSError : Error, CustomStringConvertible, CustomDebugStringConvertible {
     // ErrorType forbids this being internal
     open var _domain: String
     open var _code: Int
@@ -120,7 +120,22 @@ open class NSError : Error, CustomStringConvertible {
     }
 
     open var description: String {
-        return "Error Domain=\(domain) Code=\(code) \"\(localizedFailureReason ?? "(null)")\""
+        let message: String
+        if let localizedDescription = userInfo[NSLocalizedDescriptionKey] as? String {
+            message = localizedDescription
+        } else {
+            message = localizedFailureReason ?? "(null)"
+        }
+        let base = "Error Domain=\(domain) Code=\(code) \"\(message)\""
+        if userInfo.isEmpty {
+            return base
+        } else {
+            return "\(base) UserInfo=\(userInfo)"
+        }
+    }
+
+    open var debugDescription: String {
+        return description
     }
 }
 
