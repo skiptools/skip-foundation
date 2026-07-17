@@ -363,38 +363,39 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             return true
 
         case .hour:
-            platformCal.set(java.util.Calendar.MINUTE, 0)
-            platformCal.set(java.util.Calendar.SECOND, 0)
-            platformCal.set(java.util.Calendar.MILLISECOND, 0)
+            let originalTimeInMillis = platformCal.timeInMillis
+            let minuteMillis = platformCal.get(java.util.Calendar.MINUTE) * 60 * 1000
+            let secondMillis = platformCal.get(java.util.Calendar.SECOND) * 1000
+            let millisecond = platformCal.get(java.util.Calendar.MILLISECOND)
+            platformCal.timeInMillis = originalTimeInMillis - Int64(minuteMillis + secondMillis + millisecond)
             start = Date(platformValue: platformCal.time)
             interval = TimeInterval(60 * 60)
             return true
 
-        case .day, .dayOfYear:
+        case .day, .dayOfYear, .weekday, .weekdayOrdinal:
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(24 * 60 * 60)
-            return true
-
-        case .weekday, .weekdayOrdinal:
-            clearTime(in: platformCal)
-            start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(24 * 60 * 60)
+            let nextDayCal = platformCal.clone() as java.util.Calendar
+            nextDayCal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+            interval = TimeInterval((nextDayCal.timeInMillis - platformCal.timeInMillis).toDouble() / 1000.0)
             return true
 
         case .month:
             platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
-            interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
+            let nextMonthCal = platformCal.clone() as java.util.Calendar
+            nextMonthCal.add(java.util.Calendar.MONTH, 1)
+            interval = TimeInterval((nextMonthCal.timeInMillis - platformCal.timeInMillis).toDouble() / 1000.0)
             return true
 
         case .weekOfMonth, .weekOfYear:
             platformCal.set(java.util.Calendar.DAY_OF_WEEK, platformCal.firstDayOfWeek)
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            interval = TimeInterval(7 * 24 * 60 * 60)
+            let nextWeekCal = platformCal.clone() as java.util.Calendar
+            nextWeekCal.add(java.util.Calendar.WEEK_OF_YEAR, 1)
+            interval = TimeInterval((nextWeekCal.timeInMillis - platformCal.timeInMillis).toDouble() / 1000.0)
             return true
 
         case .quarter:
@@ -415,8 +416,9 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
             platformCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
             clearTime(in: platformCal)
             start = Date(platformValue: platformCal.time)
-            let numberOfDays = platformCal.getActualMaximum(java.util.Calendar.DAY_OF_YEAR)
-            interval = TimeInterval(numberOfDays) * TimeInterval(24 * 60 * 60)
+            let nextYearCal = platformCal.clone() as java.util.Calendar
+            nextYearCal.add(java.util.Calendar.YEAR, 1)
+            interval = TimeInterval((nextYearCal.timeInMillis - platformCal.timeInMillis).toDouble() / 1000.0)
             return true
 
         case .era:
@@ -661,7 +663,15 @@ public struct Calendar : Hashable, Codable, CustomStringConvertible {
                     previouslyReturnedMatchDate = matchDate
                     block(matchDate, exactMatch, &stop)
                     if stop { return }
-                    searchingDate = matchDate
+                    if components.weekOfYear != nil {
+                        if direction == .forward {
+                            searchingDate = result.newSearchDate
+                        } else {
+                            searchingDate = self.date(byAdding: .weekOfYear, value: -1, to: matchDate) ?? matchDate.addingTimeInterval(-7.0 * 24.0 * 60.0 * 60.0)
+                        }
+                    } else {
+                        searchingDate = matchDate
+                    }
                 } else if iterations < STOP_EXHAUSTIVE_SEARCH_AFTER_MAX_ITERATIONS {
                     // Try again on nil result
                     searchingDate = result.newSearchDate
