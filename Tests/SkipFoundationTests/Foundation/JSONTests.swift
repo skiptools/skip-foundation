@@ -204,6 +204,22 @@ class TestJSON : XCTestCase {
         let thisIsADictionary: Dictionary<String, Bool>
     }
 
+    // skiptools/skip-foundation#62 repro fixtures
+    struct OptionalDictionaryFields : Equatable, Codable {
+        var optionalDict: [String: String]?
+        var nonOptionalDict: [String: String]
+    }
+
+    // Encode-only to isolate the #62 encode crash from an unrelated nested-dictionary *decode*
+    // codegen limitation (transpiled decoder types the inner dictionary as `Dictionary<*, *>`).
+    struct NestedDictionaryField : Encodable {
+        var nested: [String: [String: String]]
+    }
+
+    struct OptionalNestedDictionaryField : Encodable {
+        var nested: [String: [String: String]]?
+    }
+
     @inline(__always) private func enc<T: Encodable>(_ value: T, fmt: JSONEncoder.OutputFormatting? = .sortedKeys, data: JSONEncoder.DataEncodingStrategy? = nil, date: JSONEncoder.DateEncodingStrategy? = nil, floats: JSONEncoder.NonConformingFloatEncodingStrategy? = nil, keys: JSONEncoder.KeyEncodingStrategy? = nil) throws -> String {
         let encoder = JSONEncoder()
         if let fmt = fmt {
@@ -239,6 +255,23 @@ class TestJSON : XCTestCase {
         }
 
         return json
+    }
+
+    func testDictionaryCodableTypeErased() throws {
+        // skiptools/skip-foundation#62: encoding a populated Dictionary reached through a
+        // type-erased path — an optional dictionary via encodeIfPresent, or a Dictionary that
+        // is itself a value nested inside another Dictionary — crashed with
+        // "skip.lib.Tuple2 cannot be cast to skip.lib.Encodable". nil/empty succeeded, so it
+        // was easy to miss. A non-optional, statically-typed dictionary property already worked
+        // (see MyTestData) because the reified Dictionary overload is selected for it.
+        XCTAssertEqual(#"{"nonOptionalDict":{"a":"b"},"optionalDict":{"x":"y"}}"#,
+            try enc(OptionalDictionaryFields(optionalDict: ["x": "y"], nonOptionalDict: ["a": "b"])))
+        XCTAssertEqual(#"{"nonOptionalDict":{"a":"b"}}"#,
+            try enc(OptionalDictionaryFields(optionalDict: nil, nonOptionalDict: ["a": "b"])))
+        XCTAssertEqual(#"{"nested":{"outer":{"inner":"v"}}}"#,
+            try enc(NestedDictionaryField(nested: ["outer": ["inner": "v"]])))
+        XCTAssertEqual(#"{"nested":{"outer":{"inner":"v"}}}"#,
+            try enc(OptionalNestedDictionaryField(nested: ["outer": ["inner": "v"]])))
     }
 
     func testJSONCodable() throws {
