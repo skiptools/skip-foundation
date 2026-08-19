@@ -23,4 +23,18 @@ final class LoggerTests: XCTestCase {
     public func testLogError() {
         logger.error("logger error test")
     }
+
+    #if SKIP
+    public func testLogMessageInterpolatesThrowableStackTrace() {
+        var message: LogMessage = ""
+        do {
+            throw java.lang.IllegalStateException("test failure")
+        } catch {
+            message = "logger throwable test: \(error)"
+        }
+        XCTAssertTrue(message.description.contains("IllegalStateException"))
+        XCTAssertTrue(message.description.contains("test failure"))
+        XCTAssertTrue(message.description.contains("testLogMessageInterpolatesThrowableStackTrace"))
+    }
+    #endif
 }
