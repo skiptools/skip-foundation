@@ -39,12 +39,14 @@ public class ProcessInfo {
                 if let packageMetaData = packageInfo.applicationInfo?.metaData {
                     if let bridgeModules = packageMetaData.getString("SKIP_BRIDGE_MODULES") {
                         android.util.Log.i("SkipFoundation", "loading SKIP_BRIDGE_MODULES: \(bridgeModules)")
-                        let bridgeClass = Class.forName("skip.android.bridge.AndroidBridge").kotlin
+                        // Use plain Java reflection rather than kotlin-reflect: initializing
+                        // kotlin.reflect.full here costs hundreds of ms of main-thread time at launch
+                        let bridgeClass = Class.forName("skip.android.bridge.AndroidBridge")
                         android.util.Log.i("SkipFoundation", "calling bridgeClass: \(bridgeClass)")
-                        if let companionObject = bridgeClass.companionObject,
-                            let initBridge = companionObject.functions?.find({ $0.name == "initBridge" }) {
+                        let companion = bridgeClass.getField("Companion").get(nil)
+                        if let initBridge = companion?.javaClass.getMethods().find({ $0.getName() == "initBridge" }) {
                             android.util.Log.i("SkipFoundation", "invoking initBridge: \(initBridge)")
-                            initBridge.call(bridgeClass.companionObjectInstance, bridgeModules)
+                            initBridge.invoke(companion, bridgeModules)
                         } else {
                             android.util.Log.w("SkipFoundation", "could not func skip.android.bridge.AndroidBridge.initBridge")
                         }
