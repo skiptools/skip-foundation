@@ -72,7 +72,7 @@ public class SkipLogger {
 
     public func notice(_ message: LogMessage) {
         do {
-            android.util.Log.i(logName, message)
+            android.util.Log.w(logName, message)
         } catch {
             java.util.logging.Logger.getLogger(logName).log(java.util.logging.Level.CONFIG, message)
         }
