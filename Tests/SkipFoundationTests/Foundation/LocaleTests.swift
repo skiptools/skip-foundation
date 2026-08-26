@@ -5,6 +5,19 @@ import XCTest
 
 @available(macOS 13, iOS 16, watchOS 10, tvOS 16, *)
 final class LocaleTests: XCTestCase {
+    func testPreferredLanguagesAreOrderedBCP47Tags() throws {
+        let languages = Locale.preferredLanguages
+        XCTAssertFalse(languages.isEmpty)
+        XCTAssertTrue(languages.allSatisfy { !$0.isEmpty })
+
+        #if SKIP
+        XCTAssertEqual(
+            languages.joined(separator: ","),
+            android.os.LocaleList.getDefault().toLanguageTags()
+        )
+        #endif
+    }
+
     func testLanguageCodes() throws {
         let fr = Locale(identifier: "fr_FR")
         XCTAssertNotNil(fr)
