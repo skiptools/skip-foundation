@@ -13,6 +13,19 @@ public struct Locale : Hashable, SwiftCustomBridged, KotlinConverting<java.util.
         return Array(java.util.Locale.getAvailableLocales().map({ $0.toString() }))
     }
 
+    /// The user's preferred languages, ordered from most to least preferred.
+    ///
+    /// Values use BCP-47 language tags, matching Foundation's API on Apple
+    /// platforms and Android's `LocaleList.toLanguageTags()` representation.
+    public static var preferredLanguages: [String] {
+        let localeList = android.os.LocaleList.getDefault()
+        var languages: [String] = []
+        for index in 0..<localeList.size() {
+            languages.append(localeList.get(index).toLanguageTag())
+        }
+        return languages
+    }
+
     public init(platformValue: java.util.Locale) {
         self.platformValue = platformValue
     }
