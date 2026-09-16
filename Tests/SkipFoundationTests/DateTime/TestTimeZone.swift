@@ -144,18 +144,14 @@ class TestTimeZone: XCTestCase {
         #if !SKIP
         XCTAssertEqual(actualName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(actualName?.description ?? "")\"")
         #endif
+        #if !SKIP
         let expectedLocalizedName = "GMT-04:00"
-
-        #if SKIP
-        throw XCTSkip("Skip TimeZone.secondsFromGMT")
-        #else
         let actualLocalizedName = tz2?.localizedName(for: .generic, locale: Locale(identifier: "en_US"))
-
         XCTAssertEqual(actualLocalizedName, expectedLocalizedName, "expected name \"\(expectedLocalizedName)\" is not equal to \"\(actualLocalizedName?.description ?? "")\"")
+        #endif
+
         let seconds2 = tz2?.secondsFromGMT() ?? 0
         XCTAssertEqual(seconds2, -14400, "GMT-0400 should be -14400 seconds but got \(seconds2) instead")
-
-        #endif
 
         let tz3 = TimeZone(identifier: "GMT-9999")
         XCTAssertNil(tz3)
@@ -168,16 +164,13 @@ class TestTimeZone: XCTestCase {
     }
 
     func test_initializingTimeZoneWithAbbreviation() {
-        #if SKIP
-        throw XCTSkip("TODO: SkipTimeZone(abbreviation:)")
-        #endif
         // Test invalid timezone abbreviation
-        var tz = TimeZone(abbreviation: "XXX")
+        let tz = TimeZone(abbreviation: "XXX")
         XCTAssertNil(tz)
         // Test valid timezone abbreviation of "AST" for "America/Halifax"
-        tz = TimeZone(abbreviation: "AST")
+        let tz2 = TimeZone(abbreviation: "AST")
         let expectedIdentifier = "America/Halifax"
-        let actualIdentifier = tz?.identifier
+        let actualIdentifier = tz2?.identifier
         XCTAssertEqual(actualIdentifier, expectedIdentifier, "expected identifier \"\(expectedIdentifier)\" is not equal to \"\(actualIdentifier?.description ?? "")\"")
     }
 
