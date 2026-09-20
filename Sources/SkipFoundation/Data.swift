@@ -9,7 +9,7 @@ public protocol DataProtocol {
     var platformData: PlatformData { get }
 }
 
-public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, KotlinConverting<kotlin.ByteArray>, SwiftCustomBridged {
+public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, Sequence, KotlinConverting<kotlin.ByteArray>, SwiftCustomBridged {
     public var platformValue: PlatformData
 
     public init(platformValue: PlatformData) {
@@ -149,6 +149,10 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
         return Array(platformValue.map { $0.toUByte() })
     }
 
+    public override var iterable: kotlin.collections.Iterable<UInt8> {
+        return platformValue.map { $0.toUByte() }
+    }
+
     // Platform declaration clash: The following declarations have the same JVM signature (<init>(Lskip/lib/Array;)V):
     //public init(_ bytes: [Int]) {
     //    self.platformValue = PlatformData(size: bytes.count, init: {
@@ -224,6 +228,8 @@ public struct Data : DataProtocol, Hashable, CustomStringConvertible, Codable, K
 
     // public mutating func append<SourceType>(_ buffer: UnsafeBufferPointer<SourceType>)
 
+    // without declaring this, the contains() gets incorrectly marked with "override", which is incorrect for the Data type
+    // SKIP DECLARE: fun contains(other: Data): Boolean
     public func contains(_ other: Data) -> Bool {
         if (other.isEmpty) {
             return true
