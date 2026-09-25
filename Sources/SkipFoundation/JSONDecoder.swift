@@ -120,7 +120,7 @@ open class JSONDecoder {
     // Our TopLevelDecoder superclass handles the decode calls. We just have to produce the decoder
     public override func decoder(from data: Data) -> Decoder {
         do {
-            var parser = JSONParser(bytes: data.bytes)
+            var parser = JSONParser(data: data)
             let json = try parser.parseSwiftValue()
             return JSONDecoderImpl(userInfo: self.userInfo, from: json, codingPath: [], options: self.options)
         } catch let error as JSONError {
