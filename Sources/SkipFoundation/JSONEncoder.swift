@@ -387,7 +387,10 @@ extension _SpecialTreatmentEncoder {
             return .number(decimal.toPlainString())
         default:
             let encoder = self.getEncoder(for: additionalKey)
-            // SKIP REPLACE: (encodable as Encodable).encode(encoder)
+            // On SKIP the generic bound is weakened to `E: Any` (see the SKIP DECLARE above), so this
+            // is an unchecked downcast. Fail with an actionable EncodingError naming the offending
+            // type instead of a bare ClassCastException if a non-Encodable value ever reaches here.
+            // SKIP REPLACE: (encodable as? Encodable)?.encode(encoder) ?: throw EncodingError.invalidValue(encodable, EncodingError.Context(codingPath = this.codingPath, debugDescription = "Value of type ${encodable::class.qualifiedName} does not conform to Encodable and cannot be encoded"))
             try encodable.encode(to: encoder)
             return encoder.value
         }
