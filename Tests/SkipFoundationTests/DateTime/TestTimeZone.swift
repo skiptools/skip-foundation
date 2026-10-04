@@ -113,6 +113,7 @@ class TestTimeZone: XCTestCase {
     func test_knownTimeZoneNames() {
         let known = NSTimeZone.knownTimeZoneNames
         XCTAssertFalse(known.isEmpty, "known time zone names not expected to be empty")
+        XCTAssertEqual(Set(known), Set(TimeZone.knownTimeZoneIdentifiers))
     }
     
     func test_localizedName() {
@@ -143,19 +144,13 @@ class TestTimeZone: XCTestCase {
         let actualName = tz2?.identifier
         #if !SKIP
         XCTAssertEqual(actualName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(actualName?.description ?? "")\"")
-        #endif
         let expectedLocalizedName = "GMT-04:00"
-
-        #if SKIP
-        throw XCTSkip("Skip TimeZone.secondsFromGMT")
-        #else
         let actualLocalizedName = tz2?.localizedName(for: .generic, locale: Locale(identifier: "en_US"))
-
         XCTAssertEqual(actualLocalizedName, expectedLocalizedName, "expected name \"\(expectedLocalizedName)\" is not equal to \"\(actualLocalizedName?.description ?? "")\"")
+        #endif
+
         let seconds2 = tz2?.secondsFromGMT() ?? 0
         XCTAssertEqual(seconds2, -14400, "GMT-0400 should be -14400 seconds but got \(seconds2) instead")
-
-        #endif
 
         let tz3 = TimeZone(identifier: "GMT-9999")
         XCTAssertNil(tz3)
@@ -168,17 +163,107 @@ class TestTimeZone: XCTestCase {
     }
 
     func test_initializingTimeZoneWithAbbreviation() {
-        #if SKIP
-        throw XCTSkip("TODO: SkipTimeZone(abbreviation:)")
-        #endif
         // Test invalid timezone abbreviation
-        var tz = TimeZone(abbreviation: "XXX")
+        let tz = TimeZone(abbreviation: "XXX")
         XCTAssertNil(tz)
-        // Test valid timezone abbreviation of "AST" for "America/Halifax"
-        tz = TimeZone(abbreviation: "AST")
-        let expectedIdentifier = "America/Halifax"
-        let actualIdentifier = tz?.identifier
-        XCTAssertEqual(actualIdentifier, expectedIdentifier, "expected identifier \"\(expectedIdentifier)\" is not equal to \"\(actualIdentifier?.description ?? "")\"")
+        // Ambiguous abbreviations can resolve to different regions on each platform.
+        let tz2 = TimeZone(abbreviation: "AST")
+        XCTAssertNotNil(tz2)
+        let expectedIdentifier = TimeZone.abbreviationDictionary["AST"]
+        let actualIdentifier = tz2?.identifier
+        XCTAssertEqual(actualIdentifier, expectedIdentifier)
+        XCTAssertEqual(tz2?.secondsFromGMT(for: Date(timeIntervalSince1970: 1704067200.0)), -14400)
+    }
+
+    func test_initializingTimeZoneWithInvalidIdentifier() {
+        for identifier in ["", "Invalid/TimeZone", "GMT+25:00"] {
+            XCTAssertNil(TimeZone(identifier: identifier), identifier)
+        }
+        for identifier in ["GMT", "UTC", "GMT+00:00", "GMT-00:00", "America/New_York"] {
+            XCTAssertNotNil(TimeZone(identifier: identifier), identifier)
+        }
+    }
+
+    func test_initializingTimeZoneWithExactOffset() throws {
+        // Include partial minutes and both valid bounds to catch truncation and unit errors.
+        for seconds in [-64800, -19800, -61, -30, -1, 0, 1, 29, 30, 61, 19800, 20700, 64800] {
+            let timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: seconds))
+            XCTAssertEqual(timeZone.secondsFromGMT(), seconds)
+            XCTAssertFalse(timeZone.isDaylightSavingTime())
+        }
+        for seconds in [-64801, 64801] {
+            XCTAssertNil(TimeZone(secondsFromGMT: seconds))
+        }
+        #if SKIP // Darwin Foundation traps for integer extremes.
+        XCTAssertNil(TimeZone(secondsFromGMT: Int.min))
+        XCTAssertNil(TimeZone(secondsFromGMT: Int.max))
+        #endif
+    }
+
+    func test_abbreviationUsesDate() throws {
+        #if SKIP
+        let originalLocale = java.util.Locale.getDefault()
+        defer { java.util.Locale.setDefault(originalLocale) }
+        java.util.Locale.setDefault(java.util.Locale.US)
+        #endif
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "America/Los_Angeles"))
+        let winter = Date(timeIntervalSince1970: 1704067200.0) // January 1, 2024
+        let summer = Date(timeIntervalSince1970: 1719792000.0) // July 1, 2024
+        #if SKIP
+        XCTAssertEqual(timeZone.abbreviation(for: winter), "PST")
+        XCTAssertEqual(timeZone.abbreviation(for: summer), "PDT")
+        #else
+        XCTAssertEqual(timeZone.abbreviation(for: winter), timeZone.localizedName(for: .shortStandard, locale: Locale.current))
+        XCTAssertEqual(timeZone.abbreviation(for: summer), timeZone.localizedName(for: .shortDaylightSaving, locale: Locale.current))
+        #endif
+    }
+
+    func test_fixedOffsetUsedByCalendarAndDateFormatter() throws {
+        let timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 20700))
+        let date = Date(timeIntervalSince1970: 0.0)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let components = calendar.dateComponents([.hour, .minute, .second], from: date)
+        XCTAssertEqual(components.hour, 5)
+        XCTAssertEqual(components.minute, 45)
+        XCTAssertEqual(components.second, 0)
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "HH:mm:ss"
+        XCTAssertEqual(formatter.string(from: date), "05:45:00")
+    }
+
+    func test_abbreviationDictionaryResolvesSystemZones() throws {
+        XCTAssertFalse(TimeZone.abbreviationDictionary.isEmpty)
+        var abbreviations = ["GMT", "UTC", "AST", "PST", "PDT"]
+        #if SKIP
+        // Android can return GMT offset names where desktop Java returns ACST/ACDT.
+        // Both standard and daylight names supplied by the platform must resolve.
+        let adelaide = java.util.TimeZone.getTimeZone("Australia/Adelaide")
+        abbreviations.append(adelaide.getDisplayName(false, java.util.TimeZone.SHORT, java.util.Locale.US))
+        abbreviations.append(adelaide.getDisplayName(true, java.util.TimeZone.SHORT, java.util.Locale.US))
+        let kathmandu = java.util.TimeZone.getTimeZone("Asia/Kathmandu")
+        abbreviations.append(kathmandu.getDisplayName(false, java.util.TimeZone.SHORT, java.util.Locale.US))
+        #endif
+        for abbreviation in abbreviations {
+            let identifier = try XCTUnwrap(TimeZone.abbreviationDictionary[abbreviation], "Missing abbreviation: \(abbreviation)")
+            let timeZone = try XCTUnwrap(TimeZone(abbreviation: abbreviation))
+            XCTAssertEqual(timeZone.identifier, TimeZone(identifier: identifier)?.identifier)
+        }
+        for (_, identifier) in TimeZone.abbreviationDictionary {
+            XCTAssertNotNil(TimeZone(identifier: identifier), identifier)
+        }
+    }
+
+    func test_initializingTimeZoneWithCustomAbbreviations() {
+        let original = TimeZone.abbreviationDictionary
+        defer { TimeZone.abbreviationDictionary = original }
+        TimeZone.abbreviationDictionary = ["CUSTOM": "Asia/Tokyo", "INVALID": "Invalid/TimeZone"]
+        XCTAssertEqual(TimeZone(abbreviation: "CUSTOM")?.identifier, "Asia/Tokyo")
+        XCTAssertNil(TimeZone(abbreviation: "INVALID"))
+        XCTAssertNil(TimeZone(abbreviation: "MISSING"))
     }
 
 #if os(Windows)
