@@ -42,33 +42,35 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
     }
 
     public init?(identifier: String) {
-        guard let tz = java.util.TimeZone.getTimeZone(identifier) else {
+        let tz = java.util.TimeZone.getTimeZone(identifier)
+        // Java's getTimeZone() returns a timezone with ID "GMT" for unknown identifiers;
+        // if the result is GMT but the requested identifier wasn't "GMT", it means the
+        // identifier was not recognized.
+        if tz.getID() == "GMT" && identifier != "GMT" {
             return nil
         }
         self.platformValue = tz
     }
 
     public init?(abbreviation: String) {
-        guard let identifier = Self.abbreviationDictionary[abbreviation] else {
-        }
-        guard let tz = java.util.TimeZone.getTimeZone(identifier) else {
+        guard let identifier = Self.abbreviationDictionary[abbreviation], let timeZone = TimeZone(identifier: identifier) else {
             return nil
         }
-        self.platformValue = tz
+        self.platformValue = timeZone.platformValue
     }
 
     public init?(secondsFromGMT seconds: Int) {
-        // java.time.ZoneId is more modern, but doesn't seem to be able to vend a java.util.TimeZone
-        // guard let tz = PlatformTimeZone.getTimeZone(java.time.ZoneId.ofOffset(seconds))
-
-        //let timeZoneId = seconds >= 0
-        //    ? String.format("GMT+%02d:%02d", seconds / 3600, (seconds % 3600) / 60)
-        //    : String.format("GMT-%02d:%02d", -seconds / 3600, (-seconds % 3600) / 60)
-        //guard let tz = PlatformTimeZone.getTimeZone(timeZoneId) else {
-        //    return nil
-        //}
-
-        self.platformValue = java.util.SimpleTimeZone(seconds, "GMT")
+        // Foundation accepts offsets within 18 hours of GMT, including partial minutes.
+        guard seconds >= -18 * 3600 && seconds <= 18 * 3600 else {
+            return nil
+        }
+        // Round only the identifier to the nearest minute, preserving the exact offset.
+        let totalMinutes = (abs(seconds) + 30) / 60
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        let sign = seconds >= 0 ? "+" : "-"
+        let identifier = totalMinutes == 0 ? "GMT" : String(format: "GMT%@%02d:%02d", sign, hours, minutes)
+        self.platformValue = java.util.SimpleTimeZone(seconds * 1000, identifier)
     }
 
     public init(from decoder: Decoder) throws {
@@ -87,7 +89,7 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
     }
 
     public func abbreviation(for date: Date = Date()) -> String? {
-        return platformValue.getDisplayName(true, java.util.TimeZone.SHORT)
+        return platformValue.getDisplayName(isDaylightSavingTime(for: date), java.util.TimeZone.SHORT)
     }
 
     public func secondsFromGMT(for date: Date = Date()) -> Int {
@@ -120,14 +122,34 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
     }
 
     public static var knownTimeZoneIdentifiers: [String] {
-        return Array(java.time.ZoneId.getAvailableZoneIds())
+        // Match the provider used by init(identifier:). On Android, java.time also
+        // advertises legacy aliases that java.util.TimeZone does not recognize.
+        return Array(java.util.TimeZone.getAvailableIDs().toList())
     }
 
     public static var knownTimeZoneNames: [String] {
-        return Array(java.time.ZoneId.getAvailableZoneIds())
+        return knownTimeZoneIdentifiers
     }
 
-    public static var abbreviationDictionary: [String : String] = [:]
+    public static var abbreviationDictionary: [String : String] = {
+        var abbreviations: [String : String] = [:]
+        // Abbreviations are ambiguous. Keep the first identifier in sorted order so
+        // the mapping is stable, and use English names regardless of the device locale.
+        for identifier in knownTimeZoneIdentifiers.sorted() {
+            let timeZone = java.util.TimeZone.getTimeZone(identifier)
+            let standard = timeZone.getDisplayName(false, java.util.TimeZone.SHORT, java.util.Locale.US)
+            if abbreviations[standard] == nil {
+                abbreviations[standard] = identifier
+            }
+            if timeZone.useDaylightTime() {
+                let daylight = timeZone.getDisplayName(true, java.util.TimeZone.SHORT, java.util.Locale.US)
+                if abbreviations[daylight] == nil {
+                    abbreviations[daylight] = identifier
+                }
+            }
+        }
+        return abbreviations
+    }()
 
     @available(*, unavailable)
     public static var timeZoneDataVersion: String {
