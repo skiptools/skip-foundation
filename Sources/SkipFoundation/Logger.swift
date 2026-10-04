@@ -20,7 +20,7 @@ public class SkipLogger {
     }
 
     public init(subsystem: String, category: String) {
-        self.logName = subsystem + "." + category
+        self.logName = subsystem + "/" + category
     }
 
     public func isEnabled(type: OSLogType) -> Bool {
