@@ -106,14 +106,8 @@ public class PropertyListSerialization {
             let categories = ["zero", "one", "two", "few", "many", "other"]
             let rules = categories.compactMap { (category: String) -> String? in
                 guard let pluralString = varDict[category] as? String else { return nil }
-                var cleaned = pluralString!
-                for index in 1...10 {
-                    cleaned = cleaned
-                        .replacingOccurrences(of: "%\(index)$@", with: "{\(index-1)}")
-                        .replacingOccurrences(of: "%\(index)$d", with: "{\(index-1)}")
-                }
                 let icuCategory = category == "zero" ? "=0" : category
-                return "\(icuCategory){\(cleaned)}"
+                return "\(icuCategory){\(icuMessage(fromFormat: pluralString!))}"
             }.joined(separator: " ")
 
             if !rules.isEmpty {
@@ -138,6 +132,43 @@ public class PropertyListSerialization {
         }
 
         return result
+    }
+
+    /// Converts a printf-style plural form into ICU MessageFormat text: each specifier becomes an argument
+    /// (`%lld` and `%1$d` become `{0,number,#}`, without grouping like Darwin, and `%@` becomes `{0}`),
+    /// and ICU syntax characters in the literal text are quoted.
+    static func icuMessage(fromFormat format: String) -> String {
+        let specifier = java.util.regex.Pattern.compile("%(?:(\\d+)\\$)?[-+ 0#']*\\d*(?:\\.\\d+)?(?:hh|h|ll|l|q|z|t|j)?([@dDiuUxXoOfFeEgGaAcCsSp%])")
+        let matcher = specifier.matcher(format)
+        var result = ""
+        var literalStart = 0
+        var nextArgument = 0
+        while matcher.find() {
+            result += icuLiteral(format.substring(literalStart, matcher.start()))
+            literalStart = matcher.end()
+            let conversion = matcher.group(2)!
+            if conversion == "%" {
+                result += "%"
+                continue
+            }
+            var argument = nextArgument
+            if let position = matcher.group(1) {
+                argument = position.toInt() - 1
+            } else {
+                nextArgument += 1
+            }
+            result += "dDiuU".contains(conversion) ? "{\(argument),number,#}" : "{\(argument)}"
+        }
+        result += icuLiteral(format.substring(literalStart))
+        return result
+    }
+
+    private static func icuLiteral(_ text: String) -> String {
+        text.replace("'", "''")
+            .replace("{", "'{'")
+            .replace("}", "'}'")
+            .replace("#", "'#'")
+            .replace("|", "'|'")
     }
 
     private static func openStepPropertyList(from data: Data, options: PropertyListSerialization.ReadOptions = []) throws -> [String: String]? {
