@@ -84,10 +84,18 @@ Support levels:
           <summary><code>AttributedString</code></summary>
           <ul>
 <li><code>init()</code></li>
+<li><code>init(_ string: String)</code></li>
+<li><code>init(_ string: String, attributes: AttributeContainer)</code></li>
 <li><code>init(stringLiteral: String)</code></li>
 <li><code>init(markdown: String)</code></li>
 <li><code>init(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil)</code></li>
 <li><code>init(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil)</code></li>
+<li><code>var characters: String</code></li>
+<li><code>var string: String</code></li>
+<li><code>var runs: Runs</code></li>
+<li><code>func append(_ other: AttributedString)</code></li>
+<li><code>static func +(lhs:rhs:)</code> (Kotlin <code>plus</code> operator)</li>
+<li><code>AttributeContainer</code>, <code>AttributedStringKey</code>, <code>AttributeScopes.FoundationAttributes</code> (link, markdown)</li>
           </ul>
         </details> 
       </td>
