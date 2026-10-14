@@ -35,6 +35,28 @@ final class TestMarkdown: XCTestCase {
         XCTAssertEqual(stringify(MarkdownNode.from(string: "This is %@ [link %@](http://%@.com) text")), "This is %s [1]<a href=http://%s.com[3]>link %s[2]</a> text")
     }
 
+    func testEscapedPercentsWithoutSubstitutions() {
+        let node = MarkdownNode.from(string: "[100%%](https://example.org/a%%20b?q=%%25)")!
+        let link = node.children![0].children![0]
+        XCTAssertEqual(link.formattedString(emptyList()), "https://example.org/a%20b?q=%25")
+        XCTAssertEqual(link.children![0].formattedString(emptyList()), "100%")
+    }
+
+    func testLiteralMarkdownDoesNotUnescapePercentsWithoutFormattingContext() {
+        let node = MarkdownNode.from(string: "[100%%](https://example.org/a%20b)")!
+        let link = node.children![0].children![0]
+        XCTAssertEqual(link.formattedString(nil), "https://example.org/a%20b")
+        XCTAssertEqual(link.children![0].formattedString(nil), "100%%")
+    }
+
+    func testEscapedPercentsAlongsideSubstitutions() {
+        let node = MarkdownNode.from(string: "[Save %@ at 100%%](https://example.org/a%%20b)")!
+        let link = node.children![0].children![0]
+        let values: List<AnyHashable> = listOf("today")
+        XCTAssertEqual(link.formattedString(values), "https://example.org/a%20b")
+        XCTAssertEqual(link.children![0].formattedString(values), "Save today at 100%")
+    }
+
     private func stringify(_ node: MarkdownNode?, isFirstChild: Bool = true) -> String {
         guard let node else {
             return ""
