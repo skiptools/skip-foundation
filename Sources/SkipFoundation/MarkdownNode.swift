@@ -89,8 +89,13 @@ public final class MarkdownNode {
     }
 
     public func formattedString(_ interpolations: List<AnyHashable>?) -> String? {
-        guard let string, let interpolationIndexes, let interpolations else {
+        guard let string, let interpolations else {
             return self.string
+        }
+        // Localized literals escape percent signs even when this node has no substitutions.
+        // Plain attributed Markdown has no interpolation context and must remain unchanged.
+        guard let interpolationIndexes else {
+            return string.replace("%%", "%")
         }
         let stringInterpolations = mutableListOf<AnyHashable>()
         for index in interpolationIndexes {
