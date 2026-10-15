@@ -550,6 +550,27 @@ class TestJSON : XCTestCase {
         try XCTAssertEqual("X", decoder.decode(String.self, from: "\"X\"".data(using: .utf8)!))
     }
 
+    struct DecodedRow : Decodable, Equatable {
+        var id: Int
+        var text: String
+    }
+
+    func testJSONDecodingMultiByteAndLargeInput() throws {
+        let decoder = JSONDecoder()
+
+        // Multi-byte UTF-8 has to survive the Data -> String step unchanged.
+        let text = "héllo · 日本語 · 🚀"
+        let single = try decoder.decode(DecodedRow.self, from: "{\"id\":1,\"text\":\"\(text)\"}".data(using: .utf8)!)
+        XCTAssertEqual(single, DecodedRow(id: 1, text: text))
+
+        // A payload large enough that boxing every byte would be expensive.
+        let count = 20_000
+        let json = "[" + (0..<count).map { "{\"id\":\($0),\"text\":\"\(text)\"}" }.joined(separator: ",") + "]"
+        let rows = try decoder.decode([DecodedRow].self, from: json.data(using: .utf8)!)
+        XCTAssertEqual(rows.count, count)
+        XCTAssertEqual(rows.last, DecodedRow(id: count - 1, text: text))
+    }
+
     struct EntityCustomKeys : Encodable {
         var nameFirst: String
         var nameLast: String

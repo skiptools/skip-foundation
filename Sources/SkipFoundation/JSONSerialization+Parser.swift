@@ -9,6 +9,17 @@ internal class JSONParser {
         self.reader = org.json.JSONTokener(String(data: Data(bytes), encoding: .utf8) ?? "")
     }
 
+    /// Parses directly from the data's backing `ByteArray`.
+    ///
+    /// Prefer this to `init(bytes: data.bytes)`: `Data.bytes` maps every byte
+    /// into a boxed `UByte` and copies the result into an `Array`, which costs
+    /// roughly 40 bytes of heap per byte of input before the tokenizer sees
+    /// a single character. A few megabytes of JSON is enough to exhaust a
+    /// default Android heap.
+    init(data: Data) {
+        self.reader = org.json.JSONTokener(String(data: data, encoding: .utf8) ?? "")
+    }
+
     public func parseJSONValue() throws -> JSONValue {
         try createJSONValue(from: reader.nextValue())
     }
