@@ -131,7 +131,27 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
         return knownTimeZoneIdentifiers
     }
 
-    public static var abbreviationDictionary: [String : String] = {
+    // Built on first use: a stored static's initializer runs when the class loads on Android, and walking every
+    // zone through ICU there costs hundreds of milliseconds on low-end devices (UserDefaults touches TimeZone at launch).
+    public static var abbreviationDictionary: [String : String] {
+        get {
+            if let abbreviations = cachedAbbreviationDictionary {
+                return abbreviations
+            }
+            let abbreviations = buildAbbreviationDictionary()
+            cachedAbbreviationDictionary = abbreviations
+            return abbreviations
+        }
+        set {
+            cachedAbbreviationDictionary = newValue
+        }
+    }
+
+    // Not synchronized: concurrent first reads may each build the same dictionary, which is harmless.
+    // Internal so tests can check it's built on demand.
+    internal static var cachedAbbreviationDictionary: [String : String]? = nil
+
+    private static func buildAbbreviationDictionary() -> [String : String] {
         var abbreviations: [String : String] = [:]
         // Abbreviations are ambiguous. Keep the first identifier in sorted order so
         // the mapping is stable, and use English names regardless of the device locale.
@@ -149,7 +169,7 @@ public struct TimeZone : Hashable, Codable, CustomStringConvertible, Sendable, K
             }
         }
         return abbreviations
-    }()
+    }
 
     @available(*, unavailable)
     public static var timeZoneDataVersion: String {
