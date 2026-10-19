@@ -1,10 +1,13 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
+import OSLog
 import XCTest
 import Foundation
 
 @available(macOS 11, iOS 14, watchOS 7, tvOS 14, *)
 class TestJSON : XCTestCase {
+    fileprivate let logger: Logger = Logger(subsystem: "test", category: "TestJSON")
+
     struct StringField : Equatable, Codable {
         var stringField: String
     }
@@ -771,7 +774,7 @@ class TestJSON : XCTestCase {
 //        //bigString = arrayify(…, bigString) // 10,000,000: 24.408 Swift,  OOME Robo
 //
 //        // good timing test
-//        print("parsing string: \(bigString.count)")
+//        logger.info("parsing string: \(bigString.count)")
 //        let _ = try JSONObjectAny(json: bigString)
 //        //let prettyBigString = try prettyBigObject.stringify(pretty: true, sorted: true)
 //    }

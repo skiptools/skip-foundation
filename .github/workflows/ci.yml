@@ -15,6 +15,78 @@ jobs:
   call-workflow:
     uses: skiptools/actions/.github/workflows/skip-framework.yml@v1
     with:
-      # arm macOS can't host the Android emulator, so skip-framework.yml runs the
-      # emulator tests only on the x86_64 Ubuntu leg
-      runs-on: "['macos-26', 'ubuntu-24.04']"
+      runs-on: "['macos-26']"
+      # arm macOS runners can't host the Android emulator, so build-android-tests and
+      # android-emulator run the connected tests on Ubuntu instead
+      run-android-tests: false
+
+  build-android-tests:
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - run: echo "JAVA_HOME=${JAVA_HOME_21_ARM64}" >> $GITHUB_ENV
+      - uses: skiptools/actions/setup-skip@v1
+      - name: Build androidTest APKs
+        run: |
+          swift build --build-tests
+          mkdir apks
+          for dir in .build/plugins/outputs/skip-foundation/*Tests/destination/skipstone; do
+            module=$(basename $(dirname $(dirname "${dir}")))
+            module=${module%Tests}
+            gradle assembleDebugAndroidTest --project-dir "${dir}" -PbuildDir=.build/${module} --console plain
+            cp "${dir}/${module}/.build/${module}/outputs/apk/androidTest/debug/"*.apk apks/
+          done
+          ls -la apks
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android-test-apks
+          path: apks/*.apk
+
+  android-emulator:
+    needs: build-android-tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: android-test-apks
+          path: apks
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/cache@v6
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-Nexus 4_stable_default_28_ubuntu-24.04_x86_64
+      - if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: default
+          arch: x86_64
+          profile: Nexus 4
+          avd-name: stable_default_28
+          disk-size: 4096M
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching"
+      - name: Test Android (connected)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: default
+          arch: x86_64
+          profile: Nexus 4
+          avd-name: stable_default_28
+          disk-size: 4096M
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: .github/scripts/run-instrumented-tests.sh apks

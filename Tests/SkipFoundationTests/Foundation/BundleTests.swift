@@ -1,25 +1,19 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
 import Foundation
-#if SKIP || canImport(OSLog)
 import OSLog
-#endif
 import XCTest
 
 @available(macOS 13, iOS 16, watchOS 10, tvOS 16, *)
 final class BundleTests: XCTestCase {
-#if SKIP || canImport(OSLog)
     let logger: Logger = Logger(subsystem: "test", category: "BundleTests")
-#endif
 
     func testBundle() throws {
         // Swift will be: Contents/Resources/ -- file:///~/Library/Developer/Xcode/DerivedData/DemoApp-ABCDEF/Build/Products/Debug/SkipFoundationTests.xctest/Contents/Resources/Skip_SkipFoundationTests.bundle/
         // Kotlin will be: file:///~/Library/Developer/Xcode/DerivedData/DemoApp-ABCDEF/Build/Products/Debug/SkipFoundationTests.xctest/Contents/Resources/skip-foundation_SkipFoundationTests.bundle/Contents/Resources/textasset.txt
 
         let resourceURL: URL = try XCTUnwrap(Bundle.module.url(forResource: "textasset", withExtension: "txt", subdirectory: nil, localization: nil))
-#if SKIP || canImport(OSLog)
         logger.info("resourceURL: \(resourceURL.absoluteString)")
-#endif
         let str = try String(contentsOf: resourceURL)
         XCTAssertEqual("Some text\n", str)
     }
