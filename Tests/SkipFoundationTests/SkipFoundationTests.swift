@@ -1,7 +1,9 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
 import Foundation
+#if SKIP || canImport(OSLog)
 import OSLog
+#endif
 import XCTest
 #if !SKIP
 @testable import func SkipFoundation.SkipFoundationInternalModuleName
@@ -9,7 +11,9 @@ import XCTest
 #endif
 
 final class SkipFoundationTests: XCTestCase {
+#if SKIP || canImport(OSLog)
     let logger: Logger = Logger(subsystem: "test", category: "SkipFoundationTests")
+#endif
 
     func testSkipFoundation() throws {
         XCTAssertEqual(3, 1 + 2)
@@ -25,7 +29,9 @@ final class SkipFoundationTests: XCTestCase {
             if isRobolectric {
                 XCTAssertEqual(value, env[key], "Unexpected value for Robolectric system property \(key): \(env[key] ?? "")")
             } else if isAndroidEmulator {
+#if SKIP || canImport(OSLog)
                 logger.log("ANDROID ENV: \(key)=\(env[key] ?? "")")
+#endif
                 XCTAssertNotNil(env[key], "Android system property should not been nil for key \(key)")
             } else {
                 XCTAssertNil(env[key], "Swift system property should have been nil for key \(key) value=\(env[key] ?? "")")
