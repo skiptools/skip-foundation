@@ -257,6 +257,22 @@ class TestTimeZone: XCTestCase {
         }
     }
 
+    func test_abbreviationDictionaryIsBuiltOnFirstUse() {
+        #if SKIP
+        // Building the dictionary walks every known zone through ICU, so plain TimeZone use must not trigger it
+        let original = TimeZone.cachedAbbreviationDictionary
+        defer { TimeZone.cachedAbbreviationDictionary = original }
+        TimeZone.cachedAbbreviationDictionary = nil
+        XCTAssertEqual(TimeZone(identifier: "Asia/Tokyo")?.identifier, "Asia/Tokyo")
+        XCTAssertNotNil(TimeZone(secondsFromGMT: 3600))
+        let _ = TimeZone.current
+        XCTAssertNil(TimeZone.cachedAbbreviationDictionary)
+
+        XCTAssertNotNil(TimeZone(abbreviation: "GMT"))
+        XCTAssertNotNil(TimeZone.cachedAbbreviationDictionary)
+        #endif
+    }
+
     func test_initializingTimeZoneWithCustomAbbreviations() {
         let original = TimeZone.abbreviationDictionary
         defer { TimeZone.abbreviationDictionary = original }
