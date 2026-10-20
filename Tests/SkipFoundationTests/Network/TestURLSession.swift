@@ -198,6 +198,10 @@ class TestURLSession: XCTestCase {
                 let task = session.dataTask(with: URLRequest(url: testURL))
                 task.resume()
                 var (dataTasks, uploadTasks, downloadTasks) = await session.tasks
+                // The request can complete before the listing, and a session doesn't list completed tasks
+                if dataTasks.isEmpty && task.state == .completed && i < 5 {
+                    continue
+                }
                 XCTAssertEqual(dataTasks.count, 1)
                 XCTAssertEqual(uploadTasks.count, 0)
                 XCTAssertEqual(downloadTasks.count, 0)
@@ -232,6 +236,10 @@ class TestURLSession: XCTestCase {
                 let task = session.dataTask(with: URLRequest(url: testURL))
                 task.resume()
                 var tasks = await session.allTasks
+                // The request can complete before the listing, and a session doesn't list completed tasks
+                if tasks.isEmpty && task.state == .completed && i < 5 {
+                    continue
+                }
                 XCTAssertEqual(tasks.count, 1)
                 XCTAssertTrue(tasks.first === task)
                 task.cancel()
