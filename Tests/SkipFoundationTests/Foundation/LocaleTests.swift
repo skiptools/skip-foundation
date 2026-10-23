@@ -366,10 +366,20 @@ final class LocaleTests: XCTestCase {
                 //XCTAssertEqual("تم⁨X⁩", String(localized: "Done \("X")", bundle: lb)) // java.lang.AssertionError: تم⁨X⁩ != تمX
 
                 // SKIP NOWARN
-                XCTAssertEqual(try PropertyListSerialization.propertyList(from: Data(contentsOf: locstrs), format: nil) as? Dictionary<String, String>, [
+                let actualAR = try PropertyListSerialization.propertyList(from: Data(contentsOf: locstrs), format: nil) as? Dictionary<String, String>
+                let expectedAR = [
                     "Done %@": "تم%@",
                     "Done": "تم",
-                ])
+                ]
+                for (key, value) in expectedAR {
+                    XCTAssertEqual(actualAR?[key], value)
+                }
+                // Xcode 26 omits untranslated keys; Xcode 27 emits them as English fallbacks (https://github.com/skiptools/skip-foundation/issues/140)
+                let extraAR = Set((actualAR ?? [:]).keys).subtracting(expectedAR.keys)
+                XCTAssertTrue(extraAR.isEmpty || extraAR == ["lower-case %@ string"], "Unexpected extra keys: \(extraAR)")
+                if let fallback = actualAR?["lower-case %@ string"] {
+                    XCTAssertEqual(fallback, "lower-case %@ string")
+                }
             } else if lang == "fr" {
                 XCTAssertEqual("Terminé", String(localized: String.LocalizationValue(stringLiteral: "Done"), bundle: lb))
                 XCTAssertEqual("Terminé X", String(localized: "Done \("X")", bundle: lb))
@@ -383,12 +393,21 @@ final class LocaleTests: XCTestCase {
                 """, bundle: lb, comment: ""))
 
                 // SKIP NOWARN
-                XCTAssertEqual(try PropertyListSerialization.propertyList(from: Data(contentsOf: locstrs), format: nil) as? Dictionary<String, String>, [
+                let actualFR = try PropertyListSerialization.propertyList(from: Data(contentsOf: locstrs), format: nil) as? Dictionary<String, String>
+                let expectedFR = [
                     "Done %@": "Terminé %@",
                     "Done": "Terminé",
                     "Multi-Line String!\nWith some \"quoted\" text.": "Chaîne multi-ligne !\nAvec un peu de texte « entre guillemets »."
-                ])
-
+                ]
+                for (key, value) in expectedFR {
+                    XCTAssertEqual(actualFR?[key], value)
+                }
+                // Xcode 26 omits untranslated keys; Xcode 27 emits them as English fallbacks (https://github.com/skiptools/skip-foundation/issues/140)
+                let extraFR = Set((actualFR ?? [:]).keys).subtracting(expectedFR.keys)
+                XCTAssertTrue(extraFR.isEmpty || extraFR == ["lower-case %@ string"], "Unexpected extra keys: \(extraFR)")
+                if let fallback = actualFR?["lower-case %@ string"] {
+                    XCTAssertEqual(fallback, "lower-case %@ string")
+                }
             }
         }
     }
