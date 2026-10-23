@@ -252,6 +252,7 @@ class TestURLRequest : XCTestCase {
             "Connect": "CONNECT",
             "cOnNeCt": "CONNECT",
             "OPTIONS": "OPTIONS",
+            // macOS 26 keeps "options"; macOS 27 normalizes it to "OPTIONS" (https://github.com/skiptools/skip-foundation/issues/139)
             "options": "options",
             "TRACE": "TRACE",
             "trace": "trace",
@@ -265,7 +266,13 @@ class TestURLRequest : XCTestCase {
 
         for n in expectedNormalizations {
             request.httpMethod = n.key
-            XCTAssertEqual(request.httpMethod, n.value)
+            let allowed: [String?]
+            if n.key == "options" {
+                allowed = ["options", "OPTIONS"]
+            } else {
+                allowed = [n.value]
+            }
+            XCTAssertTrue(allowed.contains(request.httpMethod), "Expected one of \(allowed) for \(n.key), got \(String(describing: request.httpMethod))")
         }
     }
 
