@@ -144,7 +144,36 @@ final class EditableAttributedStringTests: XCTestCase {
         XCTAssertEqual(text[text.range(of: "100%")!].link?.absoluteString, "https://example.com/a%20b")
     }
 
+    func testLocalizedMarkdownPreservesWhitespaceAndHTML() {
+        let name = "world"
+        let text = AttributedString(localized: "  **Hello \(name)**\n\n  <b>next</b>  ")
+        XCTAssertEqual(String(text.characters), "  Hello world\n\n  <b>next</b>  ")
+        XCTAssertEqual(text[text.range(of: "Hello world")!].inlinePresentationIntent, .stronglyEmphasized)
+    }
+
+    func testLocalizedMarkdownWithoutSubstitutionsPreservesPercents() {
+        let text = AttributedString(localized: "**100%** [link](https://example.com/a%20b)")
+        XCTAssertEqual(String(text.characters), "100% link")
+        XCTAssertEqual(text[text.range(of: "link")!].link?.absoluteString, "https://example.com/a%20b")
+        XCTAssertEqual(text[text.range(of: "100%")!].inlinePresentationIntent, .stronglyEmphasized)
+    }
+
+    func testMarkdownPreservesWhitespaceFollowingEntities() throws {
+        let sources = ["&#9;\t", "a &#32; ", "&#32;  ", "a &#32; \nb", "a\t \nb", "a &#32; **b**"]
+        let expected = ["\t\t", "a   ", "   ", "a   \nb", "a\t \nb", "a   b"]
+        for index in sources.indices {
+            let text = try AttributedString(markdown: sources[index], options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+            XCTAssertEqual(String(text.characters), expected[index])
+        }
+    }
+
     #if SKIP
+    func testLocalizedStringKeyPreservesWhitespaceAndHTML() {
+        let key: String = "  **Hello**\n\n  <b>next</b>  "
+        let text = AttributedString(localized: key)
+        XCTAssertEqual(String(text.characters), "  Hello\n\n  <b>next</b>  ")
+    }
+
     // Preserve Lite's existing behavior: substitutions do not introduce Markdown.
     func testLocalizedSubstitutionDoesNotIntroduceMarkup() {
         let name = "*literal*"

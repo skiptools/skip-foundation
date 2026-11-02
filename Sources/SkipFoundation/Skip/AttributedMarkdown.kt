@@ -18,6 +18,13 @@ import org.commonmark.parser.block.*
  */
 internal object AttributedMarkdown {
     fun runs(source: String): skip.lib.Array<AttributedMarkdownRun> {
+        val result = mutableListOf<AttributedMarkdownRun>()
+        append(parse(source), result)
+        return skip.lib.Array(result)
+    }
+
+    /** Parse inline Markdown, retaining whitespace and literal HTML for both callers. */
+    fun parse(source: String): Node {
         // Direct inline parsing bypasses CommonMark's input normalization. Keep
         // parsing and source-span lookups on the same normalized string.
         val normalizedSource = source.replace('\u0000', '\uFFFD')
@@ -33,9 +40,8 @@ internal object AttributedMarkdown {
         // A punctuation character invokes the custom block factory. The block's
         // parseInlines method replaces this trigger with the actual source.
         val document = parser.parse("#")
-        val result = mutableListOf<AttributedMarkdownRun>()
-        append(document, normalizedSource, result)
-        return skip.lib.Array(result)
+        preserveText(document, normalizedSource)
+        return document
     }
 
     private class InputBlock(private val source: String) : AbstractBlockParser() {
@@ -47,8 +53,37 @@ internal object AttributedMarkdown {
         }
     }
 
+    // Restore only whitespace that CommonMark trims at a line/input boundary.
+    // Decoded entities may also end in whitespace, so literal suffix lengths
+    // cannot tell us how much source whitespace was retained.
+    private fun preserveText(node: Node, source: String) {
+        if (node is MarkdownText) {
+            val span = node.sourceSpans.lastOrNull()
+            if (span != null) {
+                val end = span.inputIndex + span.length
+                val raw = source.substring(span.inputIndex, end)
+                val trimmed = when {
+                    end == source.length -> raw.takeLastWhile { it == ' ' || it == '\t' }
+                    source[end] == '\n' -> raw.takeLastWhile { it == ' ' }
+                    else -> ""
+                }
+                node.literal += trimmed
+            }
+        } else if (node is HtmlInline) {
+            // MarkdownNode consumes Text nodes; inline HTML remains literal text.
+            node.insertBefore(MarkdownText(node.literal))
+            node.unlink()
+        }
+        var child = node.firstChild
+        while (child != null) {
+            val next = child.next
+            preserveText(child, source)
+            child = next
+        }
+    }
+
     private fun append(
-        node: Node, source: String, result: MutableList<AttributedMarkdownRun>,
+        node: Node, result: MutableList<AttributedMarkdownRun>,
         bold: Boolean = false, italic: Boolean = false, code: Boolean = false,
         strike: Boolean = false, link: String? = null
     ) {
@@ -58,15 +93,7 @@ internal object AttributedMarkdown {
         val nextStrike = strike || node is Strikethrough
         val nextLink = (node as? MarkdownLink)?.destination ?: link
         val text = when (node) {
-            is MarkdownText -> {
-                // CommonMark trims spaces before a newline and at end of input.
-                // Its source span retains them, even for decoded entities/escapes.
-                val lastSpan = node.sourceSpans.lastOrNull()
-                val raw = lastSpan?.let { source.substring(it.inputIndex, it.inputIndex + it.length) }.orEmpty()
-                val sourceSpaces = raw.takeLastWhile { it == ' ' || it == '\t' }
-                val keptSpaces = node.literal.takeLastWhile { it == ' ' || it == '\t' }
-                node.literal + sourceSpaces.drop(keptSpaces.length)
-            }
+            is MarkdownText -> node.literal
             is Code -> node.literal
             is HtmlInline -> node.literal
             is SoftLineBreak, is HardLineBreak -> "\n"
@@ -79,7 +106,7 @@ internal object AttributedMarkdown {
         } else {
             var child = node.firstChild
             while (child != null) {
-                append(child, source, result, nextBold, nextItalic, nextCode, nextStrike, nextLink)
+                append(child, result, nextBold, nextItalic, nextCode, nextStrike, nextLink)
                 child = child.next
             }
         }

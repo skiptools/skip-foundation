@@ -57,8 +57,8 @@ public struct AttributedString: Hashable {
 
     /// Create editable localized text, preserving literal interpolation values.
     public init(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) {
-        let (_, locfmt, locnode) = (bundle ?? Bundle.main).localizedInfo(forKey: keyAndValue.patternFormat, value: nil, table: table, locale: locale)
-        let node = locnode?.format(keyAndValue.stringInterpolation.values)
+        let (locstring, locfmt, _) = (bundle ?? Bundle.main).localizedInfo(forKey: keyAndValue.patternFormat, value: nil, table: table, locale: locale)
+        let node = MarkdownNode.fromInline(string: locstring)?.format(keyAndValue.stringInterpolation.values)
         if let node {
             appendMarkdown(node, attributes: AttributeContainer())
             coalesce()
@@ -71,7 +71,8 @@ public struct AttributedString: Hashable {
 
     /// Create editable localized text, preserving literal interpolation values.
     public init(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil) {
-        let (locstring, _, locnode) = (bundle ?? Bundle.main).localizedInfo(forKey: key, value: nil, table: table, locale: locale)
+        let (locstring, _, _) = (bundle ?? Bundle.main).localizedInfo(forKey: key, value: nil, table: table, locale: locale)
+        let locnode = MarkdownNode.fromInline(string: locstring)
         if let locnode {
             appendMarkdown(locnode, attributes: AttributeContainer())
             coalesce()
