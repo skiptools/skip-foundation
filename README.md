@@ -85,7 +85,12 @@ Support levels:
           <ul>
 <li><code>init()</code></li>
 <li><code>init(stringLiteral: String)</code></li>
-<li><code>init(markdown: String)</code></li>
+<li><code>init(_: String, attributes: AttributeContainer)</code></li>
+<li><code>init(_: AttributedSubstring)</code></li>
+<li><code>init(markdown:options:)</code>, with inline-only whitespace-preserving parsing</li>
+<li><code>range(of:options:locale:)</code>, editable range subscripting, <code>runs</code>, <code>characters</code>, and <code>append(_:)</code></li>
+<li><code>link</code> and <code>inlinePresentationIntent</code> on strings, substrings, containers, and runs</li>
+<li>See <a href="#editable-attributed-strings">Editable attributed strings</a> for supported syntax and limitations</li>
 <li><code>init(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil)</code></li>
 <li><code>init(localized key: String, table: String? = nil, bundle: Bundle? = nil, locale: Locale = Locale.current, comment: String? = nil)</code></li>
           </ul>
@@ -1151,3 +1156,67 @@ Both `Data` and `String` have the ability to read and write to and from URLs and
 
 This software is licensed under the 
 [Mozilla Public License 2.0](https://www.mozilla.org/MPL/).
+
+## Editable attributed strings
+
+Skip Lite supports applying and removing attributes on whole strings or ranges:
+
+```swift
+var text = AttributedString("Visit Skip")
+if let range = text.range(of: "Skip") {
+    text[range].link = URL(string: "https://skip.dev")
+    text[range].inlinePresentationIntent = .stronglyEmphasized
+}
+```
+
+Attribute edits preserve other attributes, split runs where necessary, and merge
+adjacent runs whose attributes match. Copies and detached substrings have value
+semantics. `runs` exposes the current attributes and ranges; use
+`String(text[run.range].characters)` to read each run's text. Equality and hashing
+include attributes, regardless of the order in which edits were applied.
+
+`AttributedString(markdown:options:)` creates the same editable model. The supported
+syntax is `.inlineOnlyPreservingWhitespace`, also the Lite default. The parser
+supports emphasis, strong emphasis, inline code, strikethrough, and links. It
+preserves whitespace and treats inline HTML as literal text. Localized Markdown
+is interpolated without reparsing substitution values as Markdown.
+
+Case-insensitive range searches use Android's built-in ICU search:
+
+```swift
+let text = AttributedString("Search highlighting in Skip")
+let range = text.range(of: "skip", options: .caseInsensitive)
+```
+
+Both `AttributedString` and `AttributedSubstring` accept `options:` and `locale:`.
+The supported options are `[]` and `.caseInsensitive`. When both options and locale are omitted,
+searches retain their existing exact-match behavior. ICU searches preserve accents,
+recognize canonically equivalent Unicode text, and return the matched length in the
+original string. A nil locale uses ICU's root locale; pass an explicit `Locale` for
+language-specific matching. Other option bits are rejected.
+
+Matching follows the device's ICU rules rather than promising full Apple parity.
+For example, the tested ICU case-insensitive search does not equate `Straße` with
+`STRASSE`, whereas Apple Foundation does. No custom Unicode matching tables are used.
+
+This is a subset of Foundation's API:
+
+- Infer ranges returned by `range(of:)` or `runs`. Lite uses `AttributedStringRange`
+  because the transpiler treats integer `Range` subscripts as collection slices,
+  which do not preserve mutable-substring write-back. Explicit
+  `Range<AttributedString.Index>` annotations, manually constructed ranges, and
+  partial-range subscripting are not supported.
+- Indices follow Skip String's UTF-16 convention. Use ranges obtained from the
+  attributed value, and do not carry indices across text replacements.
+- `characters` is a read-only String. Mutable character views, arbitrary character
+  insertion/removal, generic attribute keys, dynamic attribute scopes, and Codable
+  attributed strings are not implemented.
+- `AttributeContainer` provides typed Foundation attributes. UI libraries can add
+  typed properties through `attribute(named:)` and `setAttribute(named:value:)`;
+  Foundation has no dependency on a UI library. These named helpers are Skip APIs.
+- Markdown block formatting, `.full`, `.inlineOnly`, `baseURL:`, and `including:`
+  parsing options are not supported by this initializer.
+
+`EditableAttributedStringTests` runs the shared API examples against Apple
+Foundation and the transpiled implementation, covering overlapping edits,
+attribute removal, copy isolation, Unicode, localized Markdown, and hashing.
