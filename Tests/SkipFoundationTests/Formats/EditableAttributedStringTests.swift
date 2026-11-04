@@ -5,6 +5,48 @@ import XCTest
 
 /// The same calls execute against Apple Foundation and the transpiled implementation.
 final class EditableAttributedStringTests: XCTestCase {
+    func testCaseInsensitiveSearchFindsFirstMatchAndPreservesText() {
+        var text = AttributedString("Search highlighting in Skip and SKIP")
+        XCTAssertNil(text.range(of: "skip"))
+        let range = text.range(of: "skip", options: .caseInsensitive)!
+        XCTAssertEqual(String(text[range].characters), "Skip")
+        text[range].inlinePresentationIntent = .stronglyEmphasized
+        XCTAssertEqual(text.runs.count, 3)
+        XCTAssertEqual(String(text.characters), "Search highlighting in Skip and SKIP")
+        XCTAssertNil(text[text.range(of: "SKIP")!].inlinePresentationIntent)
+        XCTAssertNil(text.range(of: "missing", options: .caseInsensitive))
+        XCTAssertNil(text.range(of: "", options: .caseInsensitive))
+        XCTAssertNil(AttributedString().range(of: "skip", options: .caseInsensitive))
+    }
+
+    func testCaseInsensitiveSearchUsesOriginalUnicodeMatchLength() {
+        let composed = AttributedString("👩🏽‍💻 CAFÉ!")
+        let first = composed.range(of: "cafe\u{0301}", options: .caseInsensitive)!
+        XCTAssertEqual(String(composed[first].characters), "CAFÉ")
+        let decomposed = AttributedString("👩🏽‍💻 CAFE\u{0301}!")
+        let second = decomposed.range(of: "café", options: .caseInsensitive)!
+        XCTAssertEqual(String(decomposed[second].characters), "CAFE\u{0301}")
+        XCTAssertNil(composed.range(of: "cafe", options: .caseInsensitive))
+    }
+
+    func testCaseInsensitiveSubstringSearchRetainsSourceCoordinates() {
+        var text = AttributedString("Skip outside | 👩🏽‍💻 Skip inside | Skip outside")
+        let middle = text[text.range(of: "👩🏽‍💻 Skip inside")!]
+        let range = middle.range(of: "SKIP", options: .caseInsensitive)!
+        text[range].inlinePresentationIntent = .stronglyEmphasized
+        XCTAssertEqual(String(text[range].characters), "Skip")
+        XCTAssertNil(text[text.range(of: "Skip outside")!].inlinePresentationIntent)
+        XCTAssertNil(middle.range(of: "outside", options: .caseInsensitive))
+        XCTAssertEqual(String(text.characters), "Skip outside | 👩🏽‍💻 Skip inside | Skip outside")
+    }
+
+    func testCaseInsensitiveSearchUsesExplicitLocale() {
+        let text = AttributedString("I")
+        XCTAssertNil(text.range(of: "ı", options: .caseInsensitive))
+        let range = text.range(of: "ı", options: .caseInsensitive, locale: Locale(identifier: "tr_TR"))!
+        XCTAssertEqual(String(text[range].characters), "I")
+    }
+
     func testOverlappingEditsPreserveOtherAttributes() {
         var text = AttributedString("one two three")
         let link = URL(string: "https://example.com")!

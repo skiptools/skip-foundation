@@ -82,11 +82,25 @@ public struct AttributedString: Hashable {
         markdownNode = locnode
     }
 
-    /// Find the first literal occurrence, using Skip String's index convention.
-    public func range(of text: String) -> AttributedStringRange? {
-        guard !text.isEmpty else { return nil }
-        let offset = string.indexOf(text)
-        return offset < 0 ? nil : AttributedStringRange(lowerBound: offset, upperBound: offset + text.count)
+    /// Find the first occurrence using Skip String's UTF-16 index convention.
+    /// Case-insensitive searches use Android ICU, preserving accents and original
+    /// match lengths. A nil locale uses ICU's root locale. Other options are unsupported.
+    public func range(of text: String, options: String.CompareOptions = [], locale: Locale? = nil) -> AttributedStringRange? {
+        precondition(options.rawValue & ~String.CompareOptions.caseInsensitive.rawValue == UInt(0), "Unsupported attributed-string search options")
+        let source = string
+        guard !text.isEmpty && !source.isEmpty else { return nil }
+        if options.isEmpty && locale == nil {
+            let offset = source.indexOf(text)
+            return offset < 0 ? nil : AttributedStringRange(lowerBound: offset, upperBound: offset + text.count)
+        }
+        let collator = android.icu.text.Collator.getInstance(locale?.platformValue ?? java.util.Locale.ROOT) as! android.icu.text.RuleBasedCollator
+        collator.setStrength(options.contains(.caseInsensitive) ? android.icu.text.Collator.SECONDARY : android.icu.text.Collator.TERTIARY)
+        collator.setDecomposition(android.icu.text.Collator.CANONICAL_DECOMPOSITION)
+        let search = android.icu.text.StringSearch(text, java.text.StringCharacterIterator(source), collator)
+        let offset = search.first()
+        guard offset != android.icu.text.SearchIterator.DONE else { return nil }
+        // ICU reports the length in the original text, which may differ from the query.
+        return AttributedStringRange(lowerBound: offset, upperBound: offset + search.getMatchLength())
     }
 
     /// Read or replace an attributed range. Mutating an attribute on the returned
@@ -268,9 +282,10 @@ public struct AttributedSubstring: Hashable {
         value.runs.map { AttributedString.Run(range: AttributedStringRange(lowerBound: $0.range.lowerBound + startIndex, upperBound: $0.range.upperBound + startIndex), attributes: $0.attributes) }
     }
 
-    /// Find literal text and return its range in the source coordinates.
-    public func range(of text: String) -> AttributedStringRange? {
-        guard let range = value.range(of: text) else { return nil }
+    /// Search within this substring and return a range in the source coordinates.
+    /// Supports the same options and locale as `AttributedString.range(of:options:locale:)`.
+    public func range(of text: String, options: String.CompareOptions = [], locale: Locale? = nil) -> AttributedStringRange? {
+        guard let range = value.range(of: text, options: options, locale: locale) else { return nil }
         return AttributedStringRange(lowerBound: range.lowerBound + startIndex, upperBound: range.upperBound + startIndex)
     }
 

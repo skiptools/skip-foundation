@@ -88,7 +88,7 @@ Support levels:
 <li><code>init(_: String, attributes: AttributeContainer)</code></li>
 <li><code>init(_: AttributedSubstring)</code></li>
 <li><code>init(markdown:options:)</code>, with inline-only whitespace-preserving parsing</li>
-<li><code>range(of:)</code>, editable range subscripting, <code>runs</code>, <code>characters</code>, and <code>append(_:)</code></li>
+<li><code>range(of:options:locale:)</code>, editable range subscripting, <code>runs</code>, <code>characters</code>, and <code>append(_:)</code></li>
 <li><code>link</code> and <code>inlinePresentationIntent</code> on strings, substrings, containers, and runs</li>
 <li>See <a href="#editable-attributed-strings">Editable attributed strings</a> for supported syntax and limitations</li>
 <li><code>init(localized keyAndValue: String.LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale? = nil, comment: String? = nil)</code></li>
@@ -1180,6 +1180,24 @@ syntax is `.inlineOnlyPreservingWhitespace`, also the Lite default. The parser
 supports emphasis, strong emphasis, inline code, strikethrough, and links. It
 preserves whitespace and treats inline HTML as literal text. Localized Markdown
 is interpolated without reparsing substitution values as Markdown.
+
+Case-insensitive range searches use Android's built-in ICU search:
+
+```swift
+let text = AttributedString("Search highlighting in Skip")
+let range = text.range(of: "skip", options: .caseInsensitive)
+```
+
+Both `AttributedString` and `AttributedSubstring` accept `options:` and `locale:`.
+The supported options are `[]` and `.caseInsensitive`. When both options and locale are omitted,
+searches retain their existing exact-match behavior. ICU searches preserve accents,
+recognize canonically equivalent Unicode text, and return the matched length in the
+original string. A nil locale uses ICU's root locale; pass an explicit `Locale` for
+language-specific matching. Other option bits are rejected.
+
+Matching follows the device's ICU rules rather than promising full Apple parity.
+For example, the tested ICU case-insensitive search does not equate `Straße` with
+`STRASSE`, whereas Apple Foundation does. No custom Unicode matching tables are used.
 
 This is a subset of Foundation's API:
 

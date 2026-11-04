@@ -144,6 +144,9 @@ extension String {
         return startIndex != -1 ? startIndex..<(startIndex + searchString.count) : nil
     }
 
+    /// Options supported by attributed-string searches.
+    public typealias CompareOptions = StringCompareOptions
+
     public typealias Encoding = StringEncoding
 
     public var utf8Data: Data {
@@ -233,4 +236,13 @@ public func String(localized key: String, defaultValue: String? = nil, table: St
     return (bundle ?? Bundle.main).localizedString(forKey: key, value: defaultValue, table: table, locale: locale) ?? defaultValue ?? key
 }
 
+/// Search options exposed through `String.CompareOptions` in Skip Lite.
+public struct StringCompareOptions: OptionSet {
+    /// The Foundation-compatible option bits.
+    public let rawValue: UInt
+    /// Create a set of search options.
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+    /// Ignore case using Android ICU's language-aware search rules.
+    public static let caseInsensitive = StringCompareOptions(rawValue: UInt(1))
+}
 #endif
