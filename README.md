@@ -1151,12 +1151,6 @@ None of the other `FileManager.SearchPathDirectory` enumerations are implemented
 
 Both `Data` and `String` have the ability to read and write to and from URLs and path strings.
 
-
-## License
-
-This software is licensed under the 
-[Mozilla Public License 2.0](https://www.mozilla.org/MPL/).
-
 ## Editable attributed strings
 
 Skip Lite supports applying and removing attributes on whole strings or ranges:

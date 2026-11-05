@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if SKIP
 import kotlinx.coroutines.channels.Channel
 import okhttp3.RequestBody.Companion.asRequestBody

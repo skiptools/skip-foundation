@@ -1,5 +1,4 @@
 // Copyright 2023–2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if SKIP
 
 /// Skip `Logger` aliases to `SkipLogger` type and wraps `java.util.logging.Logger`

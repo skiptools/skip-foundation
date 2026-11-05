@@ -1,5 +1,4 @@
 // Copyright 2026 Skip
-// SPDX-License-Identifier: MPL-2.0
 #if SKIP
 
 // "Unit" is a reserved name in Kotlin (kotlin.Unit). On iOS, Foundation.Unit
